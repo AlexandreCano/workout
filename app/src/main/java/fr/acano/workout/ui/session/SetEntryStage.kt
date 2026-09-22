@@ -8,6 +8,7 @@ import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.aspectRatio
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.rememberScrollState
@@ -99,13 +100,19 @@ fun SetEntryStage(
 
         Spacer(Modifier.height(WorkoutTheme.spacing.xl))
 
-        ExerciseImage(
-            exerciseId = step.exercise.id,
-            modifier = Modifier
-                .fillMaxWidth()
-                .aspectRatio(16f / 10f),
-            shape = MaterialTheme.shapes.large,
-        )
+        // Cadre carré : les animations d'exercice sont quasi toujours carrées, et
+        // un cadre 16:10 les faisait flotter entre deux bandes vides. La hauteur
+        // est bornée pour garder le bouton de validation au-dessus de la ligne de
+        // flottaison. ContentScale.Fit gère proprement une source non carrée.
+        Box(Modifier.fillMaxWidth(), contentAlignment = Alignment.Center) {
+            ExerciseImage(
+                exerciseId = step.exercise.id,
+                modifier = Modifier
+                    .heightIn(max = 260.dp)
+                    .aspectRatio(1f),
+                shape = MaterialTheme.shapes.large,
+            )
+        }
 
         if (step.setsDoneToday.isNotEmpty()) {
             Spacer(Modifier.height(WorkoutTheme.spacing.lg))

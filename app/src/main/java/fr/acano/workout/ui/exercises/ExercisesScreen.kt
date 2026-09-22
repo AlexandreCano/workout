@@ -1,6 +1,7 @@
 package fr.acano.workout.ui.exercises
 
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
@@ -9,6 +10,7 @@ import androidx.compose.foundation.layout.aspectRatio
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
@@ -138,13 +140,15 @@ fun ExerciseDetailScreen(
         BackRow(onBack)
 
         if (exercise != null) {
-            ExerciseImage(
-                exerciseId = exercise.id,
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .aspectRatio(16f / 10f),
-                shape = MaterialTheme.shapes.large,
-            )
+            Box(Modifier.fillMaxWidth(), contentAlignment = Alignment.Center) {
+                ExerciseImage(
+                    exerciseId = exercise.id,
+                    modifier = Modifier
+                        .heightIn(max = 300.dp)
+                        .aspectRatio(1f),
+                    shape = MaterialTheme.shapes.large,
+                )
+            }
 
             Spacer(Modifier.height(WorkoutTheme.spacing.xl))
 
