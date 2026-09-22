@@ -158,7 +158,7 @@ private fun StarHero(stars: Int, upperCount: Int, lowerCount: Int) {
         Row(
             verticalAlignment = Alignment.CenterVertically,
             modifier = Modifier.semantics {
-                contentDescription = "$stars séances réalisées"
+                contentDescription = if (stars <= 1) "$stars séance réalisée" else "$stars séances réalisées"
             },
         ) {
             Icon(

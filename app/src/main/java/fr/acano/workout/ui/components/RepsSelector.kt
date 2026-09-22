@@ -16,6 +16,11 @@ import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.mutableIntStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
+import androidx.compose.ui.layout.onSizeChanged
+import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -43,19 +48,27 @@ fun RepsSelector(
 ) {
     val range = ((minReps - 3).coerceAtLeast(1))..(maxReps + 3)
     val scrollState = rememberScrollState()
+    val density = LocalDensity.current
+    var viewportPx by remember { mutableIntStateOf(0) }
 
-    // Recentre la sélection : sans cela, la valeur pré-remplie peut être hors écran.
-    LaunchedEffect(selected, range.first) {
-        val itemWidth = ITEM_SIZE_DP + GAP_DP
-        val target = ((selected - range.first) * itemWidth - CENTER_OFFSET_DP).coerceAtLeast(0)
-        scrollState.animateScrollTo(target)
+    // Recentre la sélection dans la fenêtre visible.
+    // `animateScrollTo` travaille en pixels : convertir depuis les dp est
+    // indispensable, sinon le défilement est trois à quatre fois trop court
+    // sur un écran dense et la valeur choisie sort du cadre.
+    LaunchedEffect(selected, range.first, viewportPx) {
+        if (viewportPx == 0) return@LaunchedEffect
+        val itemPx = with(density) { (ITEM_SIZE + GAP).toPx() }
+        val selectedStart = (selected - range.first) * itemPx
+        val centered = selectedStart - (viewportPx - with(density) { ITEM_SIZE.toPx() }) / 2f
+        scrollState.animateScrollTo(centered.toInt().coerceAtLeast(0))
     }
 
     Row(
-        horizontalArrangement = Arrangement.spacedBy(GAP_DP.dp),
+        horizontalArrangement = Arrangement.spacedBy(GAP),
         verticalAlignment = Alignment.CenterVertically,
         modifier = modifier
             .fillMaxWidth()
+            .onSizeChanged { viewportPx = it.width }
             .horizontalScroll(scrollState)
             .padding(horizontal = WorkoutTheme.spacing.xs),
     ) {
@@ -101,7 +114,7 @@ private fun RepsChip(
         contentColor = content,
         shape = CircleShape,
         modifier = Modifier
-            .size(ITEM_SIZE_DP.dp)
+            .size(ITEM_SIZE)
             .selectable(
                 selected = selected,
                 role = Role.RadioButton,
@@ -114,6 +127,5 @@ private fun RepsChip(
     }
 }
 
-private const val ITEM_SIZE_DP = 60
-private const val GAP_DP = 8
-private const val CENTER_OFFSET_DP = 130
+private val ITEM_SIZE = 60.dp
+private val GAP = 8.dp

@@ -72,7 +72,7 @@ fun HistoryScreen(
     ) {
         item {
             ScreenTitle("Historique")
-            SectionHeader("${sessions.size} séances")
+            SectionHeader(if (sessions.size <= 1) "1 séance" else "${sessions.size} séances")
         }
         items(sessions, key = { it.sessionId }) { session ->
             SessionRow(session, onClick = { onOpenSession(session.sessionId) })

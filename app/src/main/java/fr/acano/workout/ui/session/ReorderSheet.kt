@@ -54,7 +54,7 @@ fun ReorderSheet(
             )
 
             Spacer(Modifier.height(WorkoutTheme.spacing.xl))
-            SectionHeader("${steps.size} exercices restants")
+            SectionHeader(if (steps.size <= 1) "1 exercice restant" else "${steps.size} exercices restants")
 
             steps.forEach { step ->
                 StepRow(step = step, onClick = { onSelect(step.exerciseSessionId) })

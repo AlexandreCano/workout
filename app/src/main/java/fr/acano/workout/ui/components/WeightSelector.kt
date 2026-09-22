@@ -36,7 +36,10 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.scale
 import androidx.compose.ui.hapticfeedback.HapticFeedbackType
 import androidx.compose.ui.platform.LocalHapticFeedback
-import androidx.compose.ui.semantics.clearAndSetSemantics
+import androidx.compose.ui.semantics.Role
+import androidx.compose.ui.semantics.contentDescription
+import androidx.compose.ui.semantics.role
+import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import fr.acano.workout.ui.common.formatWeightValue
@@ -130,7 +133,14 @@ private fun WeightValue(weightKg: Double?, modifier: Modifier = Modifier) {
             Text(
                 text = value?.let { formatWeightValue(it) } ?: "—",
                 style = WorkoutTheme.emphasis.metric,
-                color = MaterialTheme.colorScheme.onSurface,
+                // Une charge jamais renseignée reste en teinte secondaire :
+                // en pleine taille et en pleine couleur, le tiret se lit comme
+                // une valeur barrée plutôt que comme une absence.
+                color = if (value == null) {
+                    MaterialTheme.colorScheme.onSurfaceVariant
+                } else {
+                    MaterialTheme.colorScheme.onSurface
+                },
             )
         }
         Text(
@@ -170,16 +180,19 @@ private fun StepperTarget(
                 indication = androidx.compose.material3.ripple(),
                 onClick = onClick,
                 onLongClick = onLongClick,
-                onClickLabel = contentDescription,
-            ),
+            )
+            // Le libellé porte sur le nœud lui-même, pas seulement sur l'action :
+            // onClickLabel seul laisse TalkBack annoncer « bouton » sans rien d'autre.
+            .semantics {
+                this.contentDescription = contentDescription
+                role = Role.Button
+            },
     ) {
         Box(contentAlignment = Alignment.Center) {
             Icon(
                 imageVector = icon,
-                contentDescription = contentDescription,
-                modifier = Modifier
-                    .size(30.dp)
-                    .clearAndSetSemantics { },
+                contentDescription = null,
+                modifier = Modifier.size(30.dp),
             )
         }
     }

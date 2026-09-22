@@ -15,7 +15,6 @@ import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.rounded.Check
 import androidx.compose.material.icons.rounded.PlayArrow
-import androidx.compose.material.icons.rounded.SwapVert
 import androidx.compose.material.icons.rounded.Undo
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
@@ -83,14 +82,15 @@ fun SetEntryStage(
         if (canReorder) {
             Spacer(Modifier.height(WorkoutTheme.spacing.lg))
             ActionRow {
+                // Sans icône : avec elle, « Machine occupée » se fait tronquer
+                // en « Machine » dans la moitié de largeur disponible.
                 WorkoutTonalButton(
                     text = "Machine occupée",
                     onClick = onPostpone,
-                    icon = Icons.Rounded.SwapVert,
                     modifier = Modifier.weight(1f),
                 )
                 WorkoutTonalButton(
-                    text = "Changer",
+                    text = "Changer d'exercice",
                     onClick = onOpenReorder,
                     modifier = Modifier.weight(1f),
                 )

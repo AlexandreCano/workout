@@ -28,6 +28,7 @@ import kotlinx.coroutines.cancel
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.isActive
 import kotlinx.coroutines.launch
+import java.util.concurrent.atomic.AtomicBoolean
 
 /**
  * Porte le décompte pendant la récupération et les exercices chronométrés.
@@ -44,6 +45,17 @@ class RestTimerService : Service() {
     private val scope = CoroutineScope(SupervisorJob())
     private var tickJob: Job? = null
 
+    /**
+     * Identifiant de la dernière commande reçue.
+     *
+     * Indispensable : `stopSelf()` sans identifiant arrête le service en jetant
+     * toute commande arrivée entre-temps. Si un `ACTION_START` est ainsi perdu
+     * après un `startForegroundService()`, le système tue l'application avec une
+     * `RemoteServiceException` non rattrapable. `stopSelf(startId)` ne s'arrête
+     * au contraire que si aucune commande plus récente n'est en attente.
+     */
+    private var latestStartId: Int = 0
+
     private var kind: TimerKind = TimerKind.REST
     private var label: String = ""
     private var totalMs: Long = 0
@@ -52,7 +64,13 @@ class RestTimerService : Service() {
 
     override fun onBind(intent: Intent?): IBinder? = null
 
+    override fun onCreate() {
+        super.onCreate()
+        isRunning.set(true)
+    }
+
     override fun onStartCommand(intent: Intent?, flags: Int, startId: Int): Int {
+        latestStartId = startId
         when (intent?.action) {
             ACTION_START -> handleStart(intent)
             ACTION_PAUSE -> handlePause()
@@ -71,7 +89,13 @@ class RestTimerService : Service() {
         deadlineElapsed = SystemClock.elapsedRealtime() + totalMs
         pausedRemainingMs = null
 
-        startForegroundCompat(buildRunningNotification(totalMs))
+        if (!startForegroundCompat(buildRunningNotification(totalMs))) {
+            // Sans passage en premier plan, le contrat de startForegroundService
+            // ne peut pas être tenu : on s'arrête nous-mêmes plutôt que de laisser
+            // le système tuer l'application cinq secondes plus tard.
+            stopTimer()
+            return
+        }
         publish(totalMs, running = true, finished = false)
         startTicking()
     }
@@ -133,7 +157,7 @@ class RestTimerService : Service() {
         vibrate()
         notifyFinished()
         stopForegroundCompat()
-        stopSelf()
+        stopSelf(latestStartId)
     }
 
     private fun stopTimer() {
@@ -141,7 +165,7 @@ class RestTimerService : Service() {
         ActiveTimer.update(null)
         NotificationManagerCompat.from(this).cancel(DONE_NOTIFICATION_ID)
         stopForegroundCompat()
-        stopSelf()
+        stopSelf(latestStartId)
     }
 
     private fun remainingMs(): Long =
@@ -214,19 +238,17 @@ class RestTimerService : Service() {
         }
     }
 
-    private fun startForegroundCompat(notification: Notification) {
-        runCatching {
-            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.UPSIDE_DOWN_CAKE) {
-                startForeground(
-                    TimerNotifications.RUNNING_NOTIFICATION_ID,
-                    notification,
-                    ServiceInfo.FOREGROUND_SERVICE_TYPE_SPECIAL_USE,
-                )
-            } else {
-                startForeground(TimerNotifications.RUNNING_NOTIFICATION_ID, notification)
-            }
+    private fun startForegroundCompat(notification: Notification): Boolean = runCatching {
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.UPSIDE_DOWN_CAKE) {
+            startForeground(
+                TimerNotifications.RUNNING_NOTIFICATION_ID,
+                notification,
+                ServiceInfo.FOREGROUND_SERVICE_TYPE_SPECIAL_USE,
+            )
+        } else {
+            startForeground(TimerNotifications.RUNNING_NOTIFICATION_ID, notification)
         }
-    }
+    }.isSuccess
 
     private fun stopForegroundCompat() {
         stopForeground(STOP_FOREGROUND_REMOVE)
@@ -245,6 +267,7 @@ class RestTimerService : Service() {
     }
 
     override fun onDestroy() {
+        isRunning.set(false)
         scope.cancel()
         super.onDestroy()
     }
@@ -262,6 +285,9 @@ class RestTimerService : Service() {
 
         private const val DONE_NOTIFICATION_ID = 1002
         private const val TICK_MS = 200L
+
+        /** Vrai entre `onCreate` et `onDestroy` du service. */
+        private val isRunning = AtomicBoolean(false)
 
         fun start(context: Context, kind: TimerKind, label: String, durationMs: Long) {
             val intent = Intent(context, RestTimerService::class.java)
@@ -284,9 +310,15 @@ class RestTimerService : Service() {
             )
         }
 
+        /**
+         * Arrête le chronomètre. Si le service ne tourne pas, on se contente de
+         * vider l'état : `startService()` le créerait uniquement pour le détruire,
+         * et ce cycle création/destruction entrait en collision avec le
+         * `startForegroundService()` qui suit immédiatement.
+         */
         fun stop(context: Context) {
             ActiveTimer.update(null)
-            send(context, ACTION_STOP)
+            if (isRunning.get()) send(context, ACTION_STOP)
         }
 
         private fun send(context: Context, action: String) {

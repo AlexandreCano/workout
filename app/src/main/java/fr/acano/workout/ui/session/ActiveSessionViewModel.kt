@@ -156,7 +156,9 @@ class ActiveSessionViewModel(
                 setNumber = step.setNumber,
                 durationSeconds = step.exercise.targetDurationSeconds,
             )
-            RestTimerService.stop(context)
+            // Pas de stop() ici : startRestIfNeeded arrête déjà le chronomètre
+            // quand il n'y a pas de récupération à lancer. Enchaîner un stop et
+            // un start faisait se croiser destruction et création du service.
             startRestIfNeeded(context, step)
         }
     }
@@ -172,7 +174,9 @@ class ActiveSessionViewModel(
                 setNumber = step.setNumber,
                 durationSeconds = elapsedSeconds,
             )
-            RestTimerService.stop(context)
+            // Pas de stop() ici : startRestIfNeeded arrête déjà le chronomètre
+            // quand il n'y a pas de récupération à lancer. Enchaîner un stop et
+            // un start faisait se croiser destruction et création du service.
             startRestIfNeeded(context, step)
         }
     }
