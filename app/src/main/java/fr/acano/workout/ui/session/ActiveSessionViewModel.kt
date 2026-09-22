@@ -202,20 +202,17 @@ class ActiveSessionViewModel(
     // --- Ordre des exercices ---
 
     /**
-     * Machine occupée : l'exercice courant passe juste après le suivant.
-     * Le chronomètre est arrêté puisqu'on change de machine.
+     * Applique l'ordre choisi sur l'écran de réorganisation.
+     * Le chronomètre est arrêté : après un changement d'ordre, l'exercice courant
+     * peut être un autre, et une récupération héritée du précédent n'a plus de sens.
      */
-    fun postponeCurrentStep(context: Context) {
-        val step = state.value.step ?: return
+    fun applyPendingOrder(context: Context, orderedExerciseSessionIds: List<Long>) {
+        val current = state.value.pendingSteps.map { it.exerciseSessionId }
+        if (current == orderedExerciseSessionIds) return
         skipTimer(context)
-        viewModelScope.launch { repository.postponeStep(sessionId, step.exerciseSessionId) }
-    }
-
-    /** Passe directement à l'exercice choisi ; les autres restent à faire ensuite. */
-    fun doStepNow(context: Context, exerciseSessionId: Long) {
-        if (exerciseSessionId == state.value.step?.exerciseSessionId) return
-        skipTimer(context)
-        viewModelScope.launch { repository.doStepNow(sessionId, exerciseSessionId) }
+        viewModelScope.launch {
+            repository.applyPendingOrder(sessionId, orderedExerciseSessionIds)
+        }
     }
 
     fun undoLastSet(context: Context) {

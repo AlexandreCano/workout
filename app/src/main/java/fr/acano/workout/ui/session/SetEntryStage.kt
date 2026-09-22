@@ -15,6 +15,7 @@ import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.rounded.Check
+import androidx.compose.material.icons.rounded.SwapVert
 import androidx.compose.material.icons.rounded.PlayArrow
 import androidx.compose.material.icons.rounded.Undo
 import androidx.compose.material3.MaterialTheme
@@ -32,7 +33,6 @@ import androidx.compose.ui.unit.dp
 import fr.acano.workout.domain.ExerciseKind
 import fr.acano.workout.ui.common.formatWeight
 import fr.acano.workout.ui.common.targetLabel
-import fr.acano.workout.ui.components.ActionRow
 import fr.acano.workout.ui.components.ExerciseHeader
 import fr.acano.workout.ui.components.ExerciseImage
 import fr.acano.workout.ui.components.RepsSelector
@@ -61,7 +61,6 @@ fun SetEntryStage(
     onValidateReps: (Int) -> Unit,
     onStartEffort: () -> Unit,
     onMarkTimedDone: () -> Unit,
-    onPostpone: () -> Unit,
     onOpenReorder: () -> Unit,
     onUndo: () -> Unit,
     modifier: Modifier = Modifier,
@@ -82,20 +81,12 @@ fun SetEntryStage(
 
         if (canReorder) {
             Spacer(Modifier.height(WorkoutTheme.spacing.lg))
-            ActionRow {
-                // Sans icône : avec elle, « Machine occupée » se fait tronquer
-                // en « Machine » dans la moitié de largeur disponible.
-                WorkoutTonalButton(
-                    text = "Machine occupée",
-                    onClick = onPostpone,
-                    modifier = Modifier.weight(1f),
-                )
-                WorkoutTonalButton(
-                    text = "Changer d'exercice",
-                    onClick = onOpenReorder,
-                    modifier = Modifier.weight(1f),
-                )
-            }
+            WorkoutTonalButton(
+                text = "Réorganiser la suite",
+                onClick = onOpenReorder,
+                icon = Icons.Rounded.SwapVert,
+                modifier = Modifier.fillMaxWidth(),
+            )
         }
 
         Spacer(Modifier.height(WorkoutTheme.spacing.xl))

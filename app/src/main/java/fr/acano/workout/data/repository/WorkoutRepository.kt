@@ -105,23 +105,20 @@ class WorkoutRepository(
     // L'ordre modifié vaut pour cette séance seulement : le programme de référence
     // reste celui de Program.planFor().
 
-    /** Place cet exercice en tête des exercices restants : « je le fais maintenant ». */
-    suspend fun doStepNow(sessionId: Long, exerciseSessionId: Long) {
+    /**
+     * Applique un ordre arbitraire aux exercices restants.
+     *
+     * [orderedExerciseSessionIds] doit contenir exactement les étapes non terminées.
+     * Toute étape absente de la liste est conservée, à la suite et dans son ordre
+     * d'origine : l'appel reste sûr si l'écran s'appuie sur un état légèrement
+     * périmé, par exemple si une série vient d'être validée ailleurs.
+     */
+    suspend fun applyPendingOrder(sessionId: Long, orderedExerciseSessionIds: List<Long>) {
         reorderPendingSteps(sessionId) { pending ->
-            val target = pending.firstOrNull { it.exerciseSession.id == exerciseSessionId }
-                ?: return@reorderPendingSteps pending
-            listOf(target) + pending.filterNot { it.exerciseSession.id == exerciseSessionId }
-        }
-    }
-
-    /** Décale cet exercice d'un cran : « la machine est prise, je reviendrai ». */
-    suspend fun postponeStep(sessionId: Long, exerciseSessionId: Long) {
-        reorderPendingSteps(sessionId) { pending ->
-            val index = pending.indexOfFirst { it.exerciseSession.id == exerciseSessionId }
-            if (index < 0 || index == pending.lastIndex) {
-                return@reorderPendingSteps pending
-            }
-            pending.toMutableList().apply { add(index + 1, removeAt(index)) }
+            val byId = pending.associateBy { it.exerciseSession.id }
+            val moved = orderedExerciseSessionIds.mapNotNull(byId::get)
+            val movedIds = moved.map { it.exerciseSession.id }.toSet()
+            moved + pending.filterNot { it.exerciseSession.id in movedIds }
         }
     }
 

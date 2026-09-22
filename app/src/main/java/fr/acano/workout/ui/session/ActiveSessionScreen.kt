@@ -57,7 +57,7 @@ fun ActiveSessionScreen(
     val state by viewModel.state.collectAsStateWithLifecycle()
     val context = LocalContext.current
     var showQuitDialog by rememberSaveable { mutableStateOf(false) }
-    var showReorderSheet by rememberSaveable { mutableStateOf(false) }
+    var reordering by rememberSaveable { mutableStateOf(false) }
 
     KeepScreenOn()
 
@@ -71,18 +71,8 @@ fun ActiveSessionScreen(
     LaunchedEffect(state.isFinished) { if (state.isFinished) onSessionComplete() }
     LaunchedEffect(state.sessionMissing) { if (state.sessionMissing) onExit() }
 
-    BackHandler { showQuitDialog = true }
-
-    if (showReorderSheet) {
-        ReorderSheet(
-            steps = state.pendingSteps,
-            onSelect = { exerciseSessionId ->
-                showReorderSheet = false
-                viewModel.doStepNow(context, exerciseSessionId)
-            },
-            onDismiss = { showReorderSheet = false },
-        )
-    }
+    // L'étape de réorganisation gère elle-même le retour arrière.
+    BackHandler(enabled = !reordering) { showQuitDialog = true }
 
     if (showQuitDialog) {
         QuitDialog(
@@ -118,7 +108,11 @@ fun ActiveSessionScreen(
             )
 
             AnimatedContent(
-                targetState = state.timer != null,
+                targetState = when {
+                    reordering -> Stage.REORDER
+                    state.timer != null -> Stage.TIMER
+                    else -> Stage.SET_ENTRY
+                },
                 transitionSpec = {
                     (fadeIn(WorkoutMotion.effects()) + scaleIn(WorkoutMotion.spatial(), initialScale = 0.92f))
                         .togetherWith(
@@ -128,19 +122,29 @@ fun ActiveSessionScreen(
                 },
                 label = "sessionStage",
                 modifier = Modifier.fillMaxSize(),
-            ) { timerRunning ->
-                val activeTimer = state.timer
-                if (timerRunning && activeTimer != null) {
-                    TimerStage(
-                        timer = activeTimer,
-                        caption = state.nextUpCaption(),
-                        onPause = { viewModel.pauseTimer(context) },
-                        onResume = { viewModel.resumeTimer(context) },
-                        onAddThirty = { viewModel.addThirtySeconds(context) },
-                        onSkip = { viewModel.skipTimer(context) },
+            ) { stage ->
+                when (stage) {
+                    Stage.REORDER -> ReorderStage(
+                        steps = state.pendingSteps,
+                        onConfirm = { order ->
+                            reordering = false
+                            viewModel.applyPendingOrder(context, order)
+                        },
+                        onCancel = { reordering = false },
                     )
-                } else {
-                    SetEntryStage(
+
+                    Stage.TIMER -> state.timer?.let { activeTimer ->
+                        TimerStage(
+                            timer = activeTimer,
+                            caption = state.nextUpCaption(),
+                            onPause = { viewModel.pauseTimer(context) },
+                            onResume = { viewModel.resumeTimer(context) },
+                            onAddThirty = { viewModel.addThirtySeconds(context) },
+                            onSkip = { viewModel.skipTimer(context) },
+                        )
+                    }
+
+                    Stage.SET_ENTRY -> SetEntryStage(
                         step = step,
                         canReorder = state.pendingSteps.size > 1,
                         canUndo = step.setsDoneToday.isNotEmpty(),
@@ -153,8 +157,7 @@ fun ActiveSessionScreen(
                                 step.exercise.targetDurationSeconds ?: 60,
                             )
                         },
-                        onPostpone = { viewModel.postponeCurrentStep(context) },
-                        onOpenReorder = { showReorderSheet = true },
+                        onOpenReorder = { reordering = true },
                         onUndo = { viewModel.undoLastSet(context) },
                     )
                 }
@@ -162,6 +165,9 @@ fun ActiveSessionScreen(
         }
     }
 }
+
+/** Les trois états exclusifs de l'écran de séance. */
+private enum class Stage { SET_ENTRY, TIMER, REORDER }
 
 /**
  * Légende affichée sous le chronomètre : ce qui vient après.

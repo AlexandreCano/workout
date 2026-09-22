@@ -209,43 +209,53 @@ class WorkoutRepositoryTest {
         assertNotNull(repository.observeActiveSession().first())
     }
 
-    // --- Réordonnancement (machine occupée) ---
+    // --- Réordonnancement libre ---
 
     @Test
-    fun `reporter un exercice le place juste apres le suivant`() = runTest {
+    fun `l ordre choisi est applique tel quel`() = runTest {
         val sessionId = repository.startSession(WorkoutType.UPPER_BODY)
-        val plan = Program.planFor(WorkoutType.UPPER_BODY)
-        val bike = stepFor(sessionId, Program.BIKE)
+        val wanted = listOf("seated_row", Program.PLANK, "chest_press", Program.BIKE, "pec_deck", "lat_pulldown", Program.STOMACH_VACUUM)
 
-        repository.postponeStep(sessionId, bike)
+        repository.applyPendingOrder(sessionId, wanted.map { stepFor(sessionId, it) })
 
-        assertEquals(
-            listOf(plan[1], plan[0], plan[2], plan[3], plan[4], plan[5], plan[6]),
-            orderOf(sessionId),
-        )
+        assertEquals(wanted, orderOf(sessionId))
     }
 
     @Test
-    fun `choisir un exercice le place en tete des exercices restants`() = runTest {
+    fun `remonter un exercice en tete le rend courant`() = runTest {
         val sessionId = repository.startSession(WorkoutType.UPPER_BODY)
-        val seatedRow = stepFor(sessionId, "seated_row")
+        val order = orderOf(sessionId).toMutableList()
+        order.add(0, order.removeAt(order.indexOf("seated_row")))
 
-        repository.doStepNow(sessionId, seatedRow)
+        repository.applyPendingOrder(sessionId, order.map { stepFor(sessionId, it) })
 
         assertEquals("seated_row", orderOf(sessionId).first())
-        assertEquals(7, orderOf(sessionId).size)
     }
 
     @Test
     fun `les exercices termines restent en tete et dans leur ordre`() = runTest {
         val sessionId = repository.startSession(WorkoutType.UPPER_BODY)
         repository.recordSet(stepFor(sessionId, Program.BIKE), Program.BIKE, 1, durationSeconds = 300)
+        val pending = orderOf(sessionId).filterNot { it == Program.BIKE }.reversed()
 
-        repository.doStepNow(sessionId, stepFor(sessionId, "seated_row"))
+        repository.applyPendingOrder(sessionId, pending.map { stepFor(sessionId, it) })
 
         val order = orderOf(sessionId)
         assertEquals(Program.BIKE, order.first())
-        assertEquals("seated_row", order[1])
+        assertEquals(pending, order.drop(1))
+    }
+
+    @Test
+    fun `une etape absente de l ordre demande est conservee a la suite`() = runTest {
+        val sessionId = repository.startSession(WorkoutType.UPPER_BODY)
+        val partial = listOf("seated_row", "pec_deck")
+
+        repository.applyPendingOrder(sessionId, partial.map { stepFor(sessionId, it) })
+
+        val order = orderOf(sessionId)
+        assertEquals(partial, order.take(2))
+        assertEquals(7, order.size)
+        assertEquals(Program.planFor(WorkoutType.UPPER_BODY).toSet(), order.toSet())
     }
 
     @Test
@@ -255,22 +265,22 @@ class WorkoutRepositoryTest {
         repository.recordSet(chestPress, "chest_press", 1, weightKg = 45.0, repetitions = 12)
         repository.recordSet(chestPress, "chest_press", 2, weightKg = 45.0, repetitions = 11)
 
-        repository.postponeStep(sessionId, chestPress)
-        repository.doStepNow(sessionId, chestPress)
+        val reversed = orderOf(sessionId).reversed()
+        repository.applyPendingOrder(sessionId, reversed.map { stepFor(sessionId, it) })
 
         val sets = repository.session(sessionId)!!
             .orderedExercises
             .first { it.exerciseSession.id == chestPress }
             .sets
         assertEquals(2, sets.size)
-        assertEquals(listOf(1, 2), sets.sortedBy { it.setNumber }.map { it.setNumber })
     }
 
     @Test
     fun `apres reordonnancement la progression pointe sur le nouvel exercice courant`() = runTest {
         val sessionId = repository.startSession(WorkoutType.UPPER_BODY)
-
-        repository.doStepNow(sessionId, stepFor(sessionId, "lat_pulldown"))
+        val order = orderOf(sessionId).toMutableList()
+        order.add(0, order.removeAt(order.indexOf("lat_pulldown")))
+        repository.applyPendingOrder(sessionId, order.map { stepFor(sessionId, it) })
 
         val session = repository.observeActiveSession().first()!!
         val progress = WorkoutProgression.compute(
@@ -284,19 +294,9 @@ class WorkoutRepositoryTest {
     }
 
     @Test
-    fun `reporter le dernier exercice restant ne change rien`() = runTest {
-        val sessionId = repository.startSession(WorkoutType.UPPER_BODY)
-        val before = orderOf(sessionId)
-
-        repository.postponeStep(sessionId, stepFor(sessionId, Program.STOMACH_VACUUM))
-
-        assertEquals(before, orderOf(sessionId))
-    }
-
-    @Test
     fun `le reordonnancement ne vaut que pour la seance en cours`() = runTest {
         val first = repository.startSession(WorkoutType.UPPER_BODY)
-        repository.doStepNow(first, stepFor(first, "seated_row"))
+        repository.applyPendingOrder(first, orderOf(first).reversed().map { stepFor(first, it) })
         repository.finishSession(first)
 
         clock += 86_400_000L
@@ -308,9 +308,12 @@ class WorkoutRepositoryTest {
     @Test
     fun `les positions restent contigues apres plusieurs reordonnancements`() = runTest {
         val sessionId = repository.startSession(WorkoutType.UPPER_BODY)
-        repository.doStepNow(sessionId, stepFor(sessionId, "pec_deck"))
-        repository.postponeStep(sessionId, stepFor(sessionId, "pec_deck"))
-        repository.doStepNow(sessionId, stepFor(sessionId, Program.PLANK))
+        repeat(3) {
+            repository.applyPendingOrder(
+                sessionId,
+                orderOf(sessionId).reversed().map { stepFor(sessionId, it) },
+            )
+        }
 
         val positions = repository.session(sessionId)!!
             .orderedExercises

@@ -126,18 +126,20 @@ Les deux séances comptent 7 étapes et commencent par 5 minutes de vélo.
 Récupération automatique d'une minute entre deux séries d'un même exercice.
 Aucun chrono entre deux exercices : le changement de machine sert de récupération.
 
-### Machine occupée
+### Réorganiser la suite
 
-Pendant une séance, deux boutons permettent de changer l'ordre :
-
-- **Machine occupée** — l'exercice courant passe juste après le suivant ;
-- **Changer d'exercice** — une liste des exercices restants, un appui pour en faire
-  un tout de suite.
+Pendant une séance, « Réorganiser la suite » ouvre un écran où les exercices
+restants se déplacent librement au glisser-déposer, par leur poignée. Le premier
+de la liste est celui qu'on fait maintenant — machine occupée, salle bondée, ou
+simple envie de changer l'ordre du jour.
 
 Seuls les exercices **restants** sont réordonnés : ceux déjà terminés gardent leur
 place en tête, et un exercice repris conserve les séries déjà enregistrées. L'ordre
 modifié ne vaut que pour la séance en cours — la séance suivante repart de l'ordre
 défini dans `Program.kt`.
+
+Le glissé étant inutilisable avec TalkBack, chaque ligne expose aussi deux actions
+d'accessibilité « Monter » et « Descendre ».
 
 Modifier le programme = modifier `Program.kt`. Les exercices ajoutés sont insérés
 au démarrage suivant ; l'historique existant n'est pas touché.
