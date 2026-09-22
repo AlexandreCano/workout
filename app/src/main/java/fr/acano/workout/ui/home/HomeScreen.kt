@@ -1,6 +1,13 @@
 package fr.acano.workout.ui.home
 
+import androidx.compose.animation.AnimatedVisibility
+import androidx.compose.animation.core.animateFloatAsState
+import androidx.compose.animation.expandVertically
+import androidx.compose.animation.fadeIn
+import androidx.compose.animation.fadeOut
+import androidx.compose.animation.shrinkVertically
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
@@ -8,31 +15,49 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.rounded.ArrowDownward
-import androidx.compose.material.icons.rounded.ArrowUpward
+import androidx.compose.material.icons.rounded.PlayArrow
+import androidx.compose.material.icons.rounded.Star
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
+import androidx.compose.material3.VerticalDivider
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.scale
+import androidx.compose.ui.semantics.clearAndSetSemantics
+import androidx.compose.ui.semantics.contentDescription
+import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import fr.acano.workout.domain.WorkoutType
-import fr.acano.workout.ui.common.AppCard
-import fr.acano.workout.ui.common.PrimaryActionButton
-import fr.acano.workout.ui.common.SectionTitle
-import fr.acano.workout.ui.common.StatTile
 import fr.acano.workout.ui.common.formatDay
 import fr.acano.workout.ui.common.formatWeight
-import fr.acano.workout.ui.theme.Star
+import fr.acano.workout.ui.components.RowDivider
+import fr.acano.workout.ui.components.SectionHeader
+import fr.acano.workout.ui.components.TrendIndicator
+import fr.acano.workout.ui.components.WorkoutPrimaryButton
+import fr.acano.workout.ui.theme.WorkoutMotion
+import fr.acano.workout.ui.theme.WorkoutTheme
 import kotlinx.coroutines.launch
 
+/**
+ * L'accueil.
+ *
+ * Trois zones, dans l'ordre d'importance : ce que j'ai accompli (l'étoile),
+ * ce que je fais maintenant (les deux lancements), ce que ça donne dans le
+ * temps (la progression). Aucune carte décorative : la hiérarchie vient de la
+ * taille du texte et de l'espace entre les blocs.
+ */
 @Composable
 fun HomeScreen(
     viewModel: HomeViewModel,
@@ -49,106 +74,276 @@ fun HomeScreen(
         modifier = Modifier
             .fillMaxSize()
             .verticalScroll(rememberScrollState())
-            .padding(horizontal = 20.dp),
+            .padding(horizontal = WorkoutTheme.spacing.xl),
     ) {
-        Spacer(Modifier.height(20.dp))
+        Spacer(Modifier.height(WorkoutTheme.spacing.xl))
 
-        Row(verticalAlignment = Alignment.CenterVertically) {
-            Text(
-                "Workout",
-                style = MaterialTheme.typography.headlineLarge,
-                modifier = Modifier.weight(1f),
-            )
-            Text(
-                "⭐ ${state.stars}",
-                style = MaterialTheme.typography.headlineSmall,
-                color = Star,
-            )
-        }
-
-        Text(
-            text = when (state.stars) {
-                0 -> "Aucune séance pour l'instant"
-                1 -> "1 séance réalisée"
-                else -> "${state.stars} séances réalisées"
-            },
-            style = MaterialTheme.typography.bodyMedium,
-            color = MaterialTheme.colorScheme.onSurfaceVariant,
+        StarHero(
+            stars = state.stars,
+            upperCount = state.upperCount,
+            lowerCount = state.lowerCount,
         )
 
-        Spacer(Modifier.height(20.dp))
-
-        Row(horizontalArrangement = Arrangement.spacedBy(10.dp)) {
-            StatTile("${state.stars}", "Total", Modifier.weight(1f))
-            StatTile("${state.upperCount}", "Haut du corps", Modifier.weight(1f))
-            StatTile("${state.lowerCount}", "Bas du corps", Modifier.weight(1f))
+        AnimatedVisibility(
+            visible = state.resumable != null,
+            enter = fadeIn(WorkoutMotion.effects()) + expandVertically(WorkoutMotion.spatial()),
+            exit = fadeOut(WorkoutMotion.fastEffects()) + shrinkVertically(WorkoutMotion.spatial()),
+        ) {
+            state.resumable?.let { resumable ->
+                Column {
+                    Spacer(Modifier.height(WorkoutTheme.spacing.xxl))
+                    ResumeBlock(resumable, onClick = { onOpenSession(resumable.sessionId) })
+                }
+            }
         }
 
-        state.resumable?.let { resumable ->
-            Spacer(Modifier.height(20.dp))
-            ResumeCard(resumable, onClick = { onOpenSession(resumable.sessionId) })
+        Spacer(Modifier.height(WorkoutTheme.spacing.xxl))
+
+        if (state.resumable == null) {
+            WorkoutType.entries.forEach { type ->
+                SessionLaunchButton(
+                    type = type,
+                    stepCount = state.stepsPerSession[type] ?: 0,
+                    highlighted = type == state.suggestedType,
+                    enabled = true,
+                    onClick = { start(type) },
+                )
+                Spacer(Modifier.height(WorkoutTheme.spacing.md))
+            }
         }
 
         if (state.lastSessionAt != null) {
-            Spacer(Modifier.height(20.dp))
-            SectionTitle("Dernière séance")
-            Text(
-                text = "${state.lastSessionType?.label}  ·  ${formatDay(state.lastSessionAt!!)}",
-                style = MaterialTheme.typography.titleMedium,
-                modifier = Modifier.padding(top = 4.dp),
+            Spacer(Modifier.height(WorkoutTheme.spacing.lg))
+            LastSessionLine(
+                type = state.lastSessionType,
+                at = state.lastSessionAt!!,
             )
         }
 
-        Spacer(Modifier.height(24.dp))
-
-        PrimaryActionButton(
-            text = WorkoutType.UPPER_BODY.label.uppercase(),
-            onClick = { start(WorkoutType.UPPER_BODY) },
-            enabled = state.resumable == null,
-        )
-        Spacer(Modifier.height(12.dp))
-        PrimaryActionButton(
-            text = WorkoutType.LOWER_BODY.label.uppercase(),
-            onClick = { start(WorkoutType.LOWER_BODY) },
-            enabled = state.resumable == null,
-        )
-
         if (state.progression.isNotEmpty()) {
-            Spacer(Modifier.height(28.dp))
-            SectionTitle("Progression récente")
-            Spacer(Modifier.height(8.dp))
-            state.progression.forEach { line ->
+            Spacer(Modifier.height(WorkoutTheme.spacing.xxl))
+            SectionHeader("Progression récente")
+            state.progression.forEachIndexed { index, line ->
+                if (index > 0) RowDivider()
                 ProgressionRow(line)
             }
         }
 
-        Spacer(Modifier.height(32.dp))
+        Spacer(Modifier.height(WorkoutTheme.spacing.xxxl))
+    }
+}
+
+/**
+ * Le compteur d'étoiles, traité comme le titre de l'écran.
+ * L'étoile grossit à l'arrivée d'une nouvelle séance : c'est la seule
+ * récompense de l'application, elle mérite d'être vue.
+ */
+@Composable
+private fun StarHero(stars: Int, upperCount: Int, lowerCount: Int) {
+    val scale by animateFloatAsState(
+        targetValue = 1f,
+        animationSpec = WorkoutMotion.celebratory(),
+        label = "starScale",
+    )
+
+    Column {
+        Text(
+            text = "Workout",
+            style = MaterialTheme.typography.labelLarge,
+            color = MaterialTheme.colorScheme.onSurfaceVariant,
+        )
+
+        Spacer(Modifier.height(WorkoutTheme.spacing.lg))
+
+        Row(
+            verticalAlignment = Alignment.CenterVertically,
+            modifier = Modifier.semantics {
+                contentDescription = "$stars séances réalisées"
+            },
+        ) {
+            Icon(
+                imageVector = Icons.Rounded.Star,
+                contentDescription = null,
+                tint = MaterialTheme.colorScheme.tertiary,
+                modifier = Modifier
+                    .size(56.dp)
+                    .scale(scale)
+                    .clearAndSetSemantics { },
+            )
+            Spacer(Modifier.width(WorkoutTheme.spacing.md))
+            Text(
+                text = "$stars",
+                style = MaterialTheme.typography.displayLarge,
+                color = MaterialTheme.colorScheme.onSurface,
+                modifier = Modifier.clearAndSetSemantics { },
+            )
+        }
+
+        Text(
+            text = when (stars) {
+                0 -> "Aucune séance pour l'instant"
+                1 -> "séance réalisée"
+                else -> "séances réalisées"
+            },
+            style = MaterialTheme.typography.bodyLarge,
+            color = MaterialTheme.colorScheme.onSurfaceVariant,
+        )
+
+        if (stars > 0) {
+            Spacer(Modifier.height(WorkoutTheme.spacing.lg))
+            Row(
+                verticalAlignment = Alignment.CenterVertically,
+                horizontalArrangement = Arrangement.spacedBy(WorkoutTheme.spacing.lg),
+                modifier = Modifier.height(32.dp),
+            ) {
+                SplitCount(upperCount, WorkoutType.UPPER_BODY.label)
+                VerticalDivider(color = MaterialTheme.colorScheme.outlineVariant)
+                SplitCount(lowerCount, WorkoutType.LOWER_BODY.label)
+            }
+        }
     }
 }
 
 @Composable
-private fun ResumeCard(resumable: ResumableSession, onClick: () -> Unit) {
-    AppCard {
-        Column {
-            SectionTitle("Séance en cours")
-            Spacer(Modifier.height(6.dp))
-            Text(resumable.type.label, style = MaterialTheme.typography.titleLarge)
-            Text(
-                text = buildString {
-                    append(resumable.exerciseName)
-                    if (resumable.plannedSets > 1) {
-                        append("  ·  Série ${resumable.setNumber} / ${resumable.plannedSets}")
-                    }
-                    append("  ·  ${resumable.stepIndex} / ${resumable.totalSteps}")
+private fun SplitCount(count: Int, label: String) {
+    Row(verticalAlignment = Alignment.Bottom) {
+        Text(
+            text = "$count",
+            style = MaterialTheme.typography.titleLarge,
+            color = MaterialTheme.colorScheme.onSurface,
+        )
+        Spacer(Modifier.width(WorkoutTheme.spacing.xs))
+        Text(
+            text = label,
+            style = MaterialTheme.typography.bodyMedium,
+            color = MaterialTheme.colorScheme.onSurfaceVariant,
+            modifier = Modifier.padding(bottom = 2.dp),
+        )
+    }
+}
+
+/**
+ * Bouton de lancement d'une séance : l'élément le plus large de l'écran.
+ * Celui qui est suggéré prend le conteneur accentué, l'autre reste neutre —
+ * on distingue les deux sans les mettre en compétition.
+ */
+@Composable
+private fun SessionLaunchButton(
+    type: WorkoutType,
+    stepCount: Int,
+    highlighted: Boolean,
+    enabled: Boolean,
+    onClick: () -> Unit,
+) {
+    Surface(
+        onClick = onClick,
+        enabled = enabled,
+        shape = MaterialTheme.shapes.large,
+        color = if (highlighted) {
+            MaterialTheme.colorScheme.primaryContainer
+        } else {
+            MaterialTheme.colorScheme.surfaceContainer
+        },
+        contentColor = if (highlighted) {
+            MaterialTheme.colorScheme.onPrimaryContainer
+        } else {
+            MaterialTheme.colorScheme.onSurface
+        },
+        modifier = Modifier
+            .fillMaxWidth()
+            .height(112.dp),
+    ) {
+        Row(
+            verticalAlignment = Alignment.CenterVertically,
+            modifier = Modifier.padding(horizontal = WorkoutTheme.spacing.xl),
+        ) {
+            Column(Modifier.weight(1f)) {
+                Text(
+                    text = type.label,
+                    style = MaterialTheme.typography.headlineSmall,
+                )
+                Spacer(Modifier.height(WorkoutTheme.spacing.xs))
+                Text(
+                    text = "$stepCount étapes",
+                    style = MaterialTheme.typography.bodyMedium,
+                    color = if (highlighted) {
+                        MaterialTheme.colorScheme.onPrimaryContainer
+                    } else {
+                        MaterialTheme.colorScheme.onSurfaceVariant
+                    },
+                )
+            }
+
+            Surface(
+                color = if (highlighted) {
+                    MaterialTheme.colorScheme.primary
+                } else {
+                    MaterialTheme.colorScheme.surfaceContainerHighest
                 },
-                style = MaterialTheme.typography.bodyMedium,
-                color = MaterialTheme.colorScheme.onSurfaceVariant,
-                modifier = Modifier.padding(top = 2.dp),
-            )
-            Spacer(Modifier.height(14.dp))
-            PrimaryActionButton(text = "REPRENDRE", onClick = onClick)
+                contentColor = if (highlighted) {
+                    MaterialTheme.colorScheme.onPrimary
+                } else {
+                    MaterialTheme.colorScheme.onSurface
+                },
+                shape = CircleShape,
+                modifier = Modifier.size(56.dp),
+            ) {
+                Box(contentAlignment = Alignment.Center) {
+                    Icon(
+                        Icons.Rounded.PlayArrow,
+                        contentDescription = null,
+                        modifier = Modifier.size(28.dp),
+                    )
+                }
+            }
         }
     }
+}
+
+/** Reprise d'une séance interrompue : prend la place des boutons de lancement. */
+@Composable
+private fun ResumeBlock(resumable: ResumableSession, onClick: () -> Unit) {
+    Column {
+        SectionHeader("Séance en cours")
+
+        Surface(
+            shape = MaterialTheme.shapes.large,
+            color = MaterialTheme.colorScheme.surfaceContainer,
+            modifier = Modifier.fillMaxWidth(),
+        ) {
+            Column(Modifier.padding(WorkoutTheme.spacing.xl)) {
+                Text(resumable.type.label, style = MaterialTheme.typography.headlineSmall)
+                Spacer(Modifier.height(WorkoutTheme.spacing.xs))
+                Text(
+                    text = buildString {
+                        append(resumable.exerciseName)
+                        if (resumable.plannedSets > 1) {
+                            append("  ·  Série ${resumable.setNumber} / ${resumable.plannedSets}")
+                        }
+                        append("  ·  ${resumable.stepIndex} / ${resumable.totalSteps}")
+                    },
+                    style = MaterialTheme.typography.bodyLarge,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                )
+                Spacer(Modifier.height(WorkoutTheme.spacing.xl))
+                WorkoutPrimaryButton(
+                    text = "REPRENDRE",
+                    onClick = onClick,
+                    icon = Icons.Rounded.PlayArrow,
+                )
+            }
+        }
+    }
+}
+
+@Composable
+private fun LastSessionLine(type: WorkoutType?, at: Long) {
+    Text(
+        text = "Dernière séance  ·  ${type?.label.orEmpty()}  ·  ${formatDay(at)}",
+        style = MaterialTheme.typography.bodyMedium,
+        color = MaterialTheme.colorScheme.onSurfaceVariant,
+        modifier = Modifier.fillMaxWidth(),
+    )
 }
 
 @Composable
@@ -157,31 +352,20 @@ private fun ProgressionRow(line: ProgressionLine) {
         verticalAlignment = Alignment.CenterVertically,
         modifier = Modifier
             .fillMaxWidth()
-            .padding(vertical = 6.dp),
+            .padding(vertical = WorkoutTheme.spacing.lg),
     ) {
         Text(
-            line.exerciseName,
+            text = line.exerciseName,
             style = MaterialTheme.typography.bodyLarge,
+            color = MaterialTheme.colorScheme.onSurface,
             modifier = Modifier.weight(1f),
         )
         Text(
-            formatWeight(line.weightKg),
-            style = MaterialTheme.typography.bodyLarge,
+            text = formatWeight(line.weightKg),
+            style = WorkoutTheme.emphasis.metricSmall,
+            color = MaterialTheme.colorScheme.onSurface,
         )
-        when (line.trend) {
-            1 -> Icon(
-                Icons.Rounded.ArrowUpward,
-                contentDescription = "en progression",
-                tint = MaterialTheme.colorScheme.primary,
-                modifier = Modifier.padding(start = 6.dp),
-            )
-            -1 -> Icon(
-                Icons.Rounded.ArrowDownward,
-                contentDescription = "en baisse",
-                tint = MaterialTheme.colorScheme.onSurfaceVariant,
-                modifier = Modifier.padding(start = 6.dp),
-            )
-            else -> Spacer(Modifier.padding(start = 6.dp))
-        }
+        Spacer(Modifier.width(WorkoutTheme.spacing.sm))
+        TrendIndicator(line.trend)
     }
 }

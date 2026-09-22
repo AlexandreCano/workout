@@ -1,6 +1,9 @@
 package fr.acano.workout.ui.session
 
 import androidx.activity.compose.BackHandler
+import androidx.compose.animation.core.animateFloatAsState
+import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
@@ -8,26 +11,48 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.rounded.Star
+import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.rotate
+import androidx.compose.ui.draw.scale
+import androidx.compose.ui.hapticfeedback.HapticFeedbackType
+import androidx.compose.ui.platform.LocalHapticFeedback
+import androidx.compose.ui.semantics.clearAndSetSemantics
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
-import fr.acano.workout.ui.common.AppCard
-import fr.acano.workout.ui.common.PrimaryActionButton
-import fr.acano.workout.ui.common.SectionTitle
 import fr.acano.workout.ui.common.formatDuration
 import fr.acano.workout.ui.common.formatWeight
+import fr.acano.workout.ui.components.RowDivider
+import fr.acano.workout.ui.components.SectionHeader
+import fr.acano.workout.ui.components.WorkoutPrimaryButton
 import fr.acano.workout.ui.history.SessionDetailViewModel
+import fr.acano.workout.ui.theme.WorkoutMotion
+import fr.acano.workout.ui.theme.WorkoutTheme
 
+/**
+ * Fin de séance.
+ *
+ * L'étoile arrive en ressort marqué — c'est le seul moment de l'application où
+ * une animation est décorative, et c'est assumé : c'est toute la récompense.
+ * Le reste de l'écran est un récapitulatif sobre, lisible sans effort après
+ * quarante-cinq minutes d'effort.
+ */
 @Composable
 fun SessionSummaryScreen(
     viewModel: SessionDetailViewModel,
@@ -38,84 +63,150 @@ fun SessionSummaryScreen(
     LaunchedEffect(Unit) { viewModel.finishIfNeeded() }
     BackHandler { onDone() }
 
-    Scaffold { padding ->
-        Column(
-            modifier = Modifier
-                .fillMaxSize()
-                .padding(padding)
-                .verticalScroll(rememberScrollState())
-                .padding(horizontal = 20.dp),
-            horizontalAlignment = Alignment.CenterHorizontally,
+    // Les insets système sont déjà appliqués par le Scaffold de WorkoutNavHost.
+    Column(
+    modifier = Modifier
+        .fillMaxSize()
+        .verticalScroll(rememberScrollState())
+            .padding(horizontal = WorkoutTheme.spacing.xl),
+        horizontalAlignment = Alignment.CenterHorizontally,
+    ) {
+        Spacer(Modifier.height(WorkoutTheme.spacing.xxl))
+
+        AwardedStar()
+
+        Spacer(Modifier.height(WorkoutTheme.spacing.xl))
+
+        Text(
+            text = "Séance terminée",
+            style = MaterialTheme.typography.headlineLarge,
+            textAlign = TextAlign.Center,
+        )
+
+        Spacer(Modifier.height(WorkoutTheme.spacing.sm))
+
+        Text(
+            text = "+1 étoile",
+            style = MaterialTheme.typography.titleLarge,
+            color = MaterialTheme.colorScheme.tertiary,
+        )
+
+        Spacer(Modifier.height(WorkoutTheme.spacing.xl))
+
+        Row(
+            horizontalArrangement = Arrangement.spacedBy(WorkoutTheme.spacing.xl),
+            verticalAlignment = Alignment.CenterVertically,
         ) {
-            Spacer(Modifier.height(28.dp))
-
-            Text("🎉", style = MaterialTheme.typography.displayMedium)
-            Text(
-                "Séance terminée",
-                style = MaterialTheme.typography.headlineMedium,
-                textAlign = TextAlign.Center,
+            SummaryMetric(
+                value = formatDuration(state.durationMillis),
+                label = "Durée",
             )
-
-            Spacer(Modifier.height(10.dp))
-
-            Text(
-                "⭐ +1",
-                style = MaterialTheme.typography.headlineSmall,
-                color = MaterialTheme.colorScheme.primary,
+            SummaryMetric(
+                value = "${state.lines.size}",
+                label = "Exercices",
             )
+            SummaryMetric(
+                value = "${state.lines.sumOf { it.sets.size }}",
+                label = "Séries",
+            )
+        }
 
-            Text(
-                text = buildString {
-                    append(state.type?.label.orEmpty())
-                    append("  ·  ")
-                    append(formatDuration(state.durationMillis))
+        Spacer(Modifier.height(WorkoutTheme.spacing.xxl))
+
+        SectionHeader(state.type?.label.orEmpty(), Modifier.fillMaxWidth())
+
+        state.lines.forEachIndexed { index, line ->
+            if (index > 0) RowDivider()
+            ExerciseRecap(
+                name = line.exerciseName,
+                weight = formatWeight(line.weightKg).takeIf { line.weightKg != null },
+                detail = line.sets.joinToString("  ·  ") { set ->
+                    set.repetitions?.toString()
+                        ?: set.durationSeconds?.let { "${it}s" }
+                        ?: "—"
                 },
-                style = MaterialTheme.typography.bodyLarge,
-                color = MaterialTheme.colorScheme.onSurfaceVariant,
-                modifier = Modifier.padding(top = 6.dp),
             )
+        }
 
-            Spacer(Modifier.height(28.dp))
+        Spacer(Modifier.height(WorkoutTheme.spacing.xxl))
 
-            SectionTitle("Résumé", Modifier.align(Alignment.Start))
-            Spacer(Modifier.height(10.dp))
+        WorkoutPrimaryButton(text = "TERMINER", onClick = onDone)
 
-            state.lines.forEach { line ->
-                AppCard(Modifier.padding(bottom = 10.dp)) {
-                    Column {
-                        Row(verticalAlignment = Alignment.CenterVertically) {
-                            Text(
-                                line.exerciseName,
-                                style = MaterialTheme.typography.titleMedium,
-                                modifier = Modifier.weight(1f),
-                            )
-                            if (line.weightKg != null) {
-                                Text(
-                                    formatWeight(line.weightKg),
-                                    style = MaterialTheme.typography.titleMedium,
-                                    color = MaterialTheme.colorScheme.primary,
-                                )
-                            }
-                        }
-                        Text(
-                            text = line.sets.joinToString("  /  ") { set ->
-                                set.repetitions?.toString()
-                                    ?: set.durationSeconds?.let { "${it}s" }
-                                    ?: "—"
-                            },
-                            style = MaterialTheme.typography.bodyMedium,
-                            color = MaterialTheme.colorScheme.onSurfaceVariant,
-                            modifier = Modifier.padding(top = 4.dp),
-                        )
-                    }
-                }
-            }
+        Spacer(Modifier.height(WorkoutTheme.spacing.xxl))
+    }
+}
 
-            Spacer(Modifier.height(20.dp))
+/** L'étoile gagnée : ressort ample et léger pivot, une seule fois, à l'arrivée. */
+@Composable
+private fun AwardedStar() {
+    var revealed by remember { mutableStateOf(false) }
+    val haptics = LocalHapticFeedback.current
 
-            PrimaryActionButton(text = "TERMINER", onClick = onDone)
+    val scale by animateFloatAsState(
+        targetValue = if (revealed) 1f else 0.2f,
+        animationSpec = WorkoutMotion.celebratory(),
+        label = "awardScale",
+    )
+    val rotation by animateFloatAsState(
+        targetValue = if (revealed) 0f else -35f,
+        animationSpec = WorkoutMotion.celebratory(),
+        label = "awardRotation",
+    )
 
-            Spacer(Modifier.height(32.dp))
+    LaunchedEffect(Unit) {
+        revealed = true
+        haptics.performHapticFeedback(HapticFeedbackType.LongPress)
+    }
+
+    Box(contentAlignment = Alignment.Center) {
+        Icon(
+            imageVector = Icons.Rounded.Star,
+            contentDescription = "Étoile obtenue",
+            tint = MaterialTheme.colorScheme.tertiary,
+            modifier = Modifier
+                .size(128.dp)
+                .scale(scale)
+                .rotate(rotation),
+        )
+    }
+}
+
+@Composable
+private fun SummaryMetric(value: String, label: String) {
+    Column(horizontalAlignment = Alignment.CenterHorizontally) {
+        Text(value, style = MaterialTheme.typography.titleLarge)
+        Text(
+            text = label,
+            style = MaterialTheme.typography.labelSmall,
+            color = MaterialTheme.colorScheme.onSurfaceVariant,
+        )
+    }
+}
+
+@Composable
+private fun ExerciseRecap(name: String, weight: String?, detail: String) {
+    Row(
+        verticalAlignment = Alignment.CenterVertically,
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(vertical = WorkoutTheme.spacing.lg),
+    ) {
+        Column(Modifier.weight(1f)) {
+            Text(name, style = MaterialTheme.typography.titleMedium)
+            Spacer(Modifier.height(2.dp))
+            Text(
+                text = detail,
+                style = MaterialTheme.typography.bodyMedium,
+                color = MaterialTheme.colorScheme.onSurfaceVariant,
+            )
+        }
+        if (weight != null) {
+            Text(
+                text = weight,
+                style = WorkoutTheme.emphasis.metricSmall,
+                color = MaterialTheme.colorScheme.onSurface,
+                modifier = Modifier.clearAndSetSemantics { },
+            )
         }
     }
 }

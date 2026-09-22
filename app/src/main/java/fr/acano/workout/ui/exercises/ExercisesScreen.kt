@@ -1,8 +1,8 @@
 package fr.acano.workout.ui.exercises
 
 import androidx.compose.foundation.clickable
-import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.aspectRatio
@@ -11,14 +11,11 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.automirrored.rounded.ArrowBack
-import androidx.compose.material3.Icon
-import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -27,14 +24,24 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
-import fr.acano.workout.ui.common.AppCard
-import fr.acano.workout.ui.common.ExerciseImage
-import fr.acano.workout.ui.common.SectionTitle
 import fr.acano.workout.ui.common.formatShortDay
 import fr.acano.workout.ui.common.formatWeight
 import fr.acano.workout.ui.common.targetLabel
+import fr.acano.workout.ui.components.ExerciseImage
+import fr.acano.workout.ui.components.RowDivider
+import fr.acano.workout.ui.components.SectionHeader
+import fr.acano.workout.ui.history.BackRow
 import fr.acano.workout.ui.history.EmptyState
+import fr.acano.workout.ui.history.ScreenTitle
+import fr.acano.workout.ui.theme.WorkoutTheme
 
+/**
+ * Catalogue des exercices.
+ *
+ * Chaque ligne répond à la seule question qu'on se pose devant une machine :
+ * « j'avais mis combien la dernière fois ? ». La charge est donc l'élément le
+ * plus lourd typographiquement de la ligne, pas le nom.
+ */
 @Composable
 fun ExercisesScreen(
     viewModel: ExercisesViewModel,
@@ -43,57 +50,77 @@ fun ExercisesScreen(
     val exercises by viewModel.exercises.collectAsStateWithLifecycle()
 
     LazyColumn(
-        contentPadding = androidx.compose.foundation.layout.PaddingValues(20.dp),
-        verticalArrangement = Arrangement.spacedBy(10.dp),
+        contentPadding = PaddingValues(
+            start = WorkoutTheme.spacing.xl,
+            end = WorkoutTheme.spacing.xl,
+            top = WorkoutTheme.spacing.xl,
+            bottom = WorkoutTheme.spacing.xxxl,
+        ),
         modifier = Modifier.fillMaxSize(),
     ) {
         item {
-            Text(
-                "Exercices",
-                style = MaterialTheme.typography.headlineLarge,
-                modifier = Modifier.padding(bottom = 6.dp),
-            )
+            ScreenTitle("Exercices")
+            SectionHeader("Dernière charge utilisée")
         }
         items(exercises, key = { it.exercise.id }) { row ->
-            AppCard(Modifier.clickable { onOpenExercise(row.exercise.id) }) {
-                Row(verticalAlignment = Alignment.CenterVertically) {
-                    ExerciseImage(
-                        exerciseId = row.exercise.id,
-                        modifier = Modifier.size(64.dp),
-                        cornerRadius = 14.dp,
-                    )
-                    Column(
-                        Modifier
-                            .weight(1f)
-                            .padding(start = 14.dp),
-                    ) {
-                        Text(row.exercise.name, style = MaterialTheme.typography.titleMedium)
-                        Text(
-                            text = "${row.exercise.plannedSets} × ${row.exercise.targetLabel()}",
-                            style = MaterialTheme.typography.bodySmall,
-                            color = MaterialTheme.colorScheme.onSurfaceVariant,
-                        )
-                    }
-                    Column(horizontalAlignment = Alignment.End) {
-                        Text(
-                            formatWeight(row.lastWeightKg),
-                            style = MaterialTheme.typography.titleMedium,
-                            color = MaterialTheme.colorScheme.primary,
-                        )
-                        row.lastPerformedAt?.let {
-                            Text(
-                                formatShortDay(it),
-                                style = MaterialTheme.typography.bodySmall,
-                                color = MaterialTheme.colorScheme.onSurfaceVariant,
-                            )
-                        }
-                    }
-                }
+            ExerciseRow(row, onClick = { onOpenExercise(row.exercise.id) })
+            RowDivider()
+        }
+    }
+}
+
+@Composable
+private fun ExerciseRow(row: ExerciseRow, onClick: () -> Unit) {
+    Row(
+        verticalAlignment = Alignment.CenterVertically,
+        modifier = Modifier
+            .fillMaxWidth()
+            .clickable(onClick = onClick)
+            .padding(vertical = WorkoutTheme.spacing.md),
+    ) {
+        ExerciseImage(
+            exerciseId = row.exercise.id,
+            modifier = Modifier.size(64.dp),
+            shape = MaterialTheme.shapes.small,
+        )
+
+        Spacer(Modifier.width(WorkoutTheme.spacing.lg))
+
+        Column(Modifier.weight(1f)) {
+            Text(row.exercise.name, style = MaterialTheme.typography.titleMedium)
+            Spacer(Modifier.height(2.dp))
+            Text(
+                text = "${row.exercise.plannedSets} × ${row.exercise.targetLabel()}",
+                style = MaterialTheme.typography.bodySmall,
+                color = MaterialTheme.colorScheme.onSurfaceVariant,
+            )
+        }
+
+        Column(horizontalAlignment = Alignment.End) {
+            Text(
+                text = formatWeight(row.lastWeightKg),
+                style = WorkoutTheme.emphasis.metricSmall,
+                color = if (row.lastWeightKg != null) {
+                    MaterialTheme.colorScheme.onSurface
+                } else {
+                    MaterialTheme.colorScheme.onSurfaceVariant
+                },
+            )
+            row.lastPerformedAt?.let {
+                Text(
+                    text = formatShortDay(it),
+                    style = MaterialTheme.typography.bodySmall,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                )
             }
         }
     }
 }
 
+/**
+ * Détail d'un exercice : l'animation en grand, la charge courante, la courbe,
+ * puis l'historique séance par séance.
+ */
 @Composable
 fun ExerciseDetailScreen(
     viewModel: ExerciseDetailViewModel,
@@ -106,90 +133,106 @@ fun ExerciseDetailScreen(
         modifier = Modifier
             .fillMaxSize()
             .verticalScroll(rememberScrollState())
-            .padding(horizontal = 20.dp),
+            .padding(horizontal = WorkoutTheme.spacing.xl),
     ) {
-        Row(verticalAlignment = Alignment.CenterVertically, modifier = Modifier.padding(top = 8.dp)) {
-            IconButton(onClick = onBack) {
-                Icon(Icons.AutoMirrored.Rounded.ArrowBack, contentDescription = "Retour")
-            }
-            Text(exercise?.name.orEmpty(), style = MaterialTheme.typography.headlineSmall)
-        }
+        BackRow(onBack)
 
         if (exercise != null) {
             ExerciseImage(
                 exerciseId = exercise.id,
                 modifier = Modifier
                     .fillMaxWidth()
-                    .padding(top = 8.dp)
                     .aspectRatio(16f / 10f),
+                shape = MaterialTheme.shapes.large,
             )
+
+            Spacer(Modifier.height(WorkoutTheme.spacing.xl))
+
+            Text(exercise.name, style = MaterialTheme.typography.headlineLarge)
+            Spacer(Modifier.height(WorkoutTheme.spacing.xs))
             Text(
                 text = "${exercise.plannedSets} séries  ·  ${exercise.targetLabel()}",
+                style = MaterialTheme.typography.bodyLarge,
+                color = MaterialTheme.colorScheme.onSurfaceVariant,
+            )
+        }
+
+        val currentWeight = state.history.firstNotNullOfOrNull { it.weightKg }
+        if (currentWeight != null) {
+            Spacer(Modifier.height(WorkoutTheme.spacing.xl))
+            Text(
+                text = formatWeight(currentWeight),
+                style = WorkoutTheme.emphasis.metric,
+                color = MaterialTheme.colorScheme.primary,
+            )
+            Text(
+                text = "Dernière charge",
                 style = MaterialTheme.typography.bodyMedium,
                 color = MaterialTheme.colorScheme.onSurfaceVariant,
-                modifier = Modifier.padding(top = 10.dp),
             )
         }
 
-        Spacer(Modifier.height(22.dp))
-
-        val weightHistory = state.history.mapNotNull { entry ->
-            entry.weightKg?.let { entry.date to it }
-        }.reversed()
+        val weightHistory = state.history
+            .mapNotNull { entry -> entry.weightKg }
+            .reversed()
 
         if (weightHistory.size >= 2) {
-            SectionTitle("Évolution de la charge")
-            Spacer(Modifier.height(10.dp))
+            Spacer(Modifier.height(WorkoutTheme.spacing.xxl))
+            SectionHeader("Évolution de la charge")
             WeightChart(
-                points = weightHistory.map { it.second },
+                points = weightHistory,
                 modifier = Modifier
                     .fillMaxWidth()
-                    .height(160.dp),
+                    .height(180.dp),
             )
-            Spacer(Modifier.height(22.dp))
         }
 
-        SectionTitle("Historique")
-        Spacer(Modifier.height(10.dp))
+        Spacer(Modifier.height(WorkoutTheme.spacing.xxl))
+        SectionHeader("Historique")
 
         if (state.history.isEmpty()) {
-            EmptyState("Aucune série enregistrée pour cet exercice.")
+            EmptyState(
+                title = "Aucune série",
+                message = "Cet exercice n'a pas encore été réalisé.",
+            )
         }
 
-        state.history.forEach { entry ->
-            AppCard(Modifier.padding(bottom = 10.dp)) {
-                Column {
-                    Row(verticalAlignment = Alignment.CenterVertically) {
-                        Text(
-                            formatShortDay(entry.date),
-                            style = MaterialTheme.typography.titleMedium,
-                            modifier = Modifier.weight(1f),
-                        )
-                        if (entry.weightKg != null) {
-                            Text(
-                                formatWeight(entry.weightKg),
-                                style = MaterialTheme.typography.titleMedium,
-                                color = MaterialTheme.colorScheme.primary,
-                            )
-                        }
-                    }
-                    val detail = when {
-                        entry.repetitions.isNotEmpty() -> entry.repetitions.joinToString("  /  ")
-                        entry.durations.isNotEmpty() -> entry.durations.joinToString("  /  ") { "${it}s" }
-                        else -> ""
-                    }
-                    if (detail.isNotEmpty()) {
-                        Text(
-                            detail,
-                            style = MaterialTheme.typography.bodyMedium,
-                            color = MaterialTheme.colorScheme.onSurfaceVariant,
-                            modifier = Modifier.padding(top = 4.dp),
-                        )
-                    }
+        state.history.forEachIndexed { index, entry ->
+            if (index > 0) RowDivider()
+            Row(
+                verticalAlignment = Alignment.CenterVertically,
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(vertical = WorkoutTheme.spacing.lg),
+            ) {
+                Column(Modifier.weight(1f)) {
+                    Text(
+                        text = formatShortDay(entry.date),
+                        style = MaterialTheme.typography.titleMedium,
+                    )
+                    Spacer(Modifier.height(2.dp))
+                    Text(
+                        text = when {
+                            entry.repetitions.isNotEmpty() ->
+                                entry.repetitions.joinToString("  ·  ")
+                            entry.durations.isNotEmpty() ->
+                                entry.durations.joinToString("  ·  ") { "${it}s" }
+                            else -> ""
+                        },
+                        style = MaterialTheme.typography.bodyMedium,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant,
+                    )
+                }
+                if (entry.weightKg != null) {
+                    Text(
+                        text = formatWeight(entry.weightKg),
+                        style = WorkoutTheme.emphasis.metricSmall,
+                        color = MaterialTheme.colorScheme.onSurface,
+                    )
                 }
             }
         }
 
-        Spacer(Modifier.height(32.dp))
+        Spacer(Modifier.height(WorkoutTheme.spacing.xxxl))
     }
 }

@@ -4,6 +4,7 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import fr.acano.workout.data.db.entity.ExerciseEntity
 import fr.acano.workout.data.repository.WorkoutRepository
+import fr.acano.workout.data.seed.Program
 import fr.acano.workout.domain.ExerciseKind
 import fr.acano.workout.domain.StepState
 import fr.acano.workout.domain.WorkoutProgression
@@ -39,7 +40,20 @@ data class HomeUiState(
     val lastSessionAt: Long? = null,
     val resumable: ResumableSession? = null,
     val progression: List<ProgressionLine> = emptyList(),
-)
+    /** Nombre d'étapes de chaque séance, pour annoncer ce qui attend avant de lancer. */
+    val stepsPerSession: Map<WorkoutType, Int> =
+        WorkoutType.entries.associateWith { Program.planFor(it).size },
+) {
+    /**
+     * Séance suggérée : celle qu'on n'a pas faite la dernière fois. Donne à
+     * l'accueil une hiérarchie naturelle sans imposer quoi que ce soit.
+     */
+    val suggestedType: WorkoutType
+        get() = when (lastSessionType) {
+            WorkoutType.UPPER_BODY -> WorkoutType.LOWER_BODY
+            else -> WorkoutType.UPPER_BODY
+        }
+}
 
 class HomeViewModel(private val repository: WorkoutRepository) : ViewModel() {
 

@@ -31,6 +31,34 @@ Le SDK est lu depuis `local.properties` (`sdk.dir`), non versionné.
 | Build | AGP 9.4.1, Gradle 9.7.1, compileSdk 37, minSdk 29 |
 | Injection | conteneur manuel (`di/AppContainer`), pas de Hilt |
 
+## Design system
+
+`ui/theme/` centralise les tokens, `ui/components/` les composants réutilisables.
+Aucun écran ne contient de couleur, de forme ni d'espacement en dur.
+
+| Fichier | Contenu |
+|---|---|
+| `theme/Color.kt` | Les deux `ColorScheme` Material 3 complets, dérivés d'une teinte vert-jaune |
+| `theme/Type.kt` | Échelle typographique + styles `emphasis` (chiffres tabulaires) |
+| `theme/Shape.kt` | Échelle de formes, décalée d'un cran vers le haut |
+| `theme/Spacing.kt` | Système 8dp (`xs` → `xxxl`) et tailles de cible tactile |
+| `theme/Motion.kt` | Ressorts Material 3 Expressive |
+
+Composants : `WorkoutPrimaryButton`, `WeightSelector`, `RepsSelector`, `SetProgress`,
+`StepBar`, `WorkoutTimer`, `ExerciseHeader`, `StatCard`, `ListRow`, `ExerciseImage`.
+
+`ui/components/Previews.kt` affiche l'ensemble en thème clair et sombre :
+c'est le moyen le plus rapide de vérifier une modification du design system
+dans Android Studio, sans lancer l'application.
+
+### Limites de Material 3 1.4.0
+
+`MaterialExpressiveTheme`, `MotionScheme` et les styles typographiques
+« emphasized » existent dans la bibliothèque mais y sont encore `internal`.
+Le thème utilise donc `MaterialTheme`, et `theme/Motion.kt` redéfinit le schéma
+de mouvement Expressive avec les valeurs de la spécification — à remplacer par
+`MaterialTheme.motionScheme` dès que l'API sera publique.
+
 ## Architecture
 
 MVVM, un seul module.
