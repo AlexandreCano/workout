@@ -1,0 +1,22 @@
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    android:width="108dp"
+    android:height="108dp"
+    android:viewportWidth="108"
+    android:viewportHeight="108">
+    <!-- Haltère stylisé, centré dans la safe zone de l'icône adaptative. -->
+    <path
+        android:fillColor="#C6F135"
+        android:pathData="M40,48h28v12h-28z" />
+    <path
+        android:fillColor="#C6F135"
+        android:pathData="M32,42h8v24h-8z" />
+    <path
+        android:fillColor="#C6F135"
+        android:pathData="M68,42h8v24h-8z" />
+    <path
+        android:fillColor="#8FA827"
+        android:pathData="M26,48h6v12h-6z" />
+    <path
+        android:fillColor="#8FA827"
+        android:pathData="M76,48h6v12h-6z" />
+</vector>
