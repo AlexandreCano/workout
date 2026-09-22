@@ -45,6 +45,18 @@ interface WorkoutDao {
     @Query("UPDATE exercise_session SET plannedWeightKg = :weightKg WHERE id = :exerciseSessionId")
     suspend fun updatePlannedWeight(exerciseSessionId: Long, weightKg: Double?)
 
+    @Query("UPDATE exercise_session SET position = :position WHERE id = :exerciseSessionId")
+    suspend fun updatePosition(exerciseSessionId: Long, position: Int)
+
+    /**
+     * Renumérote toutes les étapes d'une séance d'un seul coup.
+     * La transaction évite qu'une interruption laisse un ordre partiellement réécrit.
+     */
+    @Transaction
+    suspend fun applyOrder(orderedExerciseSessionIds: List<Long>) {
+        orderedExerciseSessionIds.forEachIndexed { index, id -> updatePosition(id, index) }
+    }
+
     @Query("UPDATE workout_session SET endedAt = :endedAt, starAwarded = 1 WHERE id = :sessionId AND endedAt IS NULL")
     suspend fun finishSession(sessionId: Long, endedAt: Long)
 

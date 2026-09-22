@@ -56,6 +56,7 @@ fun ActiveSessionScreen(
     val state by viewModel.state.collectAsStateWithLifecycle()
     val context = LocalContext.current
     var showQuitDialog by rememberSaveable { mutableStateOf(false) }
+    var showReorderSheet by rememberSaveable { mutableStateOf(false) }
 
     KeepScreenOn()
 
@@ -76,6 +77,17 @@ fun ActiveSessionScreen(
     }
 
     BackHandler { showQuitDialog = true }
+
+    if (showReorderSheet) {
+        ReorderSheet(
+            steps = state.pendingSteps,
+            onSelect = { exerciseSessionId ->
+                showReorderSheet = false
+                viewModel.doStepNow(context, exerciseSessionId)
+            },
+            onDismiss = { showReorderSheet = false },
+        )
+    }
 
     if (showQuitDialog) {
         QuitDialog(
@@ -135,6 +147,14 @@ fun ActiveSessionScreen(
                     color = MaterialTheme.colorScheme.onSurfaceVariant,
                 )
 
+                if (state.pendingSteps.size > 1) {
+                    ReorderActions(
+                        canPostpone = state.pendingSteps.size > 1,
+                        onPostpone = { viewModel.postponeCurrentStep(context) },
+                        onOpenList = { showReorderSheet = true },
+                    )
+                }
+
                 ExerciseImage(
                     exerciseId = step.exercise.id,
                     modifier = Modifier
@@ -178,6 +198,35 @@ fun ActiveSessionScreen(
                 Spacer(Modifier.height(32.dp))
             }
         }
+    }
+}
+
+/**
+ * Quand la machine prévue est occupée : un appui pour reporter l'exercice d'un cran,
+ * un autre pour choisir explicitement lequel faire maintenant.
+ */
+@Composable
+private fun ReorderActions(
+    canPostpone: Boolean,
+    onPostpone: () -> Unit,
+    onOpenList: () -> Unit,
+) {
+    Row(
+        horizontalArrangement = Arrangement.spacedBy(10.dp),
+        modifier = Modifier.padding(top = 12.dp),
+    ) {
+        if (canPostpone) {
+            SecondaryActionButton(
+                text = "Machine occupée",
+                onClick = onPostpone,
+                modifier = Modifier.weight(1f),
+            )
+        }
+        SecondaryActionButton(
+            text = "Changer d'exercice",
+            onClick = onOpenList,
+            modifier = Modifier.weight(1f),
+        )
     }
 }
 

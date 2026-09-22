@@ -18,6 +18,15 @@ data class CurrentStep(
     val setsDoneToday: List<SetResultEntity>,
 )
 
+/** Un exercice restant, tel qu'il apparaît dans la feuille « changer d'exercice ». */
+data class PendingStep(
+    val exerciseSessionId: Long,
+    val name: String,
+    val plannedSets: Int,
+    val completedSets: Int,
+    val isCurrent: Boolean,
+)
+
 data class ActiveSessionUiState(
     val isLoading: Boolean = true,
     val sessionMissing: Boolean = false,
@@ -27,4 +36,6 @@ data class ActiveSessionUiState(
     val step: CurrentStep? = null,
     val timer: TimerState? = null,
     val isFinished: Boolean = false,
+    /** Exercices restants, dans l'ordre : l'étape courante est la première. */
+    val pendingSteps: List<PendingStep> = emptyList(),
 )

@@ -98,5 +98,18 @@ Les deux séances comptent 7 étapes et commencent par 5 minutes de vélo.
 Récupération automatique d'une minute entre deux séries d'un même exercice.
 Aucun chrono entre deux exercices : le changement de machine sert de récupération.
 
+### Machine occupée
+
+Pendant une séance, deux boutons permettent de changer l'ordre :
+
+- **Machine occupée** — l'exercice courant passe juste après le suivant ;
+- **Changer d'exercice** — une liste des exercices restants, un appui pour en faire
+  un tout de suite.
+
+Seuls les exercices **restants** sont réordonnés : ceux déjà terminés gardent leur
+place en tête, et un exercice repris conserve les séries déjà enregistrées. L'ordre
+modifié ne vaut que pour la séance en cours — la séance suivante repart de l'ordre
+défini dans `Program.kt`.
+
 Modifier le programme = modifier `Program.kt`. Les exercices ajoutés sont insérés
 au démarrage suivant ; l'historique existant n'est pas touché.

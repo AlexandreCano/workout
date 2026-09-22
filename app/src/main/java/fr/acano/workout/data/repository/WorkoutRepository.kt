@@ -1,5 +1,6 @@
 package fr.acano.workout.data.repository
 
+import fr.acano.workout.data.db.ExerciseSessionWithSets
 import fr.acano.workout.data.db.SessionWithContent
 import fr.acano.workout.data.db.dao.ExerciseDao
 import fr.acano.workout.data.db.dao.WorkoutDao
@@ -92,6 +93,45 @@ class WorkoutRepository(
 
     suspend fun updatePlannedWeight(exerciseSessionId: Long, weightKg: Double?) {
         workoutDao.updatePlannedWeight(exerciseSessionId, weightKg)
+    }
+
+    // --- Ordre des exercices ---
+    //
+    // Réordonner ne touche qu'aux étapes restantes : celles qui sont entièrement
+    // terminées gardent leur place en tête. L'étape courante étant toujours la
+    // première incomplète, cet invariant suffit à garantir que la progression
+    // (« 3 / 7 ») et les séries déjà enregistrées restent cohérentes.
+    //
+    // L'ordre modifié vaut pour cette séance seulement : le programme de référence
+    // reste celui de Program.planFor().
+
+    /** Place cet exercice en tête des exercices restants : « je le fais maintenant ». */
+    suspend fun doStepNow(sessionId: Long, exerciseSessionId: Long) {
+        reorderPendingSteps(sessionId) { pending ->
+            val target = pending.firstOrNull { it.exerciseSession.id == exerciseSessionId }
+                ?: return@reorderPendingSteps pending
+            listOf(target) + pending.filterNot { it.exerciseSession.id == exerciseSessionId }
+        }
+    }
+
+    /** Décale cet exercice d'un cran : « la machine est prise, je reviendrai ». */
+    suspend fun postponeStep(sessionId: Long, exerciseSessionId: Long) {
+        reorderPendingSteps(sessionId) { pending ->
+            val index = pending.indexOfFirst { it.exerciseSession.id == exerciseSessionId }
+            if (index < 0 || index == pending.lastIndex) {
+                return@reorderPendingSteps pending
+            }
+            pending.toMutableList().apply { add(index + 1, removeAt(index)) }
+        }
+    }
+
+    private suspend fun reorderPendingSteps(
+        sessionId: Long,
+        transform: (List<ExerciseSessionWithSets>) -> List<ExerciseSessionWithSets>,
+    ) {
+        val steps = workoutDao.getSession(sessionId)?.orderedExercises ?: return
+        val (completed, pending) = steps.partition { it.sets.size >= it.exerciseSession.plannedSets }
+        workoutDao.applyOrder((completed + transform(pending)).map { it.exerciseSession.id })
     }
 
     suspend fun recordSet(

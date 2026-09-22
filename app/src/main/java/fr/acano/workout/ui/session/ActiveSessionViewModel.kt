@@ -71,6 +71,19 @@ class ActiveSessionViewModel(
                 setsDoneToday = item.sets.sortedBy { it.setNumber },
             )
         }
+        val pendingSteps = steps
+            .filter { it.sets.size < it.exerciseSession.plannedSets }
+            .map { item ->
+                PendingStep(
+                    exerciseSessionId = item.exerciseSession.id,
+                    name = catalogue[item.exerciseSession.exerciseId]?.name
+                        ?: item.exerciseSession.exerciseId,
+                    plannedSets = item.exerciseSession.plannedSets,
+                    completedSets = item.sets.size,
+                    isCurrent = item.exerciseSession.id == step?.exerciseSessionId,
+                )
+            }
+
         return ActiveSessionUiState(
             isLoading = false,
             type = session.session.type,
@@ -79,6 +92,7 @@ class ActiveSessionViewModel(
             step = step,
             timer = timer,
             isFinished = progress.isFinished,
+            pendingSteps = pendingSteps,
         )
     }
 
@@ -179,6 +193,25 @@ class ActiveSessionViewModel(
             label = "Repos",
             durationMs = step.exercise.restSeconds * 1000L,
         )
+    }
+
+    // --- Ordre des exercices ---
+
+    /**
+     * Machine occupée : l'exercice courant passe juste après le suivant.
+     * Le chronomètre est arrêté puisqu'on change de machine.
+     */
+    fun postponeCurrentStep(context: Context) {
+        val step = state.value.step ?: return
+        skipTimer(context)
+        viewModelScope.launch { repository.postponeStep(sessionId, step.exerciseSessionId) }
+    }
+
+    /** Passe directement à l'exercice choisi ; les autres restent à faire ensuite. */
+    fun doStepNow(context: Context, exerciseSessionId: Long) {
+        if (exerciseSessionId == state.value.step?.exerciseSessionId) return
+        skipTimer(context)
+        viewModelScope.launch { repository.doStepNow(sessionId, exerciseSessionId) }
     }
 
     fun undoLastSet(context: Context) {
