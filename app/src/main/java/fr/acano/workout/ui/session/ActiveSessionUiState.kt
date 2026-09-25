@@ -16,6 +16,12 @@ data class CurrentStep(
     val lastSessionWeightKg: Double?,
     /** Séries déjà réalisées aujourd'hui sur cet exercice. */
     val setsDoneToday: List<SetResultEntity>,
+    /** Cibles de l'étape, fixées par l'entraînement ; celle qui ne s'applique pas reste nulle. */
+    val targetRepsMin: Int? = null,
+    val targetRepsMax: Int? = null,
+    val targetDurationSeconds: Int? = null,
+    /** Repos après une série, en secondes. 0 = pas de chrono. */
+    val restSeconds: Int = 0,
 )
 
 /** Un exercice restant, tel qu'il apparaît dans la feuille « changer d'exercice ». */

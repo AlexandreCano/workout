@@ -1,6 +1,5 @@
 package fr.acano.workout.ui.session
 
-import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -8,14 +7,13 @@ import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.aspectRatio
 import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.rounded.Check
-import androidx.compose.material.icons.rounded.SwapVert
 import androidx.compose.material.icons.rounded.PlayArrow
 import androidx.compose.material.icons.rounded.Undo
 import androidx.compose.material3.MaterialTheme
@@ -28,9 +26,9 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.unit.dp
 import fr.acano.workout.domain.ExerciseKind
+import fr.acano.workout.ui.common.LocalWeightUnit
 import fr.acano.workout.ui.common.formatWeight
 import fr.acano.workout.ui.common.targetLabel
 import fr.acano.workout.ui.components.ExerciseHeader
@@ -39,8 +37,6 @@ import fr.acano.workout.ui.components.RepsSelector
 import fr.acano.workout.ui.components.WeightSelector
 import fr.acano.workout.ui.components.WorkoutPrimaryButton
 import fr.acano.workout.ui.components.WorkoutTextButton
-import fr.acano.workout.ui.components.WorkoutTonalButton
-import fr.acano.workout.ui.theme.WorkoutMotion
 import fr.acano.workout.ui.theme.WorkoutTheme
 
 /**
@@ -55,13 +51,11 @@ import fr.acano.workout.ui.theme.WorkoutTheme
 @Composable
 fun SetEntryStage(
     step: CurrentStep,
-    canReorder: Boolean,
     canUndo: Boolean,
     onWeightChange: (Double) -> Unit,
     onValidateReps: (Int) -> Unit,
     onStartEffort: () -> Unit,
     onMarkTimedDone: () -> Unit,
-    onOpenReorder: () -> Unit,
     onUndo: () -> Unit,
     modifier: Modifier = Modifier,
 ) {
@@ -76,18 +70,8 @@ fun SetEntryStage(
             completedSets = step.setsDoneToday.size,
             currentSet = step.setNumber,
             totalSets = step.plannedSets,
-            targetLabel = step.exercise.targetLabel(),
+            targetLabel = targetLabel(step.targetRepsMin, step.targetRepsMax, step.targetDurationSeconds),
         )
-
-        if (canReorder) {
-            Spacer(Modifier.height(WorkoutTheme.spacing.lg))
-            WorkoutTonalButton(
-                text = "Réorganiser la suite",
-                onClick = onOpenReorder,
-                icon = Icons.Rounded.SwapVert,
-                modifier = Modifier.fillMaxWidth(),
-            )
-        }
 
         Spacer(Modifier.height(WorkoutTheme.spacing.xl))
 
@@ -97,7 +81,7 @@ fun SetEntryStage(
         // flottaison. ContentScale.Fit gère proprement une source non carrée.
         Box(Modifier.fillMaxWidth(), contentAlignment = Alignment.Center) {
             ExerciseImage(
-                exerciseId = step.exercise.id,
+                exercise = step.exercise,
                 modifier = Modifier
                     .heightIn(max = 260.dp)
                     .aspectRatio(1f),
@@ -153,8 +137,9 @@ private fun CompletedSetsStrip(step: CurrentStep) {
                 shape = MaterialTheme.shapes.extraSmall,
             ) {
                 Text(
-                    text = set.repetitions?.toString()
-                        ?: set.durationSeconds?.let { "${it}s" }
+                    // Même écriture que partout ailleurs : « 12 reps », « 0:45 ».
+                    text = set.repetitions?.let { if (it > 1) "$it reps" else "1 rep" }
+                        ?: set.durationSeconds?.let { "%d:%02d".format(it / 60, it % 60) }
                         ?: "—",
                     style = MaterialTheme.typography.labelLarge,
                     modifier = Modifier.padding(
@@ -173,8 +158,8 @@ private fun WeightedRepsControls(
     onWeightChange: (Double) -> Unit,
     onValidate: (Int) -> Unit,
 ) {
-    val minReps = step.exercise.targetRepsMin ?: 8
-    val maxReps = step.exercise.targetRepsMax ?: 12
+    val minReps = step.targetRepsMin ?: 8
+    val maxReps = step.targetRepsMax ?: 12
     var reps by remember(step.exerciseSessionId, step.setNumber) {
         mutableIntStateOf(step.setsDoneToday.lastOrNull()?.repetitions ?: maxReps)
     }
@@ -184,7 +169,7 @@ private fun WeightedRepsControls(
         stepKg = step.exercise.weightStepKg,
         onChange = onWeightChange,
         supportingText = buildString {
-            append("Dernière séance : ${formatWeight(step.lastSessionWeightKg)}")
+            append("Dernière séance : ${formatWeight(step.lastSessionWeightKg, LocalWeightUnit.current)}")
             append("   ·   appui long : demi-pas")
         },
     )
@@ -205,8 +190,8 @@ private fun WeightedRepsControls(
 
 @Composable
 private fun RepsOnlyControls(step: CurrentStep, onValidate: (Int) -> Unit) {
-    val minReps = step.exercise.targetRepsMin ?: 3
-    val maxReps = step.exercise.targetRepsMax ?: 5
+    val minReps = step.targetRepsMin ?: 3
+    val maxReps = step.targetRepsMax ?: 5
     var reps by remember(step.exerciseSessionId, step.setNumber) { mutableIntStateOf(minReps) }
 
     Row(
@@ -262,7 +247,7 @@ private fun TimedControls(
     onStart: () -> Unit,
     onMarkDone: () -> Unit,
 ) {
-    val seconds = step.exercise.targetDurationSeconds ?: 60
+    val seconds = step.targetDurationSeconds ?: 60
 
     WorkoutPrimaryButton(
         text = "COMMENCER  ·  ${seconds / 60}:${"%02d".format(seconds % 60)}",

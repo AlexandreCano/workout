@@ -6,6 +6,7 @@ import fr.acano.workout.data.db.WorkoutDatabase
 import fr.acano.workout.data.repository.WorkoutRepository
 import fr.acano.workout.data.seed.Program
 import fr.acano.workout.domain.WorkoutType
+import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.runBlocking
 import org.junit.Assert.assertEquals
 import org.junit.Test
@@ -25,11 +26,13 @@ class WorkoutDatabaseTest {
         context.deleteDatabase("workout.db")
         val database = WorkoutDatabase.build(context)
         try {
-            val repository = WorkoutRepository(database.exerciseDao(), database.workoutDao())
+            val repository = WorkoutRepository(database.exerciseDao(), database.workoutDao(), database.customWorkoutDao())
             repository.ensureSeeded()
             assertEquals(Program.exercises.size, database.exerciseDao().count())
 
-            val sessionId = repository.startSession(WorkoutType.UPPER_BODY)
+            val upper = repository.observeCustomWorkouts().first()
+                .first { it.workout.name == WorkoutType.UPPER_BODY.label }
+            val sessionId = repository.startSession(upper.workout.id)
             assertEquals(7, repository.session(sessionId)!!.orderedExercises.size)
         } finally {
             database.close()

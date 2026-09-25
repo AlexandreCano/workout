@@ -1,0 +1,28 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+    Valeur du chrono (56sp). En marche, c'est un Chronometer que le système fait
+    avancer seul, même si l'application est en veille ; en pause, un texte figé
+    prend sa place (un Chronometer arrêté ne sait pas afficher une valeur fixe).
+    Un seul des deux est visible à la fois : pas besoin de conteneur.
+-->
+<merge xmlns:android="http://schemas.android.com/apk/res/android">
+
+    <Chronometer
+        android:id="@+id/timer_chronometer"
+        style="@style/TextAppearance.Compat.Notification.Title"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:fontFeatureSettings="tnum"
+        android:includeFontPadding="false"
+        android:textSize="56sp" />
+
+    <TextView
+        android:id="@+id/timer_paused_value"
+        style="@style/TextAppearance.Compat.Notification.Title"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:fontFeatureSettings="tnum"
+        android:includeFontPadding="false"
+        android:textSize="56sp"
+        android:visibility="gone" />
+</merge>

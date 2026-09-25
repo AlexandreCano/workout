@@ -15,6 +15,8 @@ import android.os.SystemClock
 import android.os.VibrationEffect
 import android.os.Vibrator
 import android.os.VibratorManager
+import android.view.View
+import android.widget.RemoteViews
 import androidx.core.app.NotificationCompat
 import androidx.core.app.NotificationManagerCompat
 import androidx.core.content.ContextCompat
@@ -88,6 +90,8 @@ class RestTimerService : Service() {
         totalMs = intent.getLongExtra(EXTRA_DURATION_MS, 60_000L)
         deadlineElapsed = SystemClock.elapsedRealtime() + totalMs
         pausedRemainingMs = null
+        // Le « Repos terminé » du chrono précédent n'a plus de sens une fois le suivant lancé.
+        NotificationManagerCompat.from(this).cancel(TimerNotifications.DONE_NOTIFICATION_ID)
 
         if (!startForegroundCompat(buildRunningNotification(totalMs))) {
             // Sans passage en premier plan, le contrat de startForegroundService
@@ -114,19 +118,39 @@ class RestTimerService : Service() {
         deadlineElapsed = SystemClock.elapsedRealtime() + remaining
         pausedRemainingMs = null
         publish(remaining, running = true, finished = false)
+        updateNotification(remaining)
         startTicking()
     }
 
-    private fun handleAdd(extraMs: Long) {
-        totalMs += extraMs
+    /**
+     * Ajoute [deltaMs] au temps restant, ou en retire s'il est négatif.
+     *
+     * On ne retire jamais plus que ce qui reste : le décalage réellement
+     * appliqué est reporté sur la durée totale, qui reste ainsi celle du chrono
+     * tel qu'il a été vécu (anneau de progression, durée d'effort enregistrée).
+     * Arriver à zéro termine le chrono comme s'il était allé au bout.
+     */
+    private fun handleAdd(deltaMs: Long) {
+        val before = remainingMs()
+        val after = (before + deltaMs).coerceAtLeast(0)
+        val applied = after - before
+        totalMs = (totalMs + applied).coerceAtLeast(0)
+
+        if (after == 0L) {
+            tickJob?.cancel()
+            pausedRemainingMs = null
+            onTimerFinished()
+            return
+        }
         val paused = pausedRemainingMs
         if (paused != null) {
-            pausedRemainingMs = paused + extraMs
-            publish(paused + extraMs, running = false, finished = false)
-            updateNotification(paused + extraMs)
+            pausedRemainingMs = after
+            publish(after, running = false, finished = false)
+            updateNotification(after)
         } else {
-            deadlineElapsed += extraMs
-            publish(remainingMs(), running = true, finished = false)
+            deadlineElapsed += applied
+            publish(after, running = true, finished = false)
+            updateNotification(after)
             if (tickJob?.isActive != true) startTicking()
         }
     }
@@ -134,19 +158,15 @@ class RestTimerService : Service() {
     private fun startTicking() {
         tickJob?.cancel()
         tickJob = scope.launch {
-            var lastShownSecond = -1
             while (isActive) {
                 val remaining = remainingMs()
                 if (remaining <= 0) {
                     onTimerFinished()
                     return@launch
                 }
+                // Pas de mise à jour de la notification ici : le décompte y est
+                // tenu par le système (voir buildRunningNotification).
                 publish(remaining, running = true, finished = false)
-                val second = ((remaining + 999) / 1000).toInt()
-                if (second != lastShownSecond) {
-                    lastShownSecond = second
-                    updateNotification(remaining)
-                }
                 delay(TICK_MS)
             }
         }
@@ -163,7 +183,7 @@ class RestTimerService : Service() {
     private fun stopTimer() {
         tickJob?.cancel()
         ActiveTimer.update(null)
-        NotificationManagerCompat.from(this).cancel(DONE_NOTIFICATION_ID)
+        NotificationManagerCompat.from(this).cancel(TimerNotifications.DONE_NOTIFICATION_ID)
         stopForegroundCompat()
         stopSelf(latestStartId)
     }
@@ -193,17 +213,90 @@ class RestTimerService : Service() {
         PendingIntent.FLAG_IMMUTABLE or PendingIntent.FLAG_UPDATE_CURRENT,
     )
 
-    private fun buildRunningNotification(remaining: Long): Notification =
-        NotificationCompat.Builder(this, TimerNotifications.RUNNING_CHANNEL_ID)
+    /**
+     * Notification du décompte, sur le modèle du minuteur de l'Horloge Pixel :
+     *  - le temps restant **en grand** dans une mise en page personnalisée
+     *    (le gabarit standard n'offre qu'une petite taille de texte). Le style
+     *    « décoré » garde l'en-tête, l'icône et les boutons du système, donc
+     *    l'apparence et le thème clair / sombre de la notification ;
+     *  - en marche, un Chronometer que le système fait avancer seul, même si
+     *    le processeur met l'application en veille ; on ne redessine la
+     *    notification qu'aux changements d'état ;
+     *  - publique : un chrono n'a rien de confidentiel, il s'affiche en entier
+     *    sur l'écran verrouillé ;
+     *  - Pause / Reprendre, pour ne pas avoir à déverrouiller.
+     *
+     * Contrepartie : une mise en page personnalisée exclut la notification des
+     * Live Updates d'Android 16.
+     */
+    private fun buildRunningNotification(remaining: Long): Notification {
+        val title = if (kind == TimerKind.REST) "Repos" else label
+        val paused = pausedRemainingMs != null
+        // En marche, le décompte se suffit à lui-même : pas de ligne secondaire.
+        val subtitle = if (paused) "En pause" else null
+        val collapsed = timerViews(R.layout.notification_timer_collapsed, title, subtitle, remaining, paused)
+        val expanded = timerViews(R.layout.notification_timer_expanded, title, subtitle, remaining, paused)
+
+        return NotificationCompat.Builder(this, TimerNotifications.RUNNING_CHANNEL_ID)
             .setSmallIcon(R.drawable.ic_timer)
-            .setContentTitle(if (kind == TimerKind.REST) "Repos" else label)
-            .setContentText(formatClock(remaining))
+            // Titre et texte restent renseignés : ils servent aux montres, à
+            // l'accessibilité et à tout affichage qui ignore la vue personnalisée.
+            .setContentTitle(title)
+            .setContentText(if (paused) "En pause · ${formatClock(remaining)}" else null)
+            .setStyle(NotificationCompat.DecoratedCustomViewStyle())
+            .setCustomContentView(collapsed)
+            .setCustomBigContentView(expanded)
+            .setShowWhen(false)
             .setOngoing(true)
             .setSilent(true)
             .setOnlyAlertOnce(true)
+            .setVisibility(NotificationCompat.VISIBILITY_PUBLIC)
             .setCategory(NotificationCompat.CATEGORY_STOPWATCH)
             .setContentIntent(contentIntent())
+            .addAction(
+                if (paused) {
+                    NotificationCompat.Action(android.R.drawable.ic_media_play, "Reprendre", serviceIntent(ACTION_RESUME))
+                } else {
+                    NotificationCompat.Action(android.R.drawable.ic_media_pause, "Pause", serviceIntent(ACTION_PAUSE))
+                },
+            )
             .build()
+    }
+
+    private fun timerViews(
+        layout: Int,
+        title: String,
+        subtitle: String?,
+        remaining: Long,
+        paused: Boolean,
+    ): RemoteViews = RemoteViews(packageName, layout).apply {
+        setTextViewText(R.id.timer_title, title)
+        if (subtitle == null) {
+            setViewVisibility(R.id.timer_subtitle, View.GONE)
+        } else {
+            setViewVisibility(R.id.timer_subtitle, View.VISIBLE)
+            setTextViewText(R.id.timer_subtitle, subtitle)
+        }
+        if (paused) {
+            setViewVisibility(R.id.timer_chronometer, View.GONE)
+            setViewVisibility(R.id.timer_paused_value, View.VISIBLE)
+            setTextViewText(R.id.timer_paused_value, formatClock(remaining))
+        } else {
+            setViewVisibility(R.id.timer_paused_value, View.GONE)
+            setViewVisibility(R.id.timer_chronometer, View.VISIBLE)
+            // Compte à rebours : la base est l'échéance, sur la même horloge que le service.
+            setChronometer(R.id.timer_chronometer, SystemClock.elapsedRealtime() + remaining, null, true)
+            setChronometerCountDown(R.id.timer_chronometer, true)
+        }
+    }
+
+    /** Les boutons de la notification renvoient simplement une commande au service. */
+    private fun serviceIntent(action: String): PendingIntent = PendingIntent.getService(
+        this,
+        action.hashCode(),
+        Intent(this, RestTimerService::class.java).setAction(action),
+        PendingIntent.FLAG_IMMUTABLE or PendingIntent.FLAG_UPDATE_CURRENT,
+    )
 
     /** Sur Android 13+, notifier sans la permission lève une SecurityException. */
     private fun canNotify(): Boolean =
@@ -228,13 +321,14 @@ class RestTimerService : Service() {
             .setContentTitle(if (kind == TimerKind.REST) "Repos terminé" else "$label terminé")
             .setContentText(if (kind == TimerKind.REST) "Série suivante" else "Série validée")
             .setPriority(NotificationCompat.PRIORITY_HIGH)
+            .setVisibility(NotificationCompat.VISIBILITY_PUBLIC)
             .setCategory(NotificationCompat.CATEGORY_ALARM)
             .setAutoCancel(true)
             .setContentIntent(contentIntent())
             .build()
         if (!canNotify()) return
         runCatching {
-            NotificationManagerCompat.from(this).notify(DONE_NOTIFICATION_ID, notification)
+            NotificationManagerCompat.from(this).notify(TimerNotifications.DONE_NOTIFICATION_ID, notification)
         }
     }
 
@@ -283,7 +377,6 @@ class RestTimerService : Service() {
         private const val EXTRA_LABEL = "label"
         private const val EXTRA_DURATION_MS = "durationMs"
 
-        private const val DONE_NOTIFICATION_ID = 1002
         private const val TICK_MS = 200L
 
         /** Vrai entre `onCreate` et `onDestroy` du service. */
@@ -302,6 +395,7 @@ class RestTimerService : Service() {
 
         fun resume(context: Context) = send(context, ACTION_RESUME)
 
+        /** Ajoute du temps au chrono en cours ; une valeur négative en retire. */
         fun addTime(context: Context, extraMs: Long = 30_000L) {
             context.startService(
                 Intent(context, RestTimerService::class.java)

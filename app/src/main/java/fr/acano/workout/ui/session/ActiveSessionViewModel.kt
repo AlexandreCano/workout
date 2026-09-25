@@ -59,7 +59,8 @@ class ActiveSessionViewModel(
         val currentIndex = progress.currentStepIndex
         val step = currentIndex?.let { index ->
             val item = steps[index]
-            val exercise = catalogue[item.exerciseSession.exerciseId] ?: return@let null
+            val planned = item.exerciseSession
+            val exercise = catalogue[planned.exerciseId] ?: return@let null
             CurrentStep(
                 exerciseSessionId = item.exerciseSession.id,
                 exercise = exercise,
@@ -69,6 +70,10 @@ class ActiveSessionViewModel(
                     ?: previousWeights[exercise.id],
                 lastSessionWeightKg = previousWeights[exercise.id],
                 setsDoneToday = item.sets.sortedBy { it.setNumber },
+                targetRepsMin = planned.targetRepsMin,
+                targetRepsMax = planned.targetRepsMax,
+                targetDurationSeconds = planned.targetDurationSeconds,
+                restSeconds = planned.restSeconds,
             )
         }
         val pendingSteps = steps
@@ -131,7 +136,7 @@ class ActiveSessionViewModel(
     /** Démarre le chrono d'un exercice chronométré (vélo, planche). */
     fun startEffortTimer(context: Context) {
         val step = state.value.step ?: return
-        val seconds = step.exercise.targetDurationSeconds ?: return
+        val seconds = step.targetDurationSeconds ?: return
         pendingEffortStepId = step.exerciseSessionId
         RestTimerService.start(
             context = context,
@@ -154,7 +159,12 @@ class ActiveSessionViewModel(
                 exerciseSessionId = step.exerciseSessionId,
                 exerciseId = step.exercise.id,
                 setNumber = step.setNumber,
-                durationSeconds = step.exercise.targetDurationSeconds,
+                // La durée réellement chronométrée : ±30 s en cours de série la
+                // font diverger de la cible, et c'est l'effort réel qu'on veut suivre.
+                durationSeconds = ActiveTimer.state.value
+                    ?.takeIf { it.kind == TimerKind.EFFORT }
+                    ?.let { ((it.totalMs + 500) / 1000).toInt() }
+                    ?: step.targetDurationSeconds,
             )
             // Pas de stop() ici : startRestIfNeeded arrête déjà le chronomètre
             // quand il n'y a pas de récupération à lancer. Enchaîner un stop et
@@ -187,7 +197,7 @@ class ActiveSessionViewModel(
      */
     private fun startRestIfNeeded(context: Context, step: CurrentStep) {
         val wasLastSet = step.setNumber >= step.plannedSets
-        if (wasLastSet || step.exercise.restSeconds <= 0) {
+        if (wasLastSet || step.restSeconds <= 0) {
             RestTimerService.stop(context)
             return
         }
@@ -195,7 +205,7 @@ class ActiveSessionViewModel(
             context = context,
             kind = TimerKind.REST,
             label = "Repos",
-            durationMs = step.exercise.restSeconds * 1000L,
+            durationMs = step.restSeconds * 1000L,
         )
     }
 
@@ -229,7 +239,9 @@ class ActiveSessionViewModel(
 
     fun resumeTimer(context: Context) = RestTimerService.resume(context)
 
-    fun addThirtySeconds(context: Context) = RestTimerService.addTime(context)
+    fun addThirtySeconds(context: Context) = RestTimerService.addTime(context, 30_000L)
+
+    fun removeThirtySeconds(context: Context) = RestTimerService.addTime(context, -30_000L)
 
     fun skipTimer(context: Context) {
         pendingEffortStepId = null

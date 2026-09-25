@@ -2,7 +2,15 @@ package fr.acano.workout.ui.exercises
 
 import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.foundation.Canvas
+import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.fillMaxHeight
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.width
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
@@ -14,28 +22,64 @@ import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.Path
+import androidx.compose.ui.graphics.PathEffect
 import androidx.compose.ui.graphics.StrokeCap
 import androidx.compose.ui.graphics.StrokeJoin
 import androidx.compose.ui.graphics.drawscope.Stroke
-import androidx.compose.ui.graphics.PathEffect
 import androidx.compose.ui.semantics.contentDescription
 import androidx.compose.ui.semantics.semantics
+import androidx.compose.ui.unit.dp
+import fr.acano.workout.ui.common.LocalWeightUnit
+import fr.acano.workout.ui.common.formatDate
 import fr.acano.workout.ui.common.formatWeight
 import fr.acano.workout.ui.theme.WorkoutMotion
 
 /**
- * Courbe d'évolution de la charge.
+ * Courbe d'évolution de la charge, une valeur par séance.
  *
  * Dessinée à la main : une bibliothèque de graphiques coûterait une dépendance
  * et un style à réaligner sur le thème, pour un seul écran. Le tracé se déroule
  * à l'ouverture, ce qui suffit à faire lire la courbe de gauche à droite.
+ *
+ * Pour qu'elle se lise et pas seulement se regarde : la charge la plus haute et
+ * la plus basse sont écrites face à leurs repères, les dates de la première et
+ * de la dernière séance sous l'axe, et le record est marqué d'un anneau.
  */
 @Composable
 fun WeightChart(
-    points: List<Double>,
+    points: List<Pair<Long, Double>>,
     modifier: Modifier = Modifier,
 ) {
     if (points.size < 2) return
+    val unit = LocalWeightUnit.current
+    val values = points.map { it.second }
+    val labelStyle = MaterialTheme.typography.labelMedium
+    val labelColor = MaterialTheme.colorScheme.onSurfaceVariant
+
+    Column(modifier) {
+        Row(Modifier.weight(1f)) {
+            // Les deux repères extrêmes, calés sur les pointillés (marge verticale de 14 %).
+            Column(
+                verticalArrangement = Arrangement.SpaceBetween,
+                modifier = Modifier
+                    .fillMaxHeight()
+                    .width(56.dp)
+                    .padding(vertical = 4.dp),
+            ) {
+                Text(formatWeight(values.max(), unit), style = labelStyle, color = labelColor)
+                Text(formatWeight(values.min(), unit), style = labelStyle, color = labelColor)
+            }
+            ChartCanvas(values, Modifier.weight(1f).fillMaxHeight())
+        }
+        Row(Modifier.fillMaxWidth().padding(start = 56.dp, top = 4.dp)) {
+            Text(formatDate(points.first().first), style = labelStyle, color = labelColor, modifier = Modifier.weight(1f))
+            Text(formatDate(points.last().first), style = labelStyle, color = labelColor)
+        }
+    }
+}
+
+@Composable
+private fun ChartCanvas(points: List<Double>, modifier: Modifier) {
 
     var started by remember(points) { mutableStateOf(false) }
     val reveal by animateFloatAsState(
@@ -46,9 +90,11 @@ fun WeightChart(
     LaunchedEffect(points) { started = true }
 
     val lineColor = MaterialTheme.colorScheme.primary
+    val recordColor = MaterialTheme.colorScheme.tertiary
+    val recordIndex = points.indexOf(points.max())
     val fillColor = MaterialTheme.colorScheme.primary.copy(alpha = 0.16f)
     val gridColor = MaterialTheme.colorScheme.outlineVariant
-    val description = "Évolution de ${formatWeight(points.first())} à ${formatWeight(points.last())}"
+    val description = "Évolution de ${formatWeight(points.first(), LocalWeightUnit.current)} à ${formatWeight(points.last(), LocalWeightUnit.current)}"
 
     Canvas(modifier.semantics { contentDescription = description }) {
         val minValue = points.min()
@@ -110,11 +156,16 @@ fun WeightChart(
 
         points.forEachIndexed { index, value ->
             if (index > visibleCount) return@forEachIndexed
+            val center = Offset(index * stepX, yFor(value))
             drawCircle(
                 color = lineColor,
                 radius = if (index == points.lastIndex) 10f else 6f,
-                center = Offset(index * stepX, yFor(value)),
+                center = center,
             )
+            // Le record : un anneau, qui reste lisible même s'il s'agit du dernier point.
+            if (index == recordIndex) {
+                drawCircle(color = recordColor, radius = 18f, center = center, style = Stroke(width = 4f))
+            }
         }
     }
 }

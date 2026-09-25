@@ -1,0 +1,39 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+    Notification du chrono, repliée : le décompte en grand à gauche, comme le
+    minuteur de l'Horloge Pixel. Android limite cette zone à 48dp de haut :
+    36sp sans marge interne de police tient juste.
+-->
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:baselineAligned="false"
+    android:gravity="center_vertical"
+    android:orientation="horizontal">
+
+    <include layout="@layout/notification_timer_value" />
+
+    <LinearLayout
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:layout_marginStart="16dp"
+        android:layout_weight="1"
+        android:orientation="vertical">
+
+        <TextView
+            android:id="@+id/timer_title"
+            style="@style/TextAppearance.Compat.Notification.Title"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:ellipsize="end"
+            android:maxLines="1" />
+
+        <TextView
+            android:id="@+id/timer_subtitle"
+            style="@style/TextAppearance.Compat.Notification"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:ellipsize="end"
+            android:maxLines="1" />
+    </LinearLayout>
+</LinearLayout>

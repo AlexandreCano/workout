@@ -22,13 +22,17 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import fr.acano.workout.ui.theme.WorkoutTheme
 
 /**
- * Étiquette de section. Remplace les titres de cartes : la hiérarchie vient de
- * la typographie et de l'espace, pas d'un conteneur supplémentaire.
+ * Titre de section. Remplace les titres de cartes : la hiérarchie vient de la
+ * typographie et de l'espace, pas d'un conteneur supplémentaire.
+ *
+ * En casse normale et en gras discret : des capitales espacées sur chaque
+ * section finissaient par crier autant que les titres d'écran.
  */
 @Composable
 fun SectionHeader(
@@ -43,8 +47,9 @@ fun SectionHeader(
             .padding(bottom = WorkoutTheme.spacing.md),
     ) {
         Text(
-            text = text.uppercase(),
-            style = WorkoutTheme.emphasis.overline,
+            text = text,
+            style = MaterialTheme.typography.titleSmall,
+            fontWeight = FontWeight.SemiBold,
             color = MaterialTheme.colorScheme.onSurfaceVariant,
             modifier = Modifier.weight(1f),
         )

@@ -12,7 +12,14 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.ui.Modifier
+import androidx.lifecycle.Lifecycle
+import androidx.lifecycle.lifecycleScope
+import androidx.lifecycle.repeatOnLifecycle
+import fr.acano.workout.timer.ActiveTimer
+import fr.acano.workout.timer.TimerNotifications
 import fr.acano.workout.ui.nav.WorkoutNavHost
+import kotlinx.coroutines.delay
+import kotlinx.coroutines.launch
 import fr.acano.workout.ui.theme.WorkoutTheme
 
 class MainActivity : ComponentActivity() {
@@ -27,6 +34,26 @@ class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         enableEdgeToEdge()
+
+        // Revenir dans l'application efface le « Repos terminé » ; et si le repos
+        // se termine alors qu'on y est déjà, la notification s'efface d'elle-même
+        // une fois le son et la vibration joués.
+        lifecycleScope.launch {
+            repeatOnLifecycle(Lifecycle.State.RESUMED) {
+                TimerNotifications.dismissFinished(this@MainActivity)
+                ActiveTimer.state.collect { timer ->
+                    if (timer?.isFinished == true) {
+                        // Lancé à part : une fin d'effort est aussitôt suivie d'un
+                        // nouvel état (série enregistrée, chrono remis à zéro), qui ne
+                        // doit pas annuler l'effacement programmé.
+                        launch {
+                            delay(FINISHED_NOTIFICATION_GRACE_MS)
+                            TimerNotifications.dismissFinished(this@MainActivity)
+                        }
+                    }
+                }
+            }
+        }
 
         setContent {
             WorkoutTheme {
@@ -45,3 +72,6 @@ class MainActivity : ComponentActivity() {
         }
     }
 }
+
+/** Le temps de laisser jouer le son et la vibration de fin avant d'effacer la notification. */
+private const val FINISHED_NOTIFICATION_GRACE_MS = 4_000L

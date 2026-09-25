@@ -1,6 +1,7 @@
 package fr.acano.workout.ui.components
 
 import androidx.compose.animation.core.animateFloatAsState
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.gestures.detectDragGestures
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -29,6 +30,7 @@ import androidx.compose.runtime.rememberUpdatedState
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.hapticfeedback.HapticFeedbackType
 import androidx.compose.ui.input.pointer.pointerInput
@@ -60,6 +62,9 @@ data class ReorderableItem(
  *
  * Le glissé étant inutilisable avec TalkBack, chaque ligne expose aussi deux
  * actions d'accessibilité « Monter » et « Descendre ».
+ *
+ * [onItemClick] rend la ligne cliquable (hors poignée) et [trailing] ajoute une
+ * action juste avant la poignée ; les deux sont facultatifs.
  */
 @Composable
 fun ReorderableList(
@@ -67,6 +72,8 @@ fun ReorderableList(
     onMove: (from: Int, to: Int) -> Unit,
     modifier: Modifier = Modifier,
     highlightFirst: Boolean = true,
+    onItemClick: ((ReorderableItem) -> Unit)? = null,
+    trailing: (@Composable (ReorderableItem) -> Unit)? = null,
 ) {
     val density = LocalDensity.current
     val haptics = LocalHapticFeedback.current
@@ -127,6 +134,8 @@ fun ReorderableList(
                     position = index + 1,
                     dragging = dragging,
                     isNext = highlightFirst && index == 0,
+                    onClick = onItemClick?.let { click -> { click(item) } },
+                    trailing = trailing?.let { slot -> { slot(item) } },
                     handleModifier = Modifier.pointerInput(item.id) {
                         detectDragGestures(
                             onDragStart = {
@@ -171,6 +180,8 @@ private fun ReorderRow(
     position: Int,
     dragging: Boolean,
     isNext: Boolean,
+    onClick: (() -> Unit)?,
+    trailing: (@Composable () -> Unit)?,
     handleModifier: Modifier,
 ) {
     val elevation by animateFloatAsState(
@@ -198,7 +209,17 @@ private fun ReorderRow(
     ) {
         Row(
             verticalAlignment = Alignment.CenterVertically,
-            modifier = Modifier.padding(horizontal = WorkoutTheme.spacing.lg),
+            modifier = Modifier
+                .then(
+                    if (onClick != null) {
+                        Modifier
+                            .clip(MaterialTheme.shapes.medium)
+                            .clickable(onClick = onClick)
+                    } else {
+                        Modifier
+                    },
+                )
+                .padding(horizontal = WorkoutTheme.spacing.lg),
         ) {
             Text(
                 text = "$position",
@@ -225,6 +246,8 @@ private fun ReorderRow(
                     },
                 )
             }
+
+            trailing?.invoke()
 
             Box(
                 contentAlignment = Alignment.Center,

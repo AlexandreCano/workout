@@ -42,6 +42,10 @@ import androidx.compose.ui.semantics.role
 import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
+import fr.acano.workout.domain.WeightUnit
+import fr.acano.workout.domain.stepWeight
+import fr.acano.workout.ui.common.LocalWeightUnit
+import fr.acano.workout.ui.common.formatNumber
 import fr.acano.workout.ui.common.formatWeightValue
 import fr.acano.workout.ui.theme.WorkoutMotion
 import fr.acano.workout.ui.theme.WorkoutTheme
@@ -55,6 +59,9 @@ import fr.acano.workout.ui.theme.WorkoutTheme
  *    « sauter » latéralement quand elle change de largeur ;
  *  - un appui long applique le demi-pas (1,25 kg sur une machine réglée par
  *    2,5 kg), avec retour haptique pour confirmer sans regarder.
+ *
+ * La charge reste en kilogrammes ([weightKg], [stepKg]) ; l'affichage et les pas
+ * suivent l'unité choisie dans les réglages (voir [WeightUnit.step]).
  */
 @OptIn(ExperimentalFoundationApi::class)
 @Composable
@@ -66,10 +73,12 @@ fun WeightSelector(
     supportingText: String? = null,
 ) {
     val haptics = LocalHapticFeedback.current
+    val unit = LocalWeightUnit.current
+    val step = unit.step(stepKg)
 
     fun apply(delta: Double) {
         haptics.performHapticFeedback(HapticFeedbackType.LongPress)
-        onChange(((weightKg ?: 0.0) + delta).coerceAtLeast(0.0))
+        onChange(stepWeight(weightKg, delta, unit))
     }
 
     Column(modifier = modifier.fillMaxWidth()) {
@@ -80,21 +89,22 @@ fun WeightSelector(
         ) {
             StepperTarget(
                 icon = Icons.Rounded.Remove,
-                contentDescription = "Diminuer la charge de ${formatWeightValue(stepKg)} kilos",
-                onClick = { apply(-stepKg) },
-                onLongClick = { apply(-stepKg / 2) },
+                contentDescription = "Diminuer la charge de ${formatNumber(step)} ${unit.spokenName}",
+                onClick = { apply(-step) },
+                onLongClick = { apply(-step / 2) },
             )
 
             WeightValue(
                 weightKg = weightKg,
+                unit = unit,
                 modifier = Modifier.weight(1f),
             )
 
             StepperTarget(
                 icon = Icons.Rounded.Add,
-                contentDescription = "Augmenter la charge de ${formatWeightValue(stepKg)} kilos",
-                onClick = { apply(stepKg) },
-                onLongClick = { apply(stepKg / 2) },
+                contentDescription = "Augmenter la charge de ${formatNumber(step)} ${unit.spokenName}",
+                onClick = { apply(step) },
+                onLongClick = { apply(step / 2) },
             )
         }
 
@@ -112,7 +122,7 @@ fun WeightSelector(
 }
 
 @Composable
-private fun WeightValue(weightKg: Double?, modifier: Modifier = Modifier) {
+private fun WeightValue(weightKg: Double?, unit: WeightUnit, modifier: Modifier = Modifier) {
     Row(
         horizontalArrangement = Arrangement.Center,
         verticalAlignment = Alignment.Bottom,
@@ -131,7 +141,7 @@ private fun WeightValue(weightKg: Double?, modifier: Modifier = Modifier) {
             label = "weightValue",
         ) { value ->
             Text(
-                text = value?.let { formatWeightValue(it) } ?: "—",
+                text = value?.let { formatWeightValue(it, unit) } ?: "—",
                 style = WorkoutTheme.emphasis.metric,
                 // Une charge jamais renseignée reste en teinte secondaire :
                 // en pleine taille et en pleine couleur, le tiret se lit comme
@@ -144,7 +154,7 @@ private fun WeightValue(weightKg: Double?, modifier: Modifier = Modifier) {
             )
         }
         Text(
-            text = " kg",
+            text = " ${unit.symbol}",
             style = MaterialTheme.typography.titleMedium,
             color = MaterialTheme.colorScheme.onSurfaceVariant,
             modifier = Modifier.padding(bottom = 6.dp),

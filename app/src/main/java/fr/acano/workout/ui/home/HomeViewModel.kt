@@ -3,12 +3,12 @@ package fr.acano.workout.ui.home
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import fr.acano.workout.data.db.entity.ExerciseEntity
+import fr.acano.workout.data.db.entity.SetResultEntity
+import fr.acano.workout.data.db.entity.title
 import fr.acano.workout.data.repository.WorkoutRepository
-import fr.acano.workout.data.seed.Program
 import fr.acano.workout.domain.ExerciseKind
 import fr.acano.workout.domain.StepState
 import fr.acano.workout.domain.WorkoutProgression
-import fr.acano.workout.domain.WorkoutType
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.combine
@@ -16,7 +16,7 @@ import kotlinx.coroutines.flow.stateIn
 
 data class ResumableSession(
     val sessionId: Long,
-    val type: WorkoutType,
+    val title: String,
     val exerciseName: String,
     val setNumber: Int,
     val plannedSets: Int,
@@ -32,49 +32,63 @@ data class ProgressionLine(
     val trend: Int,
 )
 
+/** Un entraînement, tel qu'il se présente sur l'accueil. */
+data class WorkoutLaunch(
+    val id: Long,
+    val name: String,
+    val stepCount: Int,
+    /** Nombre de séances terminées avec cet entraînement. */
+    val sessionCount: Int = 0,
+    val lastDoneAt: Long? = null,
+)
+
 data class HomeUiState(
     val stars: Int = 0,
-    val upperCount: Int = 0,
-    val lowerCount: Int = 0,
-    val lastSessionType: WorkoutType? = null,
-    val lastSessionAt: Long? = null,
+    val workouts: List<WorkoutLaunch> = emptyList(),
     val resumable: ResumableSession? = null,
     val progression: List<ProgressionLine> = emptyList(),
-    /** Nombre d'étapes de chaque séance, pour annoncer ce qui attend avant de lancer. */
-    val stepsPerSession: Map<WorkoutType, Int> =
-        WorkoutType.entries.associateWith { Program.planFor(it).size },
 ) {
     /**
-     * Séance suggérée : celle qu'on n'a pas faite la dernière fois. Donne à
-     * l'accueil une hiérarchie naturelle sans imposer quoi que ce soit.
+     * Entraînement suggéré : celui qu'on n'a pas fait depuis le plus longtemps,
+     * un entraînement jamais fait passant en premier. Avec deux entraînements,
+     * c'est « celui qu'on n'a pas fait la dernière fois ». Donne à l'accueil une
+     * hiérarchie naturelle sans rien imposer.
      */
-    val suggestedType: WorkoutType
-        get() = when (lastSessionType) {
-            WorkoutType.UPPER_BODY -> WorkoutType.LOWER_BODY
-            else -> WorkoutType.UPPER_BODY
-        }
+    val suggestedWorkoutId: Long?
+        get() = workouts.minByOrNull { it.lastDoneAt ?: Long.MIN_VALUE }?.id
 }
 
 class HomeViewModel(private val repository: WorkoutRepository) : ViewModel() {
 
+    private val workouts = combine(
+        repository.observeCustomWorkouts(),
+        repository.observeWorkoutStats(),
+    ) { workouts, stats ->
+        workouts.map {
+            val stat = stats[it.workout.id]
+            WorkoutLaunch(
+                id = it.workout.id,
+                name = it.workout.name,
+                stepCount = it.exercises.size,
+                sessionCount = stat?.sessionCount ?: 0,
+                lastDoneAt = stat?.lastDoneAt,
+            )
+        }
+    }
+
     val state: StateFlow<HomeUiState> = combine(
         repository.observeStarCount(),
-        repository.observeStarCount(WorkoutType.UPPER_BODY),
-        repository.observeStarCount(WorkoutType.LOWER_BODY),
-        repository.observeLastFinishedSession(),
+        workouts,
         combine(
             repository.observeActiveSession(),
             repository.observeExercises(),
             repository.observeRecentWeightedSets(),
         ) { active, exercises, recentSets -> Triple(active, exercises, recentSets) },
-    ) { stars, upper, lower, last, (active, exercises, recentSets) ->
+    ) { stars, workouts, (active, exercises, recentSets) ->
         val catalogue = exercises.associateBy { it.id }
         HomeUiState(
             stars = stars,
-            upperCount = upper,
-            lowerCount = lower,
-            lastSessionType = last?.type,
-            lastSessionAt = last?.startedAt,
+            workouts = workouts,
             resumable = active?.let { session ->
                 val steps = session.orderedExercises
                 val progress = WorkoutProgression.compute(
@@ -84,7 +98,7 @@ class HomeViewModel(private val repository: WorkoutRepository) : ViewModel() {
                 val current = steps.getOrNull(index)
                 ResumableSession(
                     sessionId = session.session.id,
-                    type = session.session.type,
+                    title = session.session.title(),
                     exerciseName = current
                         ?.let { catalogue[it.exerciseSession.exerciseId]?.name }
                         .orEmpty(),
@@ -98,40 +112,52 @@ class HomeViewModel(private val repository: WorkoutRepository) : ViewModel() {
         )
     }.stateIn(viewModelScope, SharingStarted.WhileSubscribed(5_000), HomeUiState())
 
-    /**
-     * Pour chaque exercice chargé : la dernière charge utilisée, comparée à la charge
-     * différente qui la précédait. Limité aux quelques exercices les plus récents,
-     * l'accueil n'étant pas un tableau de bord.
-     */
-    private fun buildProgression(
-        catalogue: Map<String, ExerciseEntity>,
-        recentSets: List<fr.acano.workout.data.db.entity.SetResultEntity>,
-    ): List<ProgressionLine> =
-        recentSets
-            .groupBy { it.exerciseId }
-            .mapNotNull { (exerciseId, sets) ->
-                val exercise = catalogue[exerciseId]
-                    ?.takeIf { it.kind == ExerciseKind.WEIGHTED_REPS }
-                    ?: return@mapNotNull null
-                val weights = sets.mapNotNull { it.weightKg }
-                val latest = weights.firstOrNull() ?: return@mapNotNull null
-                val previous = weights.firstOrNull { it != latest }
-                ProgressionLine(
-                    exerciseId = exerciseId,
-                    exerciseName = exercise.name,
-                    weightKg = latest,
-                    trend = when {
-                        previous == null -> 0
-                        latest > previous -> 1
-                        latest < previous -> -1
-                        else -> 0
-                    },
-                )
-            }
-            .sortedByDescending { line ->
-                recentSets.firstOrNull { it.exerciseId == line.exerciseId }?.completedAt ?: 0L
-            }
-            .take(4)
 
-    suspend fun startSession(type: WorkoutType): Long = repository.startSession(type)
+    suspend fun startSession(workoutId: Long): Long = repository.startSession(workoutId)
 }
+
+/**
+ * Pour chaque exercice chargé : la charge de la dernière séance terminée,
+ * comparée à celle de la séance précédente. La charge d'une séance est la plus
+ * lourde utilisée ce jour-là — changer de poids d'une série à l'autre au sein
+ * d'une même séance n'est donc pas une « progression ».
+ *
+ * [recentSets] ne contient que des séances terminées, de la plus récente à la
+ * plus ancienne. Limité aux quelques exercices les plus récents : l'accueil
+ * n'est pas un tableau de bord.
+ */
+internal fun buildProgression(
+    catalogue: Map<String, ExerciseEntity>,
+    recentSets: List<SetResultEntity>,
+): List<ProgressionLine> =
+    recentSets
+        .groupBy { it.exerciseId }
+        .mapNotNull { (exerciseId, sets) ->
+            val exercise = catalogue[exerciseId]
+                // Un exercice supprimé ne fait plus partie de la progression affichée.
+                ?.takeIf { it.kind == ExerciseKind.WEIGHTED_REPS && !it.isArchived }
+                ?: return@mapNotNull null
+            // Une étape de séance par séance : grouper par étape, c'est grouper par séance.
+            // groupBy conserve l'ordre d'apparition, donc la séance la plus récente d'abord.
+            val perSession = sets
+                .groupBy { it.exerciseSessionId }
+                .values
+                .map { session -> session.mapNotNull { it.weightKg }.max() }
+            val latest = perSession.firstOrNull() ?: return@mapNotNull null
+            val previous = perSession.getOrNull(1)
+            ProgressionLine(
+                exerciseId = exerciseId,
+                exerciseName = exercise.name,
+                weightKg = latest,
+                trend = when {
+                    previous == null -> 0
+                    latest > previous -> 1
+                    latest < previous -> -1
+                    else -> 0
+                },
+            )
+        }
+        .sortedByDescending { line ->
+            recentSets.firstOrNull { it.exerciseId == line.exerciseId }?.completedAt ?: 0L
+        }
+        .take(4)

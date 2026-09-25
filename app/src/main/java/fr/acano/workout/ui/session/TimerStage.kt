@@ -11,6 +11,7 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.rounded.Add
 import androidx.compose.material.icons.rounded.Pause
 import androidx.compose.material.icons.rounded.PlayArrow
+import androidx.compose.material.icons.rounded.Remove
 import androidx.compose.material.icons.rounded.SkipNext
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
@@ -28,7 +29,7 @@ import fr.acano.workout.ui.theme.WorkoutTheme
  * L'écran pendant qu'un chronomètre tourne — récupération comme planche ou vélo.
  *
  * Tout le reste disparaît volontairement : pendant une récupération, la seule
- * décision possible est « j'attends, j'ajoute du temps, ou je repars ». Garder
+ * décision possible est « j'attends, j'ajuste le temps, ou je repars ». Garder
  * la saisie de la série suivante à l'écran ne ferait qu'inviter à la faute de
  * frappe, la main encore moite.
  */
@@ -39,6 +40,7 @@ fun TimerStage(
     onPause: () -> Unit,
     onResume: () -> Unit,
     onAddThirty: () -> Unit,
+    onRemoveThirty: () -> Unit,
     onSkip: () -> Unit,
     modifier: Modifier = Modifier,
 ) {
@@ -66,17 +68,28 @@ fun TimerStage(
                 icon = Icons.Rounded.PlayArrow,
             )
         } else {
+            // Deux rangées : ajuster le temps en haut, décider en bas. Quatre
+            // boutons sur une seule ligne tronqueraient « Reprendre ».
             ActionRow {
                 WorkoutTonalButton(
-                    text = if (timer.isRunning) "Pause" else "Reprendre",
-                    onClick = if (timer.isRunning) onPause else onResume,
-                    icon = if (timer.isRunning) Icons.Rounded.Pause else Icons.Rounded.PlayArrow,
+                    text = "30 s",
+                    onClick = onRemoveThirty,
+                    icon = Icons.Rounded.Remove,
                     modifier = Modifier.weight(1f),
                 )
                 WorkoutTonalButton(
                     text = "30 s",
                     onClick = onAddThirty,
                     icon = Icons.Rounded.Add,
+                    modifier = Modifier.weight(1f),
+                )
+            }
+            Spacer(Modifier.height(WorkoutTheme.spacing.sm))
+            ActionRow {
+                WorkoutTonalButton(
+                    text = if (timer.isRunning) "Pause" else "Reprendre",
+                    onClick = if (timer.isRunning) onPause else onResume,
+                    icon = if (timer.isRunning) Icons.Rounded.Pause else Icons.Rounded.PlayArrow,
                     modifier = Modifier.weight(1f),
                 )
                 WorkoutTonalButton(

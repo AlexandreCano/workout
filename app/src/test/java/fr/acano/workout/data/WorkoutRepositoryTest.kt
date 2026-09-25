@@ -3,8 +3,11 @@ package fr.acano.workout.data
 import androidx.room.Room
 import androidx.test.core.app.ApplicationProvider
 import fr.acano.workout.data.db.WorkoutDatabase
+import fr.acano.workout.data.db.entity.ExerciseEntity
 import fr.acano.workout.data.repository.WorkoutRepository
 import fr.acano.workout.data.seed.Program
+import fr.acano.workout.domain.ExerciseKind
+import fr.acano.workout.domain.PlannedStep
 import fr.acano.workout.domain.StepState
 import fr.acano.workout.domain.WorkoutProgression
 import fr.acano.workout.domain.WorkoutType
@@ -37,8 +40,12 @@ class WorkoutRepositoryTest {
         database = Room.inMemoryDatabaseBuilder(
             ApplicationProvider.getApplicationContext(),
             WorkoutDatabase::class.java,
-        ).allowMainThreadQueries().build()
-        repository = WorkoutRepository(database.exerciseDao(), database.workoutDao()) { clock }
+        ).addCallback(WorkoutDatabase.callback).allowMainThreadQueries().build()
+        repository = WorkoutRepository(
+            database.exerciseDao(),
+            database.workoutDao(),
+            database.customWorkoutDao(),
+        ) { clock }
         repository.ensureSeeded()
     }
 
@@ -60,33 +67,33 @@ class WorkoutRepositoryTest {
 
     @Test
     fun `demarrer une seance cree les sept etapes dans l ordre`() = runTest {
-        val sessionId = repository.startSession(WorkoutType.UPPER_BODY)
+        val sessionId = startProgram(WorkoutType.UPPER_BODY)
         val session = repository.session(sessionId)!!
 
         assertEquals(7, session.orderedExercises.size)
         assertEquals(
-            Program.planFor(WorkoutType.UPPER_BODY),
+            Program.planFor(WorkoutType.UPPER_BODY).map { it.exerciseId },
             session.orderedExercises.map { it.exerciseSession.exerciseId },
         )
     }
 
     @Test
     fun `une seule seance peut etre en cours a la fois`() = runTest {
-        val first = repository.startSession(WorkoutType.UPPER_BODY)
-        val second = repository.startSession(WorkoutType.LOWER_BODY)
+        val first = startProgram(WorkoutType.UPPER_BODY)
+        val second = startProgram(WorkoutType.LOWER_BODY)
 
         assertEquals(first, second)
     }
 
     @Test
     fun `la charge de la seance precedente est pre remplie`() = runTest {
-        val first = repository.startSession(WorkoutType.UPPER_BODY)
+        val first = startProgram(WorkoutType.UPPER_BODY)
         val chestPress = stepFor(first, "chest_press")
         repository.recordSet(chestPress, "chest_press", setNumber = 1, weightKg = 42.5, repetitions = 10)
         finishEntirely(first)
 
         clock += 86_400_000L
-        val second = repository.startSession(WorkoutType.UPPER_BODY)
+        val second = startProgram(WorkoutType.UPPER_BODY)
         val session = repository.session(second)!!
         val planned = session.orderedExercises
             .first { it.exerciseSession.exerciseId == "chest_press" }
@@ -98,7 +105,7 @@ class WorkoutRepositoryTest {
 
     @Test
     fun `la premiere seance n a aucune charge pre remplie`() = runTest {
-        val sessionId = repository.startSession(WorkoutType.LOWER_BODY)
+        val sessionId = startProgram(WorkoutType.LOWER_BODY)
         val session = repository.session(sessionId)!!
 
         assertTrue(session.orderedExercises.all { it.exerciseSession.plannedWeightKg == null })
@@ -106,7 +113,7 @@ class WorkoutRepositoryTest {
 
     @Test
     fun `une seance interrompue est reprise sur la serie exacte`() = runTest {
-        val sessionId = repository.startSession(WorkoutType.UPPER_BODY)
+        val sessionId = startProgram(WorkoutType.UPPER_BODY)
         val bike = stepFor(sessionId, Program.BIKE)
         repository.recordSet(bike, Program.BIKE, setNumber = 1, durationSeconds = 300)
         val chestPress = stepFor(sessionId, "chest_press")
@@ -126,7 +133,7 @@ class WorkoutRepositoryTest {
 
     @Test
     fun `annuler la derniere serie revient en arriere d une serie`() = runTest {
-        val sessionId = repository.startSession(WorkoutType.UPPER_BODY)
+        val sessionId = startProgram(WorkoutType.UPPER_BODY)
         val chestPress = stepFor(sessionId, "chest_press")
         repository.recordSet(chestPress, "chest_press", setNumber = 1, weightKg = 40.0, repetitions = 12)
         repository.recordSet(chestPress, "chest_press", setNumber = 2, weightKg = 40.0, repetitions = 11)
@@ -143,7 +150,7 @@ class WorkoutRepositoryTest {
 
     @Test
     fun `terminer une seance attribue exactement une etoile`() = runTest {
-        val sessionId = repository.startSession(WorkoutType.UPPER_BODY)
+        val sessionId = startProgram(WorkoutType.UPPER_BODY)
         repository.finishSession(sessionId)
         repository.finishSession(sessionId)
 
@@ -152,27 +159,29 @@ class WorkoutRepositoryTest {
 
     @Test
     fun `une seance en cours ne rapporte pas d etoile`() = runTest {
-        repository.startSession(WorkoutType.UPPER_BODY)
+        startProgram(WorkoutType.UPPER_BODY)
 
         assertEquals(0, repository.observeStarCount().first())
     }
 
     @Test
-    fun `les etoiles sont comptees par type de seance`() = runTest {
-        finishEntirely(repository.startSession(WorkoutType.UPPER_BODY))
+    fun `les etoiles sont comptees par entrainement`() = runTest {
+        finishEntirely(startProgram(WorkoutType.UPPER_BODY))
         clock += 1000
-        finishEntirely(repository.startSession(WorkoutType.LOWER_BODY))
+        finishEntirely(startProgram(WorkoutType.LOWER_BODY))
         clock += 1000
-        finishEntirely(repository.startSession(WorkoutType.LOWER_BODY))
+        finishEntirely(startProgram(WorkoutType.LOWER_BODY))
 
+        val stats = repository.observeWorkoutStats().first()
         assertEquals(3, repository.observeStarCount().first())
-        assertEquals(1, repository.observeStarCount(WorkoutType.UPPER_BODY).first())
-        assertEquals(2, repository.observeStarCount(WorkoutType.LOWER_BODY).first())
+        assertEquals(1, stats.getValue(programId(WorkoutType.UPPER_BODY)).sessionCount)
+        assertEquals(2, stats.getValue(programId(WorkoutType.LOWER_BODY)).sessionCount)
+        assertEquals(clock, stats.getValue(programId(WorkoutType.LOWER_BODY)).lastDoneAt)
     }
 
     @Test
     fun `abandonner une seance supprime aussi ses series`() = runTest {
-        val sessionId = repository.startSession(WorkoutType.UPPER_BODY)
+        val sessionId = startProgram(WorkoutType.UPPER_BODY)
         val chestPress = stepFor(sessionId, "chest_press")
         repository.recordSet(chestPress, "chest_press", setNumber = 1, weightKg = 40.0, repetitions = 12)
 
@@ -185,12 +194,12 @@ class WorkoutRepositoryTest {
 
     @Test
     fun `la charge de reference ignore les series de la seance en cours`() = runTest {
-        val previous = repository.startSession(WorkoutType.UPPER_BODY)
+        val previous = startProgram(WorkoutType.UPPER_BODY)
         repository.recordSet(stepFor(previous, "chest_press"), "chest_press", 1, weightKg = 40.0, repetitions = 12)
         finishEntirely(previous)
 
         clock += 86_400_000L
-        val current = repository.startSession(WorkoutType.UPPER_BODY)
+        val current = startProgram(WorkoutType.UPPER_BODY)
         repository.recordSet(stepFor(current, "chest_press"), "chest_press", 1, weightKg = 45.0, repetitions = 10)
 
         val reference = repository.observePreviousWeights(current).first()["chest_press"]
@@ -199,13 +208,13 @@ class WorkoutRepositoryTest {
 
     @Test
     fun `l historique ne contient que les seances terminees`() = runTest {
-        finishEntirely(repository.startSession(WorkoutType.UPPER_BODY))
+        finishEntirely(startProgram(WorkoutType.UPPER_BODY))
         clock += 1000
-        repository.startSession(WorkoutType.LOWER_BODY)
+        startProgram(WorkoutType.LOWER_BODY)
 
         val history = repository.observeFinishedSessions().first()
         assertEquals(1, history.size)
-        assertEquals(WorkoutType.UPPER_BODY, history.single().session.type)
+        assertEquals(WorkoutType.UPPER_BODY.label, history.single().session.name)
         assertNotNull(repository.observeActiveSession().first())
     }
 
@@ -213,7 +222,7 @@ class WorkoutRepositoryTest {
 
     @Test
     fun `l ordre choisi est applique tel quel`() = runTest {
-        val sessionId = repository.startSession(WorkoutType.UPPER_BODY)
+        val sessionId = startProgram(WorkoutType.UPPER_BODY)
         val wanted = listOf("seated_row", Program.PLANK, "chest_press", Program.BIKE, "pec_deck", "lat_pulldown", Program.STOMACH_VACUUM)
 
         repository.applyPendingOrder(sessionId, wanted.map { stepFor(sessionId, it) })
@@ -223,7 +232,7 @@ class WorkoutRepositoryTest {
 
     @Test
     fun `remonter un exercice en tete le rend courant`() = runTest {
-        val sessionId = repository.startSession(WorkoutType.UPPER_BODY)
+        val sessionId = startProgram(WorkoutType.UPPER_BODY)
         val order = orderOf(sessionId).toMutableList()
         order.add(0, order.removeAt(order.indexOf("seated_row")))
 
@@ -234,7 +243,7 @@ class WorkoutRepositoryTest {
 
     @Test
     fun `les exercices termines restent en tete et dans leur ordre`() = runTest {
-        val sessionId = repository.startSession(WorkoutType.UPPER_BODY)
+        val sessionId = startProgram(WorkoutType.UPPER_BODY)
         repository.recordSet(stepFor(sessionId, Program.BIKE), Program.BIKE, 1, durationSeconds = 300)
         val pending = orderOf(sessionId).filterNot { it == Program.BIKE }.reversed()
 
@@ -247,7 +256,7 @@ class WorkoutRepositoryTest {
 
     @Test
     fun `une etape absente de l ordre demande est conservee a la suite`() = runTest {
-        val sessionId = repository.startSession(WorkoutType.UPPER_BODY)
+        val sessionId = startProgram(WorkoutType.UPPER_BODY)
         val partial = listOf("seated_row", "pec_deck")
 
         repository.applyPendingOrder(sessionId, partial.map { stepFor(sessionId, it) })
@@ -255,12 +264,12 @@ class WorkoutRepositoryTest {
         val order = orderOf(sessionId)
         assertEquals(partial, order.take(2))
         assertEquals(7, order.size)
-        assertEquals(Program.planFor(WorkoutType.UPPER_BODY).toSet(), order.toSet())
+        assertEquals(Program.planFor(WorkoutType.UPPER_BODY).map { it.exerciseId }.toSet(), order.toSet())
     }
 
     @Test
     fun `un exercice repris conserve ses series deja faites`() = runTest {
-        val sessionId = repository.startSession(WorkoutType.UPPER_BODY)
+        val sessionId = startProgram(WorkoutType.UPPER_BODY)
         val chestPress = stepFor(sessionId, "chest_press")
         repository.recordSet(chestPress, "chest_press", 1, weightKg = 45.0, repetitions = 12)
         repository.recordSet(chestPress, "chest_press", 2, weightKg = 45.0, repetitions = 11)
@@ -277,7 +286,7 @@ class WorkoutRepositoryTest {
 
     @Test
     fun `apres reordonnancement la progression pointe sur le nouvel exercice courant`() = runTest {
-        val sessionId = repository.startSession(WorkoutType.UPPER_BODY)
+        val sessionId = startProgram(WorkoutType.UPPER_BODY)
         val order = orderOf(sessionId).toMutableList()
         order.add(0, order.removeAt(order.indexOf("lat_pulldown")))
         repository.applyPendingOrder(sessionId, order.map { stepFor(sessionId, it) })
@@ -295,19 +304,19 @@ class WorkoutRepositoryTest {
 
     @Test
     fun `le reordonnancement ne vaut que pour la seance en cours`() = runTest {
-        val first = repository.startSession(WorkoutType.UPPER_BODY)
+        val first = startProgram(WorkoutType.UPPER_BODY)
         repository.applyPendingOrder(first, orderOf(first).reversed().map { stepFor(first, it) })
         repository.finishSession(first)
 
         clock += 86_400_000L
-        val second = repository.startSession(WorkoutType.UPPER_BODY)
+        val second = startProgram(WorkoutType.UPPER_BODY)
 
-        assertEquals(Program.planFor(WorkoutType.UPPER_BODY), orderOf(second))
+        assertEquals(Program.planFor(WorkoutType.UPPER_BODY).map { it.exerciseId }, orderOf(second))
     }
 
     @Test
     fun `les positions restent contigues apres plusieurs reordonnancements`() = runTest {
-        val sessionId = repository.startSession(WorkoutType.UPPER_BODY)
+        val sessionId = startProgram(WorkoutType.UPPER_BODY)
         repeat(3) {
             repository.applyPendingOrder(
                 sessionId,
@@ -320,6 +329,277 @@ class WorkoutRepositoryTest {
             .map { it.exerciseSession.position }
         assertEquals((0..6).toList(), positions)
     }
+
+    // --- Entraînements personnalisés ---
+
+    @Test
+    fun `un entrainement personnalise conserve ordre et series`() = runTest {
+        val id = repository.saveCustomWorkout(
+            workoutId = null,
+            name = "  Full body ",
+            steps = listOf(PlannedStep("leg_press", 5), PlannedStep("chest_press", 2), PlannedStep(Program.PLANK, 3)),
+        )
+
+        val saved = repository.customWorkout(id)!!
+        assertEquals("Full body", saved.workout.name)
+        assertEquals(
+            listOf("leg_press" to 5, "chest_press" to 2, Program.PLANK to 3),
+            saved.orderedExercises.map { it.exerciseId to it.plannedSets },
+        )
+    }
+
+    @Test
+    fun `modifier un entrainement remplace son contenu`() = runTest {
+        val id = repository.saveCustomWorkout(null, "A", listOf(PlannedStep("leg_press", 4), PlannedStep("leg_curl", 3)))
+        repository.saveCustomWorkout(id, "B", listOf(PlannedStep("calf_raise", 2)))
+
+        val saved = repository.customWorkout(id)!!
+        assertEquals("B", saved.workout.name)
+        assertEquals(listOf("calf_raise"), saved.orderedExercises.map { it.exerciseId })
+        // Les deux programmes insérés au premier lancement, plus celui-ci.
+        assertEquals(3, repository.observeCustomWorkouts().first().size)
+    }
+
+    @Test
+    fun `une seance personnalisee suit le plan de l entrainement`() = runTest {
+        val id = repository.saveCustomWorkout(null, "Jambes", listOf(PlannedStep("leg_curl", 5), PlannedStep(Program.BIKE, 1)))
+
+        val sessionId = repository.startSession(id)
+
+        val session = repository.session(sessionId)!!
+        assertEquals(WorkoutType.CUSTOM, session.session.type)
+        assertEquals("Jambes", session.session.name)
+        assertEquals(listOf("leg_curl", Program.BIKE), orderOf(sessionId))
+        assertEquals(listOf(5, 1), session.orderedExercises.map { it.exerciseSession.plannedSets })
+    }
+
+    @Test
+    fun `une seance personnalisee reprend la derniere charge connue`() = runTest {
+        val upper = startProgram(WorkoutType.UPPER_BODY)
+        repository.recordSet(stepFor(upper, "chest_press"), "chest_press", 1, weightKg = 42.5, repetitions = 10)
+        repository.finishSession(upper)
+
+        val id = repository.saveCustomWorkout(null, "Pecs", listOf(PlannedStep("chest_press", 3)))
+        val sessionId = repository.startSession(id)
+
+        val step = repository.session(sessionId)!!.orderedExercises.single()
+        assertEquals(42.5, step.exerciseSession.plannedWeightKg!!, 0.0)
+    }
+
+    @Test
+    fun `supprimer un entrainement garde ses seances dans l historique`() = runTest {
+        val id = repository.saveCustomWorkout(null, "Éphémère", listOf(PlannedStep("pec_deck", 3)))
+        val sessionId = repository.startSession(id)
+        repository.finishSession(sessionId)
+
+        repository.deleteCustomWorkout(id)
+
+        assertNull(repository.customWorkout(id))
+        val history = repository.observeFinishedSessions().first()
+        assertEquals("Éphémère", history.single().session.name)
+        assertEquals(1, repository.observeStarCount().first())
+    }
+
+    @Test
+    fun `lancer un entrainement pendant une seance renvoie la seance en cours`() = runTest {
+        val active = startProgram(WorkoutType.LOWER_BODY)
+        val id = repository.saveCustomWorkout(null, "Autre", listOf(PlannedStep("pec_deck", 3)))
+
+        assertEquals(active, repository.startSession(id))
+    }
+
+    @Test
+    fun `les cibles personnalisees sont reportees sur la seance`() = runTest {
+        val id = repository.saveCustomWorkout(
+            null,
+            "Cibles",
+            listOf(
+                PlannedStep("chest_press", 3, targetRepsMin = 5, targetRepsMax = 6),
+                PlannedStep(Program.PLANK, 2, targetDurationSeconds = 90),
+                PlannedStep("pec_deck", 3),
+            ),
+        )
+
+        val steps = repository.session(repository.startSession(id))!!
+            .orderedExercises
+            .map { it.exerciseSession }
+        assertEquals(5 to 6, steps[0].targetRepsMin to steps[0].targetRepsMax)
+        assertEquals(90, steps[1].targetDurationSeconds)
+        // Sans réglage, l'étape s'en remet au catalogue.
+        assertNull(steps[2].targetRepsMin)
+        assertNull(steps[2].targetRepsMax)
+    }
+
+    @Test
+    fun `le programme est installe comme deux entrainements ordinaires`() = runTest {
+        val workouts = repository.observeCustomWorkouts().first()
+
+        assertEquals(Program.types.map { it.label }, workouts.map { it.workout.name })
+        Program.types.forEach { type ->
+            val workout = workouts.first { it.workout.name == type.label }
+            assertEquals(
+                Program.planFor(type).map { it.exerciseId to it.plannedSets },
+                workout.orderedExercises.map { it.exerciseId to it.plannedSets },
+            )
+        }
+    }
+
+    @Test
+    fun `un entrainement du programme se modifie comme les autres`() = runTest {
+        val upper = programId(WorkoutType.UPPER_BODY)
+        repository.saveCustomWorkout(upper, "Haut du corps", listOf(PlannedStep("pec_deck", 2)))
+
+        val sessionId = repository.startSession(upper)
+
+        assertEquals(listOf("pec_deck"), orderOf(sessionId))
+        assertEquals("Haut du corps", repository.session(sessionId)!!.session.name)
+    }
+
+    @Test
+    fun `un entrainement du programme supprime ne revient pas`() = runTest {
+        repository.deleteCustomWorkout(programId(WorkoutType.LOWER_BODY))
+        repository.ensureSeeded()
+
+        assertEquals(
+            listOf(WorkoutType.UPPER_BODY.label),
+            repository.observeCustomWorkouts().first().map { it.workout.name },
+        )
+    }
+
+    @Test
+    fun `une seance du programme recoit les cibles et le repos de son entrainement`() = runTest {
+        val steps = repository.session(startProgram(WorkoutType.UPPER_BODY))!!
+            .orderedExercises
+            .associateBy { it.exerciseSession.exerciseId }
+            .mapValues { it.value.exerciseSession }
+        val chest = steps.getValue("chest_press")
+        assertEquals(listOf(4, 8, 12, 60), listOf(chest.plannedSets, chest.targetRepsMin, chest.targetRepsMax, chest.restSeconds))
+        val bike = steps.getValue(Program.BIKE)
+        assertEquals(300, bike.targetDurationSeconds)
+        assertEquals(0, bike.restSeconds)
+    }
+
+    @Test
+    fun `le repos choisi dans l entrainement est reporte sur la seance`() = runTest {
+        val id = repository.saveCustomWorkout(null, "Repos", listOf(PlannedStep("pec_deck", 3, 10, 12, restSeconds = 90)))
+        val step = repository.session(repository.startSession(id))!!.orderedExercises.single().exerciseSession
+        assertEquals(90, step.restSeconds)
+    }
+
+    // --- Exercices créés ---
+
+    @Test
+    fun `un exercice cree survit au re semis du catalogue`() = runTest {
+        val custom = ExerciseEntity(
+            id = "custom_1",
+            name = "  Développé incliné ",
+            kind = ExerciseKind.WEIGHTED_REPS,
+            isCustom = true,
+        )
+        repository.saveCustomExercise(custom)
+        repository.ensureSeeded()
+
+        val saved = repository.exercise("custom_1")!!
+        assertEquals("Développé incliné", saved.name)
+        assertEquals(Program.exercises.size + 1, database.exerciseDao().count())
+    }
+
+    @Test
+    fun `un exercice cree s utilise dans un entrainement`() = runTest {
+        repository.saveCustomExercise(
+            ExerciseEntity("custom_2", "Gainage latéral", ExerciseKind.TIMED, isCustom = true),
+        )
+        val id = repository.saveCustomWorkout(null, "Core", listOf(PlannedStep("custom_2", 2, targetDurationSeconds = 45)))
+
+        val sessionId = repository.startSession(id)
+
+        assertEquals(listOf("custom_2"), orderOf(sessionId))
+    }
+
+    @Test
+    fun `supprimer un exercice le retire des entrainements et du catalogue mais garde l historique`() = runTest {
+        repository.saveCustomExercise(ExerciseEntity("custom_3", "Rowing", ExerciseKind.WEIGHTED_REPS, isCustom = true))
+        val a = repository.saveCustomWorkout(null, "A", listOf(PlannedStep("custom_3", 3, 8, 12), PlannedStep("pec_deck", 3, 10, 15)))
+        repository.saveCustomWorkout(null, "B", listOf(PlannedStep("custom_3", 2, 8, 12)))
+        val sessionId = repository.startSession(a)
+        repository.recordSet(stepFor(sessionId, "custom_3"), "custom_3", 1, weightKg = 30.0, repetitions = 10)
+        repository.finishSession(sessionId)
+
+        assertEquals(listOf("A", "B"), repository.workoutsUsing("custom_3"))
+        repository.deleteCustomExercise("custom_3")
+
+        assertEquals(listOf("pec_deck"), repository.customWorkout(a)!!.orderedExercises.map { it.exerciseId })
+        assertTrue(repository.observeCatalogue().first().none { it.id == "custom_3" })
+        // L'historique garde l'exercice (archivé) et ses séries.
+        assertEquals("Rowing", repository.exercise("custom_3")!!.name)
+        assertTrue(repository.exercise("custom_3")!!.isArchived)
+        assertEquals(1, repository.observeSetsForExercise("custom_3").first().size)
+    }
+
+    @Test(expected = IllegalArgumentException::class)
+    fun `un exercice de l application ne se supprime pas`() = runTest {
+        repository.deleteCustomExercise("chest_press")
+    }
+
+    @Test(expected = IllegalArgumentException::class)
+    fun `un exercice du programme ne se modifie pas`() = runTest {
+        val chestPress = repository.exercise("chest_press")!!
+        repository.saveCustomExercise(chestPress.copy(name = "Autre"))
+    }
+
+    // --- Seules les séances terminées comptent ---
+
+    @Test
+    fun `une seance en cours ne compte dans aucune statistique avant d etre terminee`() = runTest {
+        val sessionId = startProgram(WorkoutType.UPPER_BODY)
+        repository.recordSet(stepFor(sessionId, "pec_deck"), "pec_deck", 1, weightKg = 30.0, repetitions = 12)
+
+        assertTrue(repository.observeRecentWeightedSets().first().isEmpty())
+        assertTrue(repository.observeSetsForExercise("pec_deck").first().isEmpty())
+        assertNull(repository.observeLastWeight("pec_deck").first())
+
+        repository.finishSession(sessionId)
+
+        assertEquals(1, repository.observeRecentWeightedSets().first().size)
+        assertEquals(1, repository.observeSetsForExercise("pec_deck").first().size)
+        assertEquals(30.0, repository.observeLastWeight("pec_deck").first()!!, 0.0)
+    }
+
+    @Test
+    fun `une seance abandonnee ne laisse aucune trace meme sans cles etrangeres actives`() = runTest {
+        // Base sans le callback qui active les clés étrangères : la cascade ne jouerait pas.
+        val bare = Room.inMemoryDatabaseBuilder(ApplicationProvider.getApplicationContext(), WorkoutDatabase::class.java)
+            .allowMainThreadQueries()
+            .build()
+        try {
+            bare.openHelper.writableDatabase.execSQL("PRAGMA foreign_keys = OFF")
+            val repo = WorkoutRepository(bare.exerciseDao(), bare.workoutDao(), bare.customWorkoutDao()) { clock }
+            repo.ensureSeeded()
+            val workout = repo.saveCustomWorkout(null, "Test", listOf(PlannedStep("pec_deck", 3, 10, 15)))
+            val sessionId = repo.startSession(workout)
+            val step = repo.session(sessionId)!!.orderedExercises.single().exerciseSession.id
+            repo.recordSet(step, "pec_deck", 1, weightKg = 30.0, repetitions = 12)
+
+            repo.abortSession(sessionId)
+
+            val db = bare.openHelper.readableDatabase
+            fun count(table: String) = db.query("SELECT COUNT(*) FROM $table").use { it.moveToFirst(); it.getInt(0) }
+            assertEquals(0, count("workout_session"))
+            assertEquals(0, count("exercise_session"))
+            assertEquals(0, count("set_result"))
+        } finally {
+            bare.close()
+        }
+    }
+
+    private suspend fun programId(type: WorkoutType): Long =
+        repository.observeCustomWorkouts().first()
+            .first { it.workout.name == type.label }
+            .workout
+            .id
+
+    private suspend fun startProgram(type: WorkoutType): Long =
+        repository.startSession(programId(type))
 
     private suspend fun orderOf(sessionId: Long): List<String> =
         repository.session(sessionId)!!

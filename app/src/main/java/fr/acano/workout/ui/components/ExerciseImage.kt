@@ -26,12 +26,14 @@ import coil3.compose.AsyncImagePainter
 import coil3.compose.rememberAsyncImagePainter
 import coil3.request.ImageRequest
 import fr.acano.workout.WorkoutApp
+import fr.acano.workout.data.db.entity.ExerciseEntity
 import fr.acano.workout.ui.theme.WorkoutMotion
 
 /**
  * Animation d'un exercice.
  *
- * Tant qu'aucun fichier n'a été déposé dans `assets/exercises/` — ou si son
+ * L'image choisie par l'utilisateur passe avant l'animation fournie dans
+ * `assets/exercises/`. Tant qu'il n'y a ni l'une ni l'autre — ou si son
  * décodage échoue — un visuel de remplacement prend sa place : l'application
  * reste parfaitement utilisable sans aucun média. L'apparition est fondue pour
  * éviter le saut visuel quand un GIF finit de décoder.
@@ -41,13 +43,27 @@ import fr.acano.workout.ui.theme.WorkoutMotion
  */
 @Composable
 fun ExerciseImage(
-    exerciseId: String,
+    exercise: ExerciseEntity,
     modifier: Modifier = Modifier,
     shape: Shape = MaterialTheme.shapes.medium,
 ) {
     val context = LocalContext.current
     val media = remember { (context.applicationContext as WorkoutApp).container.exerciseMedia }
-    val uri = remember(exerciseId) { media.uriFor(exerciseId) }
+    val uri = remember(exercise.id, exercise.imagePath) {
+        exercise.imagePath?.let { "file://$it" } ?: media.uriFor(exercise.id)
+    }
+    ExerciseImage(model = uri, modifier = modifier, shape = shape)
+}
+
+/** Affiche une image quelconque (fichier, `content://`…) avec le même cadre et le même repli. */
+@Composable
+fun ExerciseImage(
+    model: Any?,
+    modifier: Modifier = Modifier,
+    shape: Shape = MaterialTheme.shapes.medium,
+) {
+    val context = LocalContext.current
+    val uri = model
 
     Box(
         modifier = modifier

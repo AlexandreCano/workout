@@ -2,38 +2,40 @@ package fr.acano.workout.data
 
 import fr.acano.workout.data.seed.Program
 import fr.acano.workout.domain.ExerciseKind
-import fr.acano.workout.domain.WorkoutType
 import org.junit.Assert.assertEquals
+import org.junit.Assert.assertNull
 import org.junit.Assert.assertTrue
 import org.junit.Test
 
 class ProgramTest {
 
+    private fun step(type: fr.acano.workout.domain.WorkoutType, exerciseId: String) =
+        Program.planFor(type).first { it.exerciseId == exerciseId }
+
     @Test
     fun `chaque exercice planifie existe dans le catalogue`() {
         val catalogue = Program.exercises.map { it.id }.toSet()
-
-        WorkoutType.entries.forEach { type ->
-            Program.planFor(type).forEach { exerciseId ->
-                assertTrue("$exerciseId absent du catalogue", exerciseId in catalogue)
+        Program.types.forEach { type ->
+            Program.planFor(type).forEach { step ->
+                assertTrue("${step.exerciseId} absent du catalogue", step.exerciseId in catalogue)
             }
         }
     }
 
     @Test
     fun `les deux seances commencent par l echauffement velo de cinq minutes`() {
-        WorkoutType.entries.forEach { type ->
-            assertEquals(Program.BIKE, Program.planFor(type).first())
+        Program.types.forEach { type ->
+            val bike = Program.planFor(type).first()
+            assertEquals(Program.BIKE, bike.exerciseId)
+            assertEquals(300, bike.targetDurationSeconds)
+            assertEquals(0, bike.restSeconds)
         }
-        val bike = Program.exercises.first { it.id == Program.BIKE }
-        assertEquals(300, bike.targetDurationSeconds)
-        assertEquals(0, bike.restSeconds)
     }
 
     @Test
     fun `les deux seances finissent par planche puis stomach vacuum`() {
-        WorkoutType.entries.forEach { type ->
-            val plan = Program.planFor(type)
+        Program.types.forEach { type ->
+            val plan = Program.planFor(type).map { it.exerciseId }
             assertEquals(Program.STOMACH_VACUUM, plan.last())
             assertEquals(Program.PLANK, plan[plan.lastIndex - 1])
         }
@@ -41,38 +43,46 @@ class ProgramTest {
 
     @Test
     fun `la planche est quatre series d une minute`() {
-        val plank = Program.exercises.first { it.id == Program.PLANK }
-
-        assertEquals(ExerciseKind.TIMED, plank.kind)
+        val plank = step(Program.types.first(), Program.PLANK)
+        assertEquals(ExerciseKind.TIMED, Program.exercises.first { it.id == Program.PLANK }.kind)
         assertEquals(4, plank.plannedSets)
         assertEquals(60, plank.targetDurationSeconds)
         assertEquals(60, plank.restSeconds)
+        assertNull(plank.targetRepsMin)
     }
 
     @Test
     fun `le stomach vacuum vise trois a cinq repetitions sans charge`() {
-        val vacuum = Program.exercises.first { it.id == Program.STOMACH_VACUUM }
-
-        assertEquals(ExerciseKind.REPS_ONLY, vacuum.kind)
+        val vacuum = step(Program.types.first(), Program.STOMACH_VACUUM)
+        assertEquals(ExerciseKind.REPS_ONLY, Program.exercises.first { it.id == Program.STOMACH_VACUUM }.kind)
         assertEquals(3, vacuum.targetRepsMin)
         assertEquals(5, vacuum.targetRepsMax)
     }
 
     @Test
     fun `chaque seance compte sept etapes`() {
-        WorkoutType.entries.forEach { type ->
-            assertEquals(7, Program.planFor(type).size)
-        }
+        Program.types.forEach { type -> assertEquals(7, Program.planFor(type).size) }
     }
 
     @Test
     fun `le chest press est bien quatre series de huit a douze`() {
-        val chestPress = Program.exercises.first { it.id == "chest_press" }
-
-        assertEquals(ExerciseKind.WEIGHTED_REPS, chestPress.kind)
+        val chestPress = step(Program.types.first(), "chest_press")
         assertEquals(4, chestPress.plannedSets)
         assertEquals(8, chestPress.targetRepsMin)
         assertEquals(12, chestPress.targetRepsMax)
+    }
+
+    @Test
+    fun `un exercice ajoute a un entrainement recoit des reglages selon son type`() {
+        // Un exercice du programme reprend ses réglages du programme…
+        assertEquals(4, Program.defaultStepFor("chest_press", ExerciseKind.WEIGHTED_REPS).plannedSets)
+        // … un exercice inconnu, des valeurs courantes pour son type.
+        val timed = Program.defaultStepFor("custom_1", ExerciseKind.TIMED)
+        assertEquals(60, timed.targetDurationSeconds)
+        assertNull(timed.targetRepsMin)
+        val reps = Program.defaultStepFor("custom_2", ExerciseKind.WEIGHTED_REPS)
+        assertEquals(8 to 12, reps.targetRepsMin to reps.targetRepsMax)
+        assertNull(reps.targetDurationSeconds)
     }
 
     @Test

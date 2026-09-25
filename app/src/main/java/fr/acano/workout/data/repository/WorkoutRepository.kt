@@ -1,14 +1,21 @@
 package fr.acano.workout.data.repository
 
+import fr.acano.workout.data.db.CustomWorkoutWithExercises
 import fr.acano.workout.data.db.ExerciseSessionWithSets
+import fr.acano.workout.data.db.ExerciseUsage
 import fr.acano.workout.data.db.SessionWithContent
+import fr.acano.workout.data.db.WorkoutStats
+import fr.acano.workout.data.db.dao.CustomWorkoutDao
 import fr.acano.workout.data.db.dao.ExerciseDao
 import fr.acano.workout.data.db.dao.WorkoutDao
+import fr.acano.workout.data.db.entity.CustomWorkoutEntity
+import fr.acano.workout.data.db.entity.CustomWorkoutExerciseEntity
 import fr.acano.workout.data.db.entity.ExerciseEntity
 import fr.acano.workout.data.db.entity.ExerciseSessionEntity
 import fr.acano.workout.data.db.entity.SetResultEntity
 import fr.acano.workout.data.db.entity.WorkoutSessionEntity
 import fr.acano.workout.data.seed.Program
+import fr.acano.workout.domain.PlannedStep
 import fr.acano.workout.domain.WorkoutType
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.map
@@ -16,6 +23,7 @@ import kotlinx.coroutines.flow.map
 class WorkoutRepository(
     private val exerciseDao: ExerciseDao,
     private val workoutDao: WorkoutDao,
+    private val customWorkoutDao: CustomWorkoutDao,
     private val now: () -> Long = System::currentTimeMillis,
 ) {
 
@@ -26,7 +34,43 @@ class WorkoutRepository(
         if (missing.isNotEmpty()) exerciseDao.insertAll(missing)
     }
 
+    /** Tous les exercices, archivés compris : l'historique a besoin de leurs noms. */
     fun observeExercises(): Flow<List<ExerciseEntity>> = exerciseDao.observeAll()
+
+    /** Le catalogue proposé à l'utilisateur : les exercices archivés en sont retirés. */
+    fun observeCatalogue(): Flow<List<ExerciseEntity>> =
+        exerciseDao.observeAll().map { all -> all.filterNot { it.isArchived } }
+
+    suspend fun exercise(id: String): ExerciseEntity? = exerciseDao.getById(id)
+
+    /**
+     * Crée ou met à jour un exercice de l'utilisateur. Les exercices du programme
+     * ne passent jamais par ici : ils sont décrits par le code et re-semés.
+     */
+    suspend fun saveCustomExercise(exercise: ExerciseEntity) {
+        require(exercise.isCustom) { "Seuls les exercices créés par l'utilisateur sont modifiables" }
+        require(exercise.name.isNotBlank()) { "Un exercice doit avoir un nom" }
+        exerciseDao.upsert(exercise.copy(name = exercise.name.trim()))
+    }
+
+    /** Noms des entraînements qui contiennent l'exercice, pour prévenir avant de le supprimer. */
+    suspend fun workoutsUsing(exerciseId: String): List<String> =
+        customWorkoutDao.workoutNamesUsing(exerciseId)
+
+    /**
+     * Supprime un exercice de l'utilisateur.
+     *
+     * Il est retiré des entraînements et du catalogue, mais seulement archivé :
+     * les séries déjà enregistrées y font référence, et l'historique doit
+     * continuer d'afficher son nom. Les exercices de l'application ne se
+     * suppriment pas.
+     */
+    suspend fun deleteCustomExercise(id: String) {
+        val exercise = requireNotNull(exerciseDao.getById(id)) { "Exercice $id introuvable" }
+        require(exercise.isCustom) { "Les exercices de l'application ne se suppriment pas" }
+        customWorkoutDao.removeExerciseEverywhere(id)
+        exerciseDao.upsert(exercise.copy(archivedAt = now(), imagePath = null))
+    }
 
     fun observeExercise(id: String): Flow<ExerciseEntity?> = exerciseDao.observeById(id)
 
@@ -35,6 +79,10 @@ class WorkoutRepository(
 
     fun observeLastWeight(exerciseId: String): Flow<Double?> =
         workoutDao.observeLastWeightFor(exerciseId)
+
+    /** Nombre de séances et date de la dernière, par exercice. */
+    fun observeExerciseUsage(): Flow<Map<String, ExerciseUsage>> =
+        workoutDao.observeExerciseUsage().map { rows -> rows.associateBy { it.exerciseId } }
 
     fun observeRecentWeightedSets(): Flow<List<SetResultEntity>> =
         workoutDao.observeRecentWeightedSets()
@@ -62,33 +110,112 @@ class WorkoutRepository(
 
     fun observeStarCount(): Flow<Int> = workoutDao.observeStarCount()
 
-    fun observeStarCount(type: WorkoutType): Flow<Int> = workoutDao.observeStarCountByType(type)
+    /** Bilan de chaque entraînement, indexé par son identifiant. */
+    fun observeWorkoutStats(): Flow<Map<Long, WorkoutStats>> =
+        workoutDao.observeWorkoutStats().map { rows -> rows.associateBy { it.customWorkoutId } }
 
     /**
-     * Démarre une séance : crée la séance et ses étapes, en pré-remplissant chaque charge
-     * avec le dernier poids réellement utilisé sur cet exercice.
+     * Démarre une séance à partir d'un entraînement : crée la séance et ses étapes, en
+     * pré-remplissant chaque charge avec le dernier poids réellement utilisé sur l'exercice.
      * Si une séance est déjà en cours, on la renvoie telle quelle plutôt que d'en ouvrir une seconde.
      */
-    suspend fun startSession(type: WorkoutType): Long {
+    suspend fun startSession(workoutId: Long): Long {
         workoutDao.getActiveSession()?.let { return it.id }
 
-        val sessionId = workoutDao.insertSession(
-            WorkoutSessionEntity(type = type, startedAt = now()),
+        val workout = requireNotNull(customWorkoutDao.get(workoutId)) {
+            "Entraînement $workoutId introuvable"
+        }
+        require(workout.exercises.isNotEmpty()) { "L'entraînement $workoutId ne contient aucun exercice" }
+        val plan = workout.orderedExercises.map {
+            PlannedStep(
+                exerciseId = it.exerciseId,
+                plannedSets = it.plannedSets,
+                targetRepsMin = it.targetRepsMin,
+                targetRepsMax = it.targetRepsMax,
+                targetDurationSeconds = it.targetDurationSeconds,
+                restSeconds = it.restSeconds,
+            )
+        }
+        return createSession(
+            WorkoutSessionEntity(
+                type = WorkoutType.CUSTOM,
+                startedAt = now(),
+                customWorkoutId = workout.workout.id,
+                name = workout.workout.name,
+            ),
+            plan,
         )
-        val plan = Program.planFor(type)
-        val catalogue = exerciseDao.getAll().associateBy { it.id }
-        val steps = plan.mapIndexed { index, exerciseId ->
-            val exercise = catalogue.getValue(exerciseId)
+    }
+
+    private suspend fun createSession(
+        session: WorkoutSessionEntity,
+        plan: List<PlannedStep>,
+    ): Long {
+        val sessionId = workoutDao.insertSession(session)
+        val steps = plan.mapIndexed { index, step ->
             ExerciseSessionEntity(
                 sessionId = sessionId,
-                exerciseId = exerciseId,
+                exerciseId = step.exerciseId,
                 position = index,
-                plannedSets = exercise.plannedSets,
-                plannedWeightKg = workoutDao.lastWeightFor(exerciseId),
+                plannedSets = step.plannedSets,
+                plannedWeightKg = workoutDao.lastWeightFor(step.exerciseId),
+                targetRepsMin = step.targetRepsMin,
+                targetRepsMax = step.targetRepsMax,
+                targetDurationSeconds = step.targetDurationSeconds,
+                restSeconds = step.restSeconds,
             )
         }
         workoutDao.insertExerciseSessions(steps)
         return sessionId
+    }
+
+    // --- Entraînements ---
+
+    fun observeCustomWorkouts(): Flow<List<CustomWorkoutWithExercises>> =
+        customWorkoutDao.observeAll()
+
+    suspend fun customWorkout(id: Long): CustomWorkoutWithExercises? = customWorkoutDao.get(id)
+
+    /**
+     * Crée ([workoutId] nul) ou remplace un entraînement personnalisé.
+     * [steps] liste, dans l'ordre, chaque exercice, son nombre de séries et ses cibles.
+     */
+    suspend fun saveCustomWorkout(
+        workoutId: Long?,
+        name: String,
+        steps: List<PlannedStep>,
+    ): Long {
+        val trimmed = name.trim()
+        require(trimmed.isNotEmpty()) { "Un entraînement doit avoir un nom" }
+        require(steps.isNotEmpty()) { "Un entraînement doit contenir au moins un exercice" }
+
+        val id = if (workoutId == null) {
+            customWorkoutDao.insertWorkout(CustomWorkoutEntity(name = trimmed, createdAt = now()))
+        } else {
+            customWorkoutDao.rename(workoutId, trimmed)
+            workoutId
+        }
+        customWorkoutDao.replaceExercises(
+            id,
+            steps.mapIndexed { index, step ->
+                CustomWorkoutExerciseEntity(
+                    workoutId = id,
+                    exerciseId = step.exerciseId,
+                    position = index,
+                    plannedSets = step.plannedSets.coerceAtLeast(1),
+                    targetRepsMin = step.targetRepsMin,
+                    targetRepsMax = step.targetRepsMax,
+                    targetDurationSeconds = step.targetDurationSeconds,
+                    restSeconds = step.restSeconds.coerceAtLeast(0),
+                )
+            },
+        )
+        return id
+    }
+
+    /** Supprime le modèle. Les séances déjà réalisées avec restent dans l'historique. */
+    suspend fun deleteCustomWorkout(id: Long) {
+        customWorkoutDao.delete(id)
     }
 
     suspend fun updatePlannedWeight(exerciseSessionId: Long, weightKg: Double?) {
@@ -102,8 +229,8 @@ class WorkoutRepository(
     // première incomplète, cet invariant suffit à garantir que la progression
     // (« 3 / 7 ») et les séries déjà enregistrées restent cohérentes.
     //
-    // L'ordre modifié vaut pour cette séance seulement : le programme de référence
-    // reste celui de Program.planFor().
+    // L'ordre modifié vaut pour cette séance seulement : l'entraînement d'origine
+    // garde le sien.
 
     /**
      * Applique un ordre arbitraire aux exercices restants.
@@ -161,9 +288,9 @@ class WorkoutRepository(
         workoutDao.finishSession(sessionId, now())
     }
 
-    /** Abandonne une séance en cours : elle disparaît de l'historique, ses séries avec (CASCADE). */
+    /** Abandonne une séance en cours : elle disparaît entièrement, séries comprises, sans laisser de trace dans les statistiques. */
     suspend fun abortSession(sessionId: Long) {
-        workoutDao.deleteSession(sessionId)
+        workoutDao.deleteSessionEntirely(sessionId)
     }
 
     suspend fun session(sessionId: Long): SessionWithContent? = workoutDao.getSession(sessionId)

@@ -16,6 +16,7 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.rounded.Close
+import androidx.compose.material.icons.rounded.SwapVert
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.Icon
@@ -105,6 +106,10 @@ fun ActiveSessionScreen(
                 currentStep = (state.progress?.currentStepIndex ?: 0) + 1,
                 totalSteps = state.progress?.totalSteps ?: 0,
                 onQuit = { showQuitDialog = true },
+                // Rarement utile : une icône discrète plutôt qu'un grand bouton au-dessus de l'exercice.
+                onReorder = { reordering = true }.takeIf {
+                    !reordering && state.timer == null && state.pendingSteps.size > 1
+                },
             )
 
             AnimatedContent(
@@ -140,13 +145,13 @@ fun ActiveSessionScreen(
                             onPause = { viewModel.pauseTimer(context) },
                             onResume = { viewModel.resumeTimer(context) },
                             onAddThirty = { viewModel.addThirtySeconds(context) },
+                            onRemoveThirty = { viewModel.removeThirtySeconds(context) },
                             onSkip = { viewModel.skipTimer(context) },
                         )
                     }
 
                     Stage.SET_ENTRY -> SetEntryStage(
                         step = step,
-                        canReorder = state.pendingSteps.size > 1,
                         canUndo = step.setsDoneToday.isNotEmpty(),
                         onWeightChange = { viewModel.setWeight(context, it) },
                         onValidateReps = { viewModel.validateRepsSet(context, it) },
@@ -154,10 +159,9 @@ fun ActiveSessionScreen(
                         onMarkTimedDone = {
                             viewModel.validateTimedSetManually(
                                 context,
-                                step.exercise.targetDurationSeconds ?: 60,
+                                step.targetDurationSeconds ?: 60,
                             )
                         },
-                        onOpenReorder = { reordering = true },
                         onUndo = { viewModel.undoLastSet(context) },
                     )
                 }
@@ -194,7 +198,7 @@ private fun ActiveSessionUiState.nextUpCaption(): String? {
 }
 
 @Composable
-private fun SessionTopBar(currentStep: Int, totalSteps: Int, onQuit: () -> Unit) {
+private fun SessionTopBar(currentStep: Int, totalSteps: Int, onQuit: () -> Unit, onReorder: (() -> Unit)?) {
     Column(
         Modifier.padding(
             start = WorkoutTheme.spacing.xl,
@@ -209,6 +213,11 @@ private fun SessionTopBar(currentStep: Int, totalSteps: Int, onQuit: () -> Unit)
                 color = MaterialTheme.colorScheme.onSurfaceVariant,
                 modifier = Modifier.weight(1f),
             )
+            if (onReorder != null) {
+                IconButton(onClick = onReorder) {
+                    Icon(Icons.Rounded.SwapVert, contentDescription = "Réorganiser la suite")
+                }
+            }
             IconButton(onClick = onQuit) {
                 Icon(Icons.Rounded.Close, contentDescription = "Quitter la séance")
             }

@@ -28,7 +28,9 @@ import androidx.compose.animation.fadeOut
 import androidx.compose.animation.slideInHorizontally
 import androidx.compose.animation.slideOutHorizontally
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.getValue
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.navigation.NavDestination.Companion.hasRoute
@@ -38,8 +40,13 @@ import androidx.navigation.compose.composable
 import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
 import androidx.navigation.toRoute
+import fr.acano.workout.di.appContainer
 import fr.acano.workout.di.containerViewModel
+import fr.acano.workout.ui.common.LocalWeightUnit
+import fr.acano.workout.ui.settings.SettingsScreen
 import fr.acano.workout.ui.exercises.ExerciseDetailScreen
+import fr.acano.workout.ui.exercises.ExerciseEditorScreen
+import fr.acano.workout.ui.exercises.ExerciseEditorViewModel
 import fr.acano.workout.ui.exercises.ExerciseDetailViewModel
 import fr.acano.workout.ui.exercises.ExercisesScreen
 import fr.acano.workout.ui.exercises.ExercisesViewModel
@@ -52,6 +59,8 @@ import fr.acano.workout.ui.home.HomeViewModel
 import fr.acano.workout.ui.session.ActiveSessionScreen
 import fr.acano.workout.ui.session.ActiveSessionViewModel
 import fr.acano.workout.ui.session.SessionSummaryScreen
+import fr.acano.workout.ui.workouts.WorkoutEditorScreen
+import fr.acano.workout.ui.workouts.WorkoutEditorViewModel
 
 private data class Tab(
     val route: Route,
@@ -78,6 +87,10 @@ fun WorkoutNavHost(navController: NavHostController = rememberNavController()) {
     // La séance et son récapitulatif occupent tout l'écran : pas de barre de navigation.
     val showBottomBar = tabs.any { tab -> destination?.hierarchyHasRoute(tab.route) == true }
 
+    val settings = appContainer().settings
+    val weightUnit by settings.weightUnit.collectAsStateWithLifecycle()
+
+    CompositionLocalProvider(LocalWeightUnit provides weightUnit) {
     Scaffold(
         bottomBar = {
             if (showBottomBar) {
@@ -142,11 +155,19 @@ fun WorkoutNavHost(navController: NavHostController = rememberNavController()) {
                     onOpenSession = { sessionId ->
                         navController.navigate(Route.ActiveSession(sessionId))
                     },
+                    onCreateWorkout = { navController.navigate(Route.WorkoutEditor()) },
+                    onEditWorkout = { navController.navigate(Route.WorkoutEditor(it)) },
+                    onOpenSettings = { navController.navigate(Route.Settings) },
+                    onOpenExercise = { navController.navigate(Route.ExerciseDetail(it)) },
                 )
             }
 
+            composable<Route.Settings> {
+                SettingsScreen(settings = settings, onBack = { navController.popBackStack() })
+            }
+
             composable<Route.History> {
-                val viewModel = containerViewModel { HistoryViewModel(it.repository) }
+                val viewModel = containerViewModel { HistoryViewModel(it.repository, it.settings.profile) }
                 HistoryScreen(
                     viewModel = viewModel,
                     onOpenSession = { navController.navigate(Route.SessionDetail(it)) },
@@ -158,6 +179,7 @@ fun WorkoutNavHost(navController: NavHostController = rememberNavController()) {
                 ExercisesScreen(
                     viewModel = viewModel,
                     onOpenExercise = { navController.navigate(Route.ExerciseDetail(it)) },
+                    onCreateExercise = { navController.navigate(Route.ExerciseEditor()) },
                 )
             }
 
@@ -184,7 +206,7 @@ fun WorkoutNavHost(navController: NavHostController = rememberNavController()) {
             composable<Route.SessionSummary> { entry ->
                 val sessionId = entry.toRoute<Route.SessionSummary>().sessionId
                 val viewModel = containerViewModel(key = "summary-$sessionId") {
-                    SessionDetailViewModel(it.repository, sessionId)
+                    SessionDetailViewModel(it.repository, sessionId, it.settings.profile)
                 }
                 SessionSummaryScreen(
                     viewModel = viewModel,
@@ -199,7 +221,7 @@ fun WorkoutNavHost(navController: NavHostController = rememberNavController()) {
             composable<Route.SessionDetail> { entry ->
                 val sessionId = entry.toRoute<Route.SessionDetail>().sessionId
                 val viewModel = containerViewModel(key = "detail-$sessionId") {
-                    SessionDetailViewModel(it.repository, sessionId)
+                    SessionDetailViewModel(it.repository, sessionId, it.settings.profile)
                 }
                 SessionDetailScreen(viewModel = viewModel, onBack = { navController.popBackStack() })
             }
@@ -209,10 +231,43 @@ fun WorkoutNavHost(navController: NavHostController = rememberNavController()) {
                 val viewModel = containerViewModel(key = "exercise-$exerciseId") {
                     ExerciseDetailViewModel(it.repository, exerciseId)
                 }
-                ExerciseDetailScreen(viewModel = viewModel, onBack = { navController.popBackStack() })
+                ExerciseDetailScreen(
+                    viewModel = viewModel,
+                    onBack = { navController.popBackStack() },
+                    onEdit = { navController.navigate(Route.ExerciseEditor(exerciseId)) },
+                )
+            }
+
+            composable<Route.ExerciseEditor> { entry ->
+                val exerciseId = entry.toRoute<Route.ExerciseEditor>().exerciseId
+                val viewModel = containerViewModel(key = "exercise-editor-$exerciseId") {
+                    ExerciseEditorViewModel(
+                        it.repository,
+                        it.exerciseImages,
+                        exerciseId.takeIf { id -> id != Route.ExerciseEditor.NEW },
+                    )
+                }
+                ExerciseEditorScreen(
+                    viewModel = viewModel,
+                    onDone = { navController.popBackStack() },
+                    // Le détail de l'exercice n'a plus d'objet : retour direct au catalogue.
+                    onDeleted = { navController.popBackStack(Route.Exercises, inclusive = false) },
+                )
+            }
+
+            composable<Route.WorkoutEditor> { entry ->
+                val workoutId = entry.toRoute<Route.WorkoutEditor>().workoutId
+                val viewModel = containerViewModel(key = "editor-$workoutId") {
+                    WorkoutEditorViewModel(
+                        it.repository,
+                        workoutId.takeIf { id -> id != Route.WorkoutEditor.NEW },
+                    )
+                }
+                WorkoutEditorScreen(viewModel = viewModel, onDone = { navController.popBackStack() })
             }
         }
         }
+    }
     }
 }
 

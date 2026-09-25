@@ -4,11 +4,12 @@ import androidx.room.Dao
 import androidx.room.Insert
 import androidx.room.Query
 import androidx.room.Transaction
+import fr.acano.workout.data.db.ExerciseUsage
 import fr.acano.workout.data.db.SessionWithContent
+import fr.acano.workout.data.db.WorkoutStats
 import fr.acano.workout.data.db.entity.ExerciseSessionEntity
 import fr.acano.workout.data.db.entity.SetResultEntity
 import fr.acano.workout.data.db.entity.WorkoutSessionEntity
-import fr.acano.workout.domain.WorkoutType
 import kotlinx.coroutines.flow.Flow
 
 @Dao
@@ -87,49 +88,117 @@ interface WorkoutDao {
     @Query("SELECT COUNT(*) FROM workout_session WHERE starAwarded = 1")
     fun observeStarCount(): Flow<Int>
 
-    @Query("SELECT COUNT(*) FROM workout_session WHERE starAwarded = 1 AND type = :type")
-    fun observeStarCountByType(type: WorkoutType): Flow<Int>
+    @Query(
+        """
+        SELECT customWorkoutId, COUNT(*) AS sessionCount, MAX(startedAt) AS lastDoneAt
+        FROM workout_session
+        WHERE starAwarded = 1 AND customWorkoutId IS NOT NULL
+        GROUP BY customWorkoutId
+        """,
+    )
+    fun observeWorkoutStats(): Flow<List<WorkoutStats>>
+
+    // --- Séries des séances terminées ---
+    //
+    // Toutes les statistiques ne lisent que des séances terminées : une séance
+    // en cours (ou mise en pause) n'a encore rien prouvé, et une séance
+    // abandonnée est supprimée avec ses séries. La jointure est la même partout.
 
     /**
-     * Dernier poids réellement utilisé sur un exercice, toutes séances terminées confondues.
+     * Dernier poids réellement utilisé sur un exercice, séances terminées seulement.
      * Sert à pré-remplir la charge de la séance suivante.
      */
     @Query(
         """
-        SELECT weightKg FROM set_result
-        WHERE exerciseId = :exerciseId AND weightKg IS NOT NULL
-        ORDER BY completedAt DESC LIMIT 1
+        SELECT sr.weightKg FROM set_result sr
+        INNER JOIN exercise_session es ON es.id = sr.exerciseSessionId
+        INNER JOIN workout_session ws ON ws.id = es.sessionId
+        WHERE sr.exerciseId = :exerciseId AND sr.weightKg IS NOT NULL AND ws.endedAt IS NOT NULL
+        ORDER BY sr.completedAt DESC LIMIT 1
         """,
     )
     suspend fun lastWeightFor(exerciseId: String): Double?
 
     @Query(
         """
-        SELECT weightKg FROM set_result
-        WHERE exerciseId = :exerciseId AND weightKg IS NOT NULL
-        ORDER BY completedAt DESC LIMIT 1
+        SELECT sr.weightKg FROM set_result sr
+        INNER JOIN exercise_session es ON es.id = sr.exerciseSessionId
+        INNER JOIN workout_session ws ON ws.id = es.sessionId
+        WHERE sr.exerciseId = :exerciseId AND sr.weightKg IS NOT NULL AND ws.endedAt IS NOT NULL
+        ORDER BY sr.completedAt DESC LIMIT 1
         """,
     )
     fun observeLastWeightFor(exerciseId: String): Flow<Double?>
 
-    @Query("SELECT * FROM set_result WHERE exerciseId = :exerciseId ORDER BY completedAt ASC")
+    /** Historique d'un exercice (détail, courbe de charge). */
+    @Query(
+        """
+        SELECT sr.* FROM set_result sr
+        INNER JOIN exercise_session es ON es.id = sr.exerciseSessionId
+        INNER JOIN workout_session ws ON ws.id = es.sessionId
+        WHERE sr.exerciseId = :exerciseId AND ws.endedAt IS NOT NULL
+        ORDER BY sr.completedAt ASC
+        """,
+    )
     fun observeSetsForExercise(exerciseId: String): Flow<List<SetResultEntity>>
 
-    /** Séries chargées les plus récentes, tous exercices confondus : alimente le bloc « progression récente ». */
-    @Query("SELECT * FROM set_result WHERE weightKg IS NOT NULL ORDER BY completedAt DESC LIMIT 500")
+    /** Séries chargées les plus récentes, tous exercices confondus : « progression récente », dernières charges. */
+    @Query(
+        """
+        SELECT sr.* FROM set_result sr
+        INNER JOIN exercise_session es ON es.id = sr.exerciseSessionId
+        INNER JOIN workout_session ws ON ws.id = es.sessionId
+        WHERE sr.weightKg IS NOT NULL AND ws.endedAt IS NOT NULL
+        ORDER BY sr.completedAt DESC LIMIT 500
+        """,
+    )
     fun observeRecentWeightedSets(): Flow<List<SetResultEntity>>
 
     /**
-     * Séries chargées des séances *autres* que celle en cours : permet d'afficher
+     * Séries chargées des séances terminées autres que [sessionId] : permet d'afficher
      * « dernière séance : 42,5 kg » sans que les séries du jour ne polluent la référence.
      */
     @Query(
         """
         SELECT sr.* FROM set_result sr
         INNER JOIN exercise_session es ON es.id = sr.exerciseSessionId
-        WHERE es.sessionId != :sessionId AND sr.weightKg IS NOT NULL
+        INNER JOIN workout_session ws ON ws.id = es.sessionId
+        WHERE es.sessionId != :sessionId AND sr.weightKg IS NOT NULL AND ws.endedAt IS NOT NULL
         ORDER BY sr.completedAt DESC
         """,
     )
     fun observePreviousWeights(sessionId: Long): Flow<List<SetResultEntity>>
+
+    @Query(
+        """
+        SELECT sr.exerciseId AS exerciseId, COUNT(DISTINCT es.sessionId) AS sessionCount,
+            MAX(ws.startedAt) AS lastDoneAt
+        FROM set_result sr
+        INNER JOIN exercise_session es ON es.id = sr.exerciseSessionId
+        INNER JOIN workout_session ws ON ws.id = es.sessionId
+        WHERE ws.endedAt IS NOT NULL
+        GROUP BY sr.exerciseId
+        """,
+    )
+    fun observeExerciseUsage(): Flow<List<ExerciseUsage>>
+
+    // --- Abandon ---
+
+    @Query("DELETE FROM set_result WHERE exerciseSessionId IN (SELECT id FROM exercise_session WHERE sessionId = :sessionId)")
+    suspend fun deleteSetsOfSession(sessionId: Long)
+
+    @Query("DELETE FROM exercise_session WHERE sessionId = :sessionId")
+    suspend fun deleteStepsOfSession(sessionId: Long)
+
+    /**
+     * Supprime une séance et tout ce qui en dépend, explicitement : on ne s'en
+     * remet pas aux ON DELETE CASCADE, qui ne jouent que si les clés étrangères
+     * sont actives sur la connexion utilisée.
+     */
+    @Transaction
+    suspend fun deleteSessionEntirely(sessionId: Long) {
+        deleteSetsOfSession(sessionId)
+        deleteStepsOfSession(sessionId)
+        deleteSession(sessionId)
+    }
 }

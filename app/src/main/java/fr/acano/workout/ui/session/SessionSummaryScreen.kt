@@ -37,7 +37,8 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import fr.acano.workout.ui.common.formatDuration
-import fr.acano.workout.ui.common.formatWeight
+import fr.acano.workout.ui.history.CaloriesLine
+import fr.acano.workout.ui.history.ExerciseSetsBreakdown
 import fr.acano.workout.ui.components.RowDivider
 import fr.acano.workout.ui.components.SectionHeader
 import fr.acano.workout.ui.components.WorkoutPrimaryButton
@@ -109,23 +110,22 @@ fun SessionSummaryScreen(
                 value = "${state.lines.sumOf { it.sets.size }}",
                 label = "Séries",
             )
+            state.totalKcal?.let {
+                SummaryMetric(value = "≈ ${kotlin.math.round(it).toInt()}", label = "kcal")
+            }
+        }
+        if (state.needsProfileForCalories) {
+            Spacer(Modifier.height(WorkoutTheme.spacing.md))
+            CaloriesLine(totalKcal = null, needsProfile = true)
         }
 
         Spacer(Modifier.height(WorkoutTheme.spacing.xxl))
 
-        SectionHeader(state.type?.label.orEmpty(), Modifier.fillMaxWidth())
+        SectionHeader(state.title, Modifier.fillMaxWidth())
 
         state.lines.forEachIndexed { index, line ->
             if (index > 0) RowDivider()
-            ExerciseRecap(
-                name = line.exerciseName,
-                weight = formatWeight(line.weightKg).takeIf { line.weightKg != null },
-                detail = line.sets.joinToString("  ·  ") { set ->
-                    set.repetitions?.toString()
-                        ?: set.durationSeconds?.let { "${it}s" }
-                        ?: "—"
-                },
-            )
+            ExerciseSetsBreakdown(line)
         }
 
         Spacer(Modifier.height(WorkoutTheme.spacing.xxl))
@@ -183,30 +183,3 @@ private fun SummaryMetric(value: String, label: String) {
     }
 }
 
-@Composable
-private fun ExerciseRecap(name: String, weight: String?, detail: String) {
-    Row(
-        verticalAlignment = Alignment.CenterVertically,
-        modifier = Modifier
-            .fillMaxWidth()
-            .padding(vertical = WorkoutTheme.spacing.lg),
-    ) {
-        Column(Modifier.weight(1f)) {
-            Text(name, style = MaterialTheme.typography.titleMedium)
-            Spacer(Modifier.height(2.dp))
-            Text(
-                text = detail,
-                style = MaterialTheme.typography.bodyMedium,
-                color = MaterialTheme.colorScheme.onSurfaceVariant,
-            )
-        }
-        if (weight != null) {
-            Text(
-                text = weight,
-                style = WorkoutTheme.emphasis.metricSmall,
-                color = MaterialTheme.colorScheme.onSurface,
-                modifier = Modifier.clearAndSetSemantics { },
-            )
-        }
-    }
-}
