@@ -14,6 +14,7 @@ import fr.acano.workout.data.db.entity.ExerciseEntity
 import fr.acano.workout.data.db.entity.ExerciseSessionEntity
 import fr.acano.workout.data.db.entity.SetResultEntity
 import fr.acano.workout.data.db.entity.WorkoutSessionEntity
+import fr.acano.workout.data.seed.LocalizedNames
 import fr.acano.workout.data.seed.Program
 import fr.acano.workout.domain.PlannedStep
 import fr.acano.workout.domain.WorkoutType
@@ -36,6 +37,16 @@ class WorkoutRepository(
 
     /** Tous les exercices, archivés compris : l'historique a besoin de leurs noms. */
     fun observeExercises(): Flow<List<ExerciseEntity>> = exerciseDao.observeAll()
+
+    /** Met le contenu fourni par l'application dans la langue du téléphone (voir [LocalizedNames]). */
+    suspend fun applyLocalizedNames(names: LocalizedNames) {
+        names.exercises.forEach { (id, name) -> exerciseDao.renameBuiltIn(id, name) }
+        names.programs.forEach { (type, name) ->
+            val known = names.knownProgramNames[type].orEmpty()
+            customWorkoutDao.renameMatching(known, name)
+            workoutDao.renameSessionsMatching(known, name)
+        }
+    }
 
     /** Le catalogue proposé à l'utilisateur : les exercices archivés en sont retirés. */
     fun observeCatalogue(): Flow<List<ExerciseEntity>> =

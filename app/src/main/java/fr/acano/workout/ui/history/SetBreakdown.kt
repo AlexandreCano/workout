@@ -16,11 +16,13 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.semantics.clearAndSetSemantics
 import androidx.compose.ui.semantics.contentDescription
 import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
+import fr.acano.workout.R
 import fr.acano.workout.data.db.entity.SetResultEntity
 import fr.acano.workout.domain.SessionComparison
 import fr.acano.workout.domain.WeightUnit
@@ -95,13 +97,13 @@ fun SetTiles(sets: List<SetResultEntity>, bestSetIndex: Int?, modifier: Modifier
 private fun ComparisonLine(comparison: SessionComparison, unit: WeightUnit) {
     val colors = MaterialTheme.colorScheme
     val (text, color, trend) = when (comparison) {
-        SessionComparison.FirstTime -> Triple("Première fois", colors.onSurfaceVariant, 0)
+        SessionComparison.FirstTime -> Triple(stringResource(R.string.history_first_time), colors.onSurfaceVariant, 0)
         is SessionComparison.Weight -> when {
             comparison.deltaKg > 0 ->
-                Triple("+${formatWeight(comparison.deltaKg, unit)} par rapport à la dernière fois", colors.primary, 1)
+                Triple(stringResource(R.string.history_weight_up, formatWeight(comparison.deltaKg, unit)), colors.primary, 1)
             comparison.deltaKg < 0 ->
-                Triple("−${formatWeight(abs(comparison.deltaKg), unit)} par rapport à la dernière fois", colors.onSurfaceVariant, -1)
-            else -> Triple("Même charge que la dernière fois", colors.onSurfaceVariant, 0)
+                Triple(stringResource(R.string.history_weight_down, formatWeight(abs(comparison.deltaKg), unit)), colors.onSurfaceVariant, -1)
+            else -> Triple(stringResource(R.string.history_same_weight), colors.onSurfaceVariant, 0)
         }
     }
     Row(verticalAlignment = Alignment.CenterVertically, modifier = Modifier.padding(top = 2.dp)) {
@@ -122,10 +124,11 @@ private fun ComparisonLine(comparison: SessionComparison, unit: WeightUnit) {
 private fun SetTile(set: SetResultEntity, highlighted: Boolean, unit: WeightUnit) {
     val (value, caption) = tileContent(set, unit)
     val colors = MaterialTheme.colorScheme
-    val spoken = buildString {
-        append("Série ${set.setNumber} : ${formatSet(set.weightKg, set.repetitions, set.durationSeconds, unit)}")
-        if (highlighted) append(", meilleure série")
-    }
+    val spoken = stringResource(
+        if (highlighted) R.string.history_set_spoken_best else R.string.history_set_spoken,
+        set.setNumber,
+        formatSet(set.weightKg, set.repetitions, set.durationSeconds, unit),
+    )
     Surface(
         color = if (highlighted) colors.primaryContainer else colors.surfaceContainerHigh,
         contentColor = if (highlighted) colors.onPrimaryContainer else colors.onSurface,

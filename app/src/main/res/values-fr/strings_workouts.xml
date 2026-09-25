@@ -1,0 +1,39 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Éditeur d'entraînement personnalisé. -->
+<resources>
+    <string name="workouts_title_edit">Modifier l\'entraînement</string>
+    <string name="workouts_title_new">Nouvel entraînement</string>
+    <string name="workouts_name_label">Nom</string>
+    <string name="workouts_name_placeholder">Ex. : Full body</string>
+    <string name="workouts_exercises_header">Exercices</string>
+    <string name="workouts_empty">Aucun exercice pour l\'instant. Ajoute-en depuis le catalogue.</string>
+    <string name="workouts_removed">Retiré : %1$s</string>
+    <string name="workouts_undo">Annuler</string>
+    <string name="workouts_remove_description">Retirer %1$s</string>
+    <string name="workouts_add_exercises">Ajouter des exercices</string>
+    <string name="workouts_save">ENREGISTRER</string>
+    <string name="workouts_delete_workout">Supprimer l\'entraînement</string>
+    <string name="workouts_discard_title">Quitter sans enregistrer ?</string>
+    <string name="workouts_discard_text">Tes modifications de cet entraînement seront perdues.</string>
+    <string name="workouts_discard_confirm">Quitter</string>
+    <string name="workouts_discard_dismiss">Continuer</string>
+    <string name="workouts_delete_title">Supprimer « %1$s » ?</string>
+    <string name="workouts_delete_text">Les séances déjà réalisées avec cet entraînement restent dans l\'historique.</string>
+    <string name="workouts_delete_confirm">Supprimer</string>
+    <string name="workouts_cancel">Annuler</string>
+    <string name="workouts_catalog">Catalogue</string>
+    <string name="workouts_done">Terminé</string>
+    <string name="workouts_sets">Séries</string>
+    <string name="workouts_duration">Durée</string>
+    <string name="workouts_reps_min">Reps min</string>
+    <string name="workouts_reps_max">Reps max</string>
+    <string name="workouts_rest">Repos</string>
+    <string name="workouts_rest_none">Aucun</string>
+    <string name="workouts_ok">OK</string>
+    <string name="workouts_rest_suffix">repos %1$s</string>
+    <plurals name="workouts_sets_count">
+        <item quantity="one">%d série</item>
+        <item quantity="other">%d séries</item>
+        <item quantity="many">%d séries</item>
+    </plurals>
+</resources>

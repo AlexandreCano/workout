@@ -5,6 +5,7 @@ import androidx.test.core.app.ApplicationProvider
 import fr.acano.workout.data.db.WorkoutDatabase
 import fr.acano.workout.data.db.entity.ExerciseEntity
 import fr.acano.workout.data.repository.WorkoutRepository
+import fr.acano.workout.data.seed.LocalizedNames
 import fr.acano.workout.data.seed.Program
 import fr.acano.workout.domain.ExerciseKind
 import fr.acano.workout.domain.PlannedStep
@@ -590,6 +591,36 @@ class WorkoutRepositoryTest {
         } finally {
             bare.close()
         }
+    }
+
+    // --- Langue ---
+
+    private val english = LocalizedNames(
+        exercises = mapOf("seated_row" to "Seated row"),
+        programs = mapOf(WorkoutType.UPPER_BODY to "Upper body", WorkoutType.LOWER_BODY to "Lower body"),
+        knownProgramNames = mapOf(
+            WorkoutType.UPPER_BODY to listOf("Upper body", "Haut du corps"),
+            WorkoutType.LOWER_BODY to listOf("Lower body", "Bas du corps"),
+        ),
+    )
+
+    @Test
+    fun `changer de langue renomme le contenu de l app sans toucher a celui de l utilisateur`() = runTest {
+        finishEntirely(startProgram(WorkoutType.UPPER_BODY))
+        // Le programme « Bas du corps » a été renommé par l'utilisateur : il ne doit pas bouger.
+        val lower = programId(WorkoutType.LOWER_BODY)
+        repository.saveCustomWorkout(lower, "Jambes", listOf(PlannedStep("leg_press", 4, 8, 12)))
+        repository.saveCustomExercise(ExerciseEntity("custom_9", "Tirage horizontal", ExerciseKind.WEIGHTED_REPS, isCustom = true))
+
+        repository.applyLocalizedNames(english)
+
+        val names = repository.observeCustomWorkouts().first().map { it.workout.name }
+        assertEquals(listOf("Upper body", "Jambes"), names)
+        assertEquals("Seated row", repository.exercise("seated_row")!!.name)
+        // Un exercice de l'utilisateur au même nom n'est pas renommé.
+        assertEquals("Tirage horizontal", repository.exercise("custom_9")!!.name)
+        // Les séances passées suivent, pour que l'historique soit dans la même langue.
+        assertEquals("Upper body", repository.observeFinishedSessions().first().single().session.name)
     }
 
     private suspend fun programId(type: WorkoutType): Long =

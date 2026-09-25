@@ -38,10 +38,12 @@ import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.input.KeyboardCapitalization
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import fr.acano.workout.R
 import fr.acano.workout.domain.ExerciseKind
 import fr.acano.workout.ui.common.LocalWeightUnit
 import fr.acano.workout.ui.common.formatNumber
@@ -95,7 +97,7 @@ fun ExerciseEditorScreen(
         if (state.isLoading) return@Column
 
         Text(
-            text = if (state.isExisting) "Modifier l'exercice" else "Nouvel exercice",
+            text = stringResource(if (state.isExisting) R.string.exercises_editor_title_edit else R.string.exercises_editor_title_new),
             style = MaterialTheme.typography.headlineLarge,
         )
 
@@ -109,7 +111,7 @@ fun ExerciseEditorScreen(
                 modifier = Modifier
                     .size(200.dp)
                     .clip(MaterialTheme.shapes.large)
-                    .clickable(onClickLabel = "Choisir une image", onClick = ::launchPicker),
+                    .clickable(onClickLabel = stringResource(R.string.exercises_choose_image), onClick = ::launchPicker),
             )
         }
         Spacer(Modifier.height(WorkoutTheme.spacing.md))
@@ -119,12 +121,14 @@ fun ExerciseEditorScreen(
             modifier = Modifier.fillMaxWidth(),
         ) {
             WorkoutTonalButton(
-                text = if (state.previewModel == null) "Choisir une image" else "Changer l'image",
+                text = stringResource(
+                    if (state.previewModel == null) R.string.exercises_choose_image else R.string.exercises_change_image,
+                ),
                 onClick = ::launchPicker,
                 icon = Icons.Rounded.AddPhotoAlternate,
             )
             if (state.previewModel != null) {
-                WorkoutTextButton(text = "Retirer", onClick = viewModel::removeImage)
+                WorkoutTextButton(text = stringResource(R.string.exercises_remove_image), onClick = viewModel::removeImage)
             }
         }
 
@@ -133,8 +137,8 @@ fun ExerciseEditorScreen(
         OutlinedTextField(
             value = state.name,
             onValueChange = viewModel::setName,
-            label = { Text("Nom") },
-            placeholder = { Text("Ex. : Développé incliné") },
+            label = { Text(stringResource(R.string.exercises_name_label)) },
+            placeholder = { Text(stringResource(R.string.exercises_name_placeholder)) },
             singleLine = true,
             keyboardOptions = KeyboardOptions(
                 capitalization = KeyboardCapitalization.Sentences,
@@ -145,11 +149,11 @@ fun ExerciseEditorScreen(
 
         // --- Type ---
         Spacer(Modifier.height(WorkoutTheme.spacing.xxl))
-        SectionHeader("Type")
+        SectionHeader(stringResource(R.string.exercises_type))
         val kinds = listOf(
-            ExerciseKind.WEIGHTED_REPS to "Charge",
-            ExerciseKind.REPS_ONLY to "Reps seules",
-            ExerciseKind.TIMED to "Durée",
+            ExerciseKind.WEIGHTED_REPS to stringResource(R.string.exercises_kind_weighted),
+            ExerciseKind.REPS_ONLY to stringResource(R.string.exercises_kind_reps_only),
+            ExerciseKind.TIMED to stringResource(R.string.exercises_kind_timed),
         )
         SingleChoiceSegmentedButtonRow(Modifier.fillMaxWidth()) {
             kinds.forEachIndexed { index, (kind, label) ->
@@ -162,11 +166,13 @@ fun ExerciseEditorScreen(
         }
         Spacer(Modifier.height(WorkoutTheme.spacing.sm))
         Text(
-            text = when (state.kind) {
-                ExerciseKind.WEIGHTED_REPS -> "Une charge et des répétitions, comme sur une machine."
-                ExerciseKind.REPS_ONLY -> "Des répétitions au poids du corps, sans charge à noter."
-                ExerciseKind.TIMED -> "Un effort chronométré, comme la planche ou le vélo."
-            },
+            text = stringResource(
+                when (state.kind) {
+                    ExerciseKind.WEIGHTED_REPS -> R.string.exercises_kind_weighted_hint
+                    ExerciseKind.REPS_ONLY -> R.string.exercises_kind_reps_only_hint
+                    ExerciseKind.TIMED -> R.string.exercises_kind_timed_hint
+                },
+            ),
             style = MaterialTheme.typography.bodyMedium,
             color = MaterialTheme.colorScheme.onSurfaceVariant,
         )
@@ -174,14 +180,14 @@ fun ExerciseEditorScreen(
         // --- Charge ---
         if (state.kind == ExerciseKind.WEIGHTED_REPS) {
             Spacer(Modifier.height(WorkoutTheme.spacing.xxl))
-            SectionHeader("Machine")
+            SectionHeader(stringResource(R.string.exercises_machine))
             val unit = LocalWeightUnit.current
             // En livres, 1 kg et 1,25 kg donnent le même pas rond (2,5 lb) : un seul cran par valeur affichée.
             val steps = vm.WEIGHT_STEPS.distinctBy { unit.step(it) }
             val index = steps.indexOfFirst { unit.step(it) == unit.step(state.weightStepKg) }
                 .takeIf { it >= 0 } ?: steps.indexOf(2.5)
             StepperRow(
-                label = "Pas de charge",
+                label = stringResource(R.string.exercises_weight_step),
                 // Le pas est stocké en kilos ; en livres on montre le pas rond réellement appliqué.
                 value = "${formatNumber(unit.step(steps[index]))} ${unit.symbol}",
                 onDecrement = { viewModel.setWeightStep(steps[index - 1]) },
@@ -193,20 +199,20 @@ fun ExerciseEditorScreen(
 
         Spacer(Modifier.height(WorkoutTheme.spacing.xl))
         Text(
-            text = "Les séries, les répétitions ou la durée et le repos se règlent dans chaque entraînement.",
+            text = stringResource(R.string.exercises_settings_in_workout),
             style = MaterialTheme.typography.bodyMedium,
             color = MaterialTheme.colorScheme.onSurfaceVariant,
         )
 
-        state.error?.let {
+        if (state.imageError) {
             Spacer(Modifier.height(WorkoutTheme.spacing.lg))
-            Text(it, style = MaterialTheme.typography.bodyMedium, color = MaterialTheme.colorScheme.error)
+            Text(stringResource(R.string.exercises_image_error), style = MaterialTheme.typography.bodyMedium, color = MaterialTheme.colorScheme.error)
         }
 
         Spacer(Modifier.height(WorkoutTheme.spacing.xxl))
 
         WorkoutPrimaryButton(
-            text = "ENREGISTRER",
+            text = stringResource(R.string.exercises_save),
             onClick = { scope.launch { if (viewModel.save()) onDone() } },
             enabled = state.canSave,
             icon = Icons.Rounded.Check,
@@ -216,7 +222,7 @@ fun ExerciseEditorScreen(
             Spacer(Modifier.height(WorkoutTheme.spacing.sm))
             Box(Modifier.fillMaxWidth(), contentAlignment = Alignment.Center) {
                 WorkoutTextButton(
-                    text = "Supprimer l'exercice",
+                    text = stringResource(R.string.exercises_delete),
                     onClick = { scope.launch { usedBy = viewModel.workoutsUsingIt() } },
                     icon = Icons.Rounded.Delete,
                 )
@@ -229,14 +235,16 @@ fun ExerciseEditorScreen(
     usedBy?.let { workouts ->
         AlertDialog(
             onDismissRequest = { usedBy = null },
-            title = { Text("Supprimer « ${state.name.trim()} » ?") },
+            title = { Text(stringResource(R.string.exercises_delete_title, state.name.trim())) },
             text = {
+                val usedByText = stringResource(R.string.exercises_delete_used_by, workouts.joinToString(", "))
+                val historyKept = stringResource(R.string.exercises_delete_history_kept)
                 Text(
                     buildString {
                         if (workouts.isNotEmpty()) {
-                            append("Il sera retiré de : ${workouts.joinToString(", ")}.\n\n")
+                            append(usedByText).append("\n\n")
                         }
-                        append("Les séances déjà faites restent dans l'historique.")
+                        append(historyKept)
                     },
                 )
             },
@@ -249,9 +257,9 @@ fun ExerciseEditorScreen(
                             onDeleted()
                         }
                     },
-                ) { Text("Supprimer") }
+                ) { Text(stringResource(R.string.exercises_delete_confirm)) }
             },
-            dismissButton = { TextButton(onClick = { usedBy = null }) { Text("Annuler") } },
+            dismissButton = { TextButton(onClick = { usedBy = null }) { Text(stringResource(R.string.exercises_cancel)) } },
         )
     }
 }

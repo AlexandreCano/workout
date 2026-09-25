@@ -8,6 +8,7 @@ import android.media.AudioAttributes
 import android.media.RingtoneManager
 import androidx.core.app.NotificationManagerCompat
 import androidx.core.content.getSystemService
+import fr.acano.workout.R
 
 object TimerNotifications {
 
@@ -47,11 +48,10 @@ object TimerNotifications {
         manager.createNotificationChannel(
             NotificationChannel(
                 RUNNING_CHANNEL_ID,
-                "Chronomètre en cours",
+                context.getString(R.string.channel_running_name),
                 NotificationManager.IMPORTANCE_DEFAULT,
             ).apply {
-                description = "Décompte affiché pendant la récupération ou un exercice chronométré, " +
-                    "y compris sur l'écran verrouillé."
+                description = context.getString(R.string.channel_running_description)
                 setShowBadge(false)
                 enableVibration(false)
                 setSound(null, null)
@@ -62,10 +62,10 @@ object TimerNotifications {
         manager.createNotificationChannel(
             NotificationChannel(
                 DONE_CHANNEL_ID,
-                "Fin de chronomètre",
+                context.getString(R.string.channel_done_name),
                 NotificationManager.IMPORTANCE_HIGH,
             ).apply {
-                description = "Signale la fin de la récupération ou de la série chronométrée."
+                description = context.getString(R.string.channel_done_description)
                 lockscreenVisibility = Notification.VISIBILITY_PUBLIC
                 enableVibration(true)
                 vibrationPattern = longArrayOf(0, 250, 150, 250)

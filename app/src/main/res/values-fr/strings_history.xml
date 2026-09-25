@@ -1,0 +1,46 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources xmlns:tools="http://schemas.android.com/tools">
+    <string name="history_no_sessions_this_month">Aucune séance ce mois-ci</string>
+    <plurals name="history_sessions_this_month" tools:ignore="ImpliedQuantity">
+        <item quantity="one">%1$d séance ce mois-ci</item>
+        <item quantity="other">%1$d séances ce mois-ci</item>
+        <item quantity="many">%1$d séances ce mois-ci</item>
+    </plurals>
+    <string name="history_empty">Les séances terminées apparaîtront ici, avec leur détail.</string>
+    <string name="history_sessions_on_day">Séances du %1$s</string>
+    <string name="history_show_all">Tout afficher</string>
+    <string name="history_all_sessions">Toutes les séances</string>
+    <plurals name="history_exercise_count" tools:ignore="ImpliedQuantity">
+        <item quantity="one">%1$d exercice</item>
+        <item quantity="other">%1$d exercices</item>
+        <item quantity="many">%1$d exercices</item>
+    </plurals>
+    <string name="history_in_progress">en cours</string>
+    <plurals name="history_set_count" tools:ignore="ImpliedQuantity">
+        <item quantity="one">%1$d série</item>
+        <item quantity="other">%1$d séries</item>
+        <item quantity="many">%1$d séries</item>
+    </plurals>
+    <plurals name="history_set_count_lifted" tools:ignore="ImpliedQuantity">
+        <item quantity="one">%1$d série, %2$s soulevés</item>
+        <item quantity="other">%1$d séries, %2$s soulevés</item>
+        <item quantity="many">%1$d séries, %2$s soulevés</item>
+    </plurals>
+    <string name="history_kcal_burned">%1$s dépensées (estimation)</string>
+    <string name="history_kcal_needs_weight">Renseigne ton poids dans les réglages pour estimer les calories.</string>
+
+    <string name="history_previous_month">Mois précédent</string>
+    <string name="history_next_month">Mois suivant</string>
+    <plurals name="history_day_sessions" tools:ignore="ImpliedQuantity">
+        <item quantity="one">%1$s, %2$d séance</item>
+        <item quantity="other">%1$s, %2$d séances</item>
+        <item quantity="many">%1$s, %2$d séances</item>
+    </plurals>
+
+    <string name="history_first_time">Première fois</string>
+    <string name="history_weight_up">+%1$s par rapport à la dernière fois</string>
+    <string name="history_weight_down">−%1$s par rapport à la dernière fois</string>
+    <string name="history_same_weight">Même charge que la dernière fois</string>
+    <string name="history_set_spoken">Série %1$d : %2$s</string>
+    <string name="history_set_spoken_best">Série %1$d : %2$s, meilleure série</string>
+</resources>

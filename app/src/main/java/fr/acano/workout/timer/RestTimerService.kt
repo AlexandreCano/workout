@@ -230,10 +230,10 @@ class RestTimerService : Service() {
      * Live Updates d'Android 16.
      */
     private fun buildRunningNotification(remaining: Long): Notification {
-        val title = if (kind == TimerKind.REST) "Repos" else label
+        val title = if (kind == TimerKind.REST) getString(R.string.timer_rest) else label
         val paused = pausedRemainingMs != null
         // En marche, le décompte se suffit à lui-même : pas de ligne secondaire.
-        val subtitle = if (paused) "En pause" else null
+        val subtitle = if (paused) getString(R.string.timer_paused) else null
         val collapsed = timerViews(R.layout.notification_timer_collapsed, title, subtitle, remaining, paused)
         val expanded = timerViews(R.layout.notification_timer_expanded, title, subtitle, remaining, paused)
 
@@ -242,7 +242,7 @@ class RestTimerService : Service() {
             // Titre et texte restent renseignés : ils servent aux montres, à
             // l'accessibilité et à tout affichage qui ignore la vue personnalisée.
             .setContentTitle(title)
-            .setContentText(if (paused) "En pause · ${formatClock(remaining)}" else null)
+            .setContentText(if (paused) getString(R.string.timer_paused_with_clock, formatClock(remaining)) else null)
             .setStyle(NotificationCompat.DecoratedCustomViewStyle())
             .setCustomContentView(collapsed)
             .setCustomBigContentView(expanded)
@@ -255,9 +255,9 @@ class RestTimerService : Service() {
             .setContentIntent(contentIntent())
             .addAction(
                 if (paused) {
-                    NotificationCompat.Action(android.R.drawable.ic_media_play, "Reprendre", serviceIntent(ACTION_RESUME))
+                    NotificationCompat.Action(android.R.drawable.ic_media_play, getString(R.string.timer_action_resume), serviceIntent(ACTION_RESUME))
                 } else {
-                    NotificationCompat.Action(android.R.drawable.ic_media_pause, "Pause", serviceIntent(ACTION_PAUSE))
+                    NotificationCompat.Action(android.R.drawable.ic_media_pause, getString(R.string.timer_action_pause), serviceIntent(ACTION_PAUSE))
                 },
             )
             .build()
@@ -318,8 +318,8 @@ class RestTimerService : Service() {
     private fun notifyFinished() {
         val notification = NotificationCompat.Builder(this, TimerNotifications.DONE_CHANNEL_ID)
             .setSmallIcon(R.drawable.ic_timer)
-            .setContentTitle(if (kind == TimerKind.REST) "Repos terminé" else "$label terminé")
-            .setContentText(if (kind == TimerKind.REST) "Série suivante" else "Série validée")
+            .setContentTitle(if (kind == TimerKind.REST) getString(R.string.timer_rest_done) else getString(R.string.timer_effort_done, label))
+            .setContentText(getString(if (kind == TimerKind.REST) R.string.timer_rest_done_text else R.string.timer_effort_done_text))
             .setPriority(NotificationCompat.PRIORITY_HIGH)
             .setVisibility(NotificationCompat.VISIBILITY_PUBLIC)
             .setCategory(NotificationCompat.CATEGORY_ALARM)

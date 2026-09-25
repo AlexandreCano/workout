@@ -20,7 +20,10 @@ import androidx.compose.material3.NavigationBar
 import androidx.compose.material3.NavigationBarItem
 import androidx.compose.material3.NavigationBarItemDefaults
 import androidx.compose.material3.Scaffold
+import androidx.annotation.StringRes
 import androidx.compose.material3.Text
+import androidx.compose.ui.res.stringResource
+import fr.acano.workout.R
 import androidx.compose.animation.AnimatedContentTransitionScope
 import androidx.compose.animation.core.tween
 import androidx.compose.animation.fadeIn
@@ -64,7 +67,7 @@ import fr.acano.workout.ui.workouts.WorkoutEditorViewModel
 
 private data class Tab(
     val route: Route,
-    val label: String,
+    @StringRes val label: Int,
     val selectedIcon: ImageVector,
     val unselectedIcon: ImageVector,
 )
@@ -74,9 +77,9 @@ private data class Tab(
  * et c'est ce qui rend l'onglet courant identifiable sans lire le libellé.
  */
 private val tabs = listOf(
-    Tab(Route.Home, "Accueil", Icons.Filled.Home, Icons.Outlined.Home),
-    Tab(Route.History, "Historique", Icons.Filled.History, Icons.Outlined.History),
-    Tab(Route.Exercises, "Exercices", Icons.Filled.FitnessCenter, Icons.Outlined.FitnessCenter),
+    Tab(Route.Home, R.string.tab_home, Icons.Filled.Home, Icons.Outlined.Home),
+    Tab(Route.History, R.string.tab_history, Icons.Filled.History, Icons.Outlined.History),
+    Tab(Route.Exercises, R.string.tab_exercises, Icons.Filled.FitnessCenter, Icons.Outlined.FitnessCenter),
 )
 
 @Composable
@@ -113,7 +116,7 @@ fun WorkoutNavHost(navController: NavHostController = rememberNavController()) {
                                     contentDescription = null,
                                 )
                             },
-                            label = { Text(tab.label) },
+                            label = { Text(stringResource(tab.label)) },
                             colors = NavigationBarItemDefaults.colors(
                                 selectedIconColor = MaterialTheme.colorScheme.onPrimaryContainer,
                                 selectedTextColor = MaterialTheme.colorScheme.onSurface,

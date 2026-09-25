@@ -45,9 +45,9 @@ enum class ExerciseKind {
  * en kilogrammes : changer d'unité ne réécrit donc aucune donnée, et
  * l'historique reste comparable d'une préférence à l'autre.
  */
-enum class WeightUnit(val symbol: String, val spokenName: String) {
-    KG("kg", "kilos"),
-    LB("lb", "livres");
+enum class WeightUnit(val symbol: String) {
+    KG("kg"),
+    LB("lb");
 
     fun fromKg(kg: Double): Double = if (this == KG) kg else kg / KG_PER_LB
 

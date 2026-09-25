@@ -1,0 +1,65 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Écran de séance : saisie des séries, chronomètre, réorganisation et récapitulatif. -->
+<resources>
+    <!-- Barre du haut et sortie -->
+    <string name="session_reorder_remaining_cd">Reorder remaining exercises</string>
+    <string name="session_quit_cd">Leave session</string>
+    <string name="session_quit_title">Leave session?</string>
+    <string name="session_quit_text">Your session is saved as you go: you can pick it up exactly where you left off.</string>
+    <string name="session_quit_pause">Pause session</string>
+    <string name="session_quit_discard">Discard</string>
+
+    <!-- Légende du chronomètre -->
+    <string name="session_next_set_caption">Next set</string>
+    <string name="session_set_of">Set %1$d / %2$d</string>
+
+    <!-- Réorganisation -->
+    <string name="session_reorder_title">Reorder</string>
+    <string name="session_reorder_hint">Drag exercises by the handle. The first one in the list is the one you\'ll do now.</string>
+    <string name="session_reorder_section">To do</string>
+    <string name="session_reorder_confirm">CONFIRM ORDER</string>
+    <string name="session_cancel">Cancel</string>
+    <string name="session_resumed_at_set">Resuming at set %1$d / %2$d</string>
+    <plurals name="session_sets_count">
+        <item quantity="one">%d set</item>
+        <item quantity="other">%d sets</item>
+    </plurals>
+
+    <!-- Saisie d'une série -->
+    <string name="session_undo_last_set">Undo last set</string>
+    <string name="session_already_done">Done so far</string>
+    <plurals name="session_reps_count">
+        <item quantity="one">%d rep</item>
+        <item quantity="other">%d reps</item>
+    </plurals>
+    <string name="session_last_session_weight">Last session: %1$s</string>
+    <string name="session_long_press_hint">long press: half step</string>
+    <string name="session_validate_set">LOG SET</string>
+    <string name="session_validate">LOG</string>
+    <string name="session_start">START</string>
+    <string name="session_mark_done">Mark as done</string>
+
+    <!-- Chronomètre -->
+    <string name="session_next_set_button">NEXT SET</string>
+    <string name="session_continue">CONTINUE</string>
+    <string name="session_skip">Skip</string>
+    <string name="session_timer_go">Let\'s go</string>
+    <string name="session_timer_done">Done</string>
+    <string name="session_timer_rest">Rest</string>
+
+    <!-- Récapitulatif -->
+    <string name="session_complete_title">Session complete</string>
+    <string name="session_star_earned">+1 star</string>
+    <string name="session_star_cd">Star earned</string>
+    <string name="session_metric_duration">Duration</string>
+    <plurals name="session_metric_exercises">
+        <item quantity="one">Exercise</item>
+        <item quantity="other">Exercises</item>
+    </plurals>
+    <plurals name="session_metric_sets">
+        <item quantity="one">Set</item>
+        <item quantity="other">Sets</item>
+    </plurals>
+    <string name="session_metric_kcal">kcal</string>
+    <string name="session_finish">DONE</string>
+</resources>

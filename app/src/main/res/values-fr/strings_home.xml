@@ -1,0 +1,74 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources xmlns:tools="http://schemas.android.com/tools">
+    <!-- Accueil -->
+    <string name="home_settings">Réglages</string>
+    <string name="home_collapse">Replier</string>
+    <string name="home_expand">Déplier</string>
+    <string name="home_workouts">Entraînements</string>
+    <plurals name="home_workouts_count">
+        <item quantity="one">%d entraînement</item>
+        <item quantity="other">%d entraînements</item>
+        <item quantity="many">%d entraînements</item>
+    </plurals>
+    <string name="home_finish_session_first">Termine la séance en cours pour en lancer un autre.</string>
+    <string name="home_create_workout">Créer un entraînement</string>
+    <string name="home_recent_progress">Progression récente</string>
+    <plurals name="home_stars_description">
+        <item quantity="one">%d séance réalisée</item>
+        <item quantity="other">%d séances réalisées</item>
+        <item quantity="many">%d séances réalisées</item>
+    </plurals>
+    <string name="home_no_session_yet">Aucune séance pour l\'instant</string>
+    <plurals name="home_stars_caption" tools:ignore="ImpliedQuantity">
+        <item quantity="one">séance réalisée</item>
+        <item quantity="other">séances réalisées</item>
+        <item quantity="many">séances réalisées</item>
+    </plurals>
+    <string name="home_suggested">Suggéré</string>
+    <string name="home_edit_workout">Modifier %1$s</string>
+    <string name="home_start_workout">Lancer %1$s</string>
+    <plurals name="home_step_count">
+        <item quantity="one">%d étape</item>
+        <item quantity="other">%d étapes</item>
+        <item quantity="many">%d étapes</item>
+    </plurals>
+    <string name="home_never_done">jamais fait</string>
+    <string name="home_session_in_progress">Séance en cours</string>
+    <string name="home_resume_set">Série %1$d / %2$d</string>
+    <string name="home_resume">REPRENDRE</string>
+    <string name="home_view_exercise">Voir %1$s</string>
+
+    <!-- Réglages -->
+    <string name="settings_title">Réglages</string>
+    <string name="settings_weight_unit">Unité de poids</string>
+    <string name="settings_unit_kg">Kilos (kg)</string>
+    <string name="settings_unit_lb">Livres (lb)</string>
+    <string name="settings_unit_explanation">Les charges sont enregistrées en kilos et converties à l\'affichage : changer d\'unité ne modifie pas ton historique.</string>
+    <string name="settings_profile">Profil</string>
+    <string name="settings_profile_explanation">Sert uniquement à estimer les calories dépensées pendant les exercices de l\'app. Le poids suffit ; la taille, le sexe et l\'année de naissance affinent le calcul.</string>
+    <string name="settings_sex">Sexe</string>
+    <string name="settings_sex_male">Homme</string>
+    <string name="settings_sex_female">Femme</string>
+    <string name="settings_weight_label">Poids (%1$s)</string>
+    <string name="settings_weight_error">Entre un poids entre %1$s et %2$s %3$s</string>
+    <string name="settings_height_label">Taille (cm)</string>
+    <string name="settings_height_error">Entre une taille entre %1$d et %2$d cm</string>
+    <string name="settings_birth_year_label">Année de naissance (facultatif)</string>
+    <string name="settings_birth_year_error">Entre une année entre %1$d et %2$d</string>
+
+    <!-- Composants -->
+    <string name="comp_move_up">Monter</string>
+    <string name="comp_move_down">Descendre</string>
+    <string name="comp_drag_item">Déplacer %1$s</string>
+    <string name="comp_set_progress">Série %1$d sur %2$d</string>
+    <string name="comp_step_progress">Exercice %1$d sur %2$d</string>
+    <string name="comp_stepper_decrease">%1$s : diminuer</string>
+    <string name="comp_stepper_increase">%1$s : augmenter</string>
+    <string name="comp_trend_up">en progression</string>
+    <string name="comp_trend_down">en baisse</string>
+    <string name="comp_weight_decrease_kg">Diminuer la charge de %1$s kilos</string>
+    <string name="comp_weight_increase_kg">Augmenter la charge de %1$s kilos</string>
+    <string name="comp_weight_decrease_lb">Diminuer la charge de %1$s livres</string>
+    <string name="comp_weight_increase_lb">Augmenter la charge de %1$s livres</string>
+    <string name="comp_timer_spoken">%1$s minutes %2$s secondes</string>
+</resources>

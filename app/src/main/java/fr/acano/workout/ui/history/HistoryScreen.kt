@@ -29,16 +29,21 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.res.pluralStringResource
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.semantics.clearAndSetSemantics
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import fr.acano.workout.R
 import fr.acano.workout.ui.common.LocalWeightUnit
 import fr.acano.workout.ui.common.formatDuration
 import fr.acano.workout.ui.common.formatKcal
 import fr.acano.workout.ui.common.formatLongDate
 import fr.acano.workout.ui.common.formatVolume
+import fr.acano.workout.ui.common.pattern
 import fr.acano.workout.ui.components.RowDivider
 import fr.acano.workout.ui.components.SectionHeader
 import fr.acano.workout.ui.theme.WorkoutTheme
@@ -74,7 +79,7 @@ fun HistoryScreen(
         modifier = Modifier.fillMaxSize(),
     ) {
         item {
-            ScreenTitle("Historique")
+            ScreenTitle(stringResource(R.string.tab_history))
             MonthCalendar(
                 month = state.month,
                 weeks = state.weeks,
@@ -89,9 +94,8 @@ fun HistoryScreen(
             )
             Text(
                 text = when (state.sessionsInMonth) {
-                    0 -> "Aucune séance ce mois-ci"
-                    1 -> "1 séance ce mois-ci"
-                    else -> "${state.sessionsInMonth} séances ce mois-ci"
+                    0 -> stringResource(R.string.history_no_sessions_this_month)
+                    else -> pluralStringResource(R.plurals.history_sessions_this_month, state.sessionsInMonth, state.sessionsInMonth)
                 },
                 style = MaterialTheme.typography.bodyMedium,
                 color = MaterialTheme.colorScheme.onSurfaceVariant,
@@ -102,21 +106,22 @@ fun HistoryScreen(
             if (state.totalSessions == 0) {
                 // Le calendrier reste affiché même vide : il montre au moins où l'on en est.
                 Text(
-                    text = "Les séances terminées apparaîtront ici, avec leur détail.",
+                    text = stringResource(R.string.history_empty),
                     style = MaterialTheme.typography.bodyMedium,
                     color = MaterialTheme.colorScheme.onSurfaceVariant,
                 )
             } else if (selected != null) {
+                // Motif long sans majuscule initiale : « Séances du mardi 22 septembre », « Sessions on Tuesday, September 22 ».
+                val dayPattern = if (selected.year == LocalDate.now().year) R.string.date_pattern_long else R.string.date_pattern_long_year
                 SectionHeader(
-                    text = "Séances du " + formatLongDate(selected.atStartOfDay(ZoneId.systemDefault()).toInstant().toEpochMilli())
-                        .replaceFirstChar { it.lowercase() },
+                    text = stringResource(R.string.history_sessions_on_day, selected.format(pattern(LocalContext.current, dayPattern))),
                     trailing = {
-                        TextButton(onClick = viewModel::clearSelection) { Text("Tout afficher") }
+                        TextButton(onClick = viewModel::clearSelection) { Text(stringResource(R.string.history_show_all)) }
                     },
                 )
             } else {
                 // Le nombre de séances du mois est déjà sous le calendrier : pas de doublon ici.
-                SectionHeader("Toutes les séances")
+                SectionHeader(stringResource(R.string.history_all_sessions))
             }
         }
         items(state.sessions, key = { it.sessionId }) { session ->
@@ -134,6 +139,9 @@ fun HistoryScreen(
 @Composable
 private fun SessionRow(session: SessionSummaryRow, onClick: () -> Unit) {
     val day = Instant.ofEpochMilli(session.startedAt).atZone(ZoneId.systemDefault()).toLocalDate()
+    val monthFormatter = pattern(LocalContext.current, R.string.date_pattern_month_abbrev)
+    val count = session.exerciseNames.size
+    val exercisesLabel = pluralStringResource(R.plurals.history_exercise_count, count, count)
     Row(
         verticalAlignment = Alignment.CenterVertically,
         modifier = Modifier
@@ -165,8 +173,7 @@ private fun SessionRow(session: SessionSummaryRow, onClick: () -> Unit) {
                 text = buildString {
                     append(formatDuration(session.durationMillis))
                     append("  ·  ")
-                    val count = session.exerciseNames.size
-                    append(if (count > 1) "$count exercices" else "$count exercice")
+                    append(exercisesLabel)
                     session.kcal?.let { append("  ·  ${formatKcal(it)}") }
                 },
                 style = MaterialTheme.typography.bodyMedium,
@@ -184,8 +191,6 @@ private fun SessionRow(session: SessionSummaryRow, onClick: () -> Unit) {
     }
 }
 
-private val monthFormatter = java.time.format.DateTimeFormatter.ofPattern("MMM", java.util.Locale.FRENCH)
-
 /**
  * Détail d'une séance : un bloc par exercice, et pour chaque série la charge
  * et les répétitions réellement faites, une ligne par série — « 42,5 kg × 11 ».
@@ -196,6 +201,7 @@ fun SessionDetailScreen(
     onBack: () -> Unit,
 ) {
     val state by viewModel.state.collectAsStateWithLifecycle()
+    val inProgress = stringResource(R.string.history_in_progress)
 
     Column(
         modifier = Modifier
@@ -215,7 +221,7 @@ fun SessionDetailScreen(
                 append(formatLongDate(state.startedAt))
                 append("  ·  ")
                 append(
-                    if (state.isInProgress) "en cours" else formatDuration(state.durationMillis),
+                    if (state.isInProgress) inProgress else formatDuration(state.durationMillis),
                 )
             },
             style = MaterialTheme.typography.bodyLarge,
@@ -223,9 +229,15 @@ fun SessionDetailScreen(
         )
         if (state.totalSets > 0) {
             Text(
-                text = buildString {
-                    append(if (state.totalSets > 1) "${state.totalSets} séries" else "1 série")
-                    if (state.volumeKg > 0) append(", ${formatVolume(state.volumeKg, LocalWeightUnit.current)} soulevés")
+                text = if (state.volumeKg > 0) {
+                    pluralStringResource(
+                        R.plurals.history_set_count_lifted,
+                        state.totalSets,
+                        state.totalSets,
+                        formatVolume(state.volumeKg, LocalWeightUnit.current),
+                    )
+                } else {
+                    pluralStringResource(R.plurals.history_set_count, state.totalSets, state.totalSets)
                 },
                 style = MaterialTheme.typography.bodyLarge,
                 color = MaterialTheme.colorScheme.onSurfaceVariant,
@@ -263,7 +275,7 @@ fun BackRow(onBack: () -> Unit) {
             onClick = onBack,
             modifier = Modifier.padding(end = WorkoutTheme.spacing.xs),
         ) {
-            Icon(Icons.AutoMirrored.Rounded.ArrowBack, contentDescription = "Retour")
+            Icon(Icons.AutoMirrored.Rounded.ArrowBack, contentDescription = stringResource(R.string.back))
         }
     }
 }
@@ -306,12 +318,12 @@ fun EmptyState(title: String, message: String) {
 fun CaloriesLine(totalKcal: Double?, needsProfile: Boolean) {
     when {
         totalKcal != null -> Text(
-            text = "${formatKcal(totalKcal)} dépensées (estimation)",
+            text = stringResource(R.string.history_kcal_burned, formatKcal(totalKcal)),
             style = MaterialTheme.typography.bodyLarge,
             color = MaterialTheme.colorScheme.onSurfaceVariant,
         )
         needsProfile -> Text(
-            text = "Renseigne ton poids dans les réglages pour estimer les calories.",
+            text = stringResource(R.string.history_kcal_needs_weight),
             style = MaterialTheme.typography.bodyMedium,
             color = MaterialTheme.colorScheme.onSurfaceVariant,
         )

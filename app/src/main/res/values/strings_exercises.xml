@@ -1,0 +1,54 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Catalogue, détail et éditeur d'exercices. -->
+<resources>
+    <!-- Catalogue -->
+    <string name="exercises_search_placeholder">Search exercises</string>
+    <string name="exercises_clear_search">Clear search</string>
+    <string name="exercises_no_match">No exercise matches “%1$s”.</string>
+    <string name="exercises_mine">My exercises</string>
+    <string name="exercises_mine_empty">Add your own exercises, with a photo of the machine.</string>
+    <string name="exercises_create">Create exercise</string>
+    <string name="exercises_built_in">Built-in exercises</string>
+    <string name="exercises_never_done">Never done</string>
+    <plurals name="exercises_session_count">
+        <item quantity="one">%1$d session</item>
+        <item quantity="other">%1$d sessions</item>
+    </plurals>
+
+    <!-- Détail -->
+    <string name="exercises_added_by_you">Added by you</string>
+    <string name="exercises_built_in_single">Built-in exercise</string>
+    <string name="exercises_edit">Edit</string>
+    <string name="exercises_last_weight">Last session\'s weight, %1$s</string>
+    <string name="exercises_weight_progress">Weight progression</string>
+    <string name="exercises_history">History</string>
+    <string name="exercises_not_done_yet">Not done yet. Add it to a workout to track your progress.</string>
+    <string name="exercises_chart_description">Progression from %1$s to %2$s</string>
+
+    <!-- Éditeur -->
+    <string name="exercises_editor_title_edit">Edit exercise</string>
+    <string name="exercises_editor_title_new">New exercise</string>
+    <string name="exercises_choose_image">Choose an image</string>
+    <string name="exercises_change_image">Change image</string>
+    <string name="exercises_remove_image">Remove</string>
+    <string name="exercises_name_label">Name</string>
+    <string name="exercises_name_placeholder">E.g. Incline press</string>
+    <string name="exercises_type">Type</string>
+    <string name="exercises_kind_weighted">Weight</string>
+    <string name="exercises_kind_reps_only">Reps only</string>
+    <string name="exercises_kind_timed">Duration</string>
+    <string name="exercises_kind_weighted_hint">Weight and reps, like on a machine.</string>
+    <string name="exercises_kind_reps_only_hint">Bodyweight reps, no weight to log.</string>
+    <string name="exercises_kind_timed_hint">A timed effort, like a plank or the bike.</string>
+    <string name="exercises_machine">Machine</string>
+    <string name="exercises_weight_step">Weight increment</string>
+    <string name="exercises_settings_in_workout">Sets, reps or duration, and rest are set in each workout.</string>
+    <string name="exercises_image_error">Couldn\'t read this image.</string>
+    <string name="exercises_save">SAVE</string>
+    <string name="exercises_delete">Delete exercise</string>
+    <string name="exercises_delete_title">Delete “%1$s”?</string>
+    <string name="exercises_delete_used_by">It will be removed from: %1$s.</string>
+    <string name="exercises_delete_history_kept">Sessions already done stay in your history.</string>
+    <string name="exercises_delete_confirm">Delete</string>
+    <string name="exercises_cancel">Cancel</string>
+</resources>

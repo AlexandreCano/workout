@@ -1,0 +1,62 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Textes partagés : dates, types d'exercice, programme d'origine, onglets, notifications. -->
+<resources>
+    <!-- Dates relatives -->
+    <string name="date_today">today</string>
+    <string name="date_yesterday">yesterday</string>
+    <plurals name="date_days_ago">
+        <item quantity="one">%d day ago</item>
+        <item quantity="other">%d days ago</item>
+    </plurals>
+    <!-- Motifs java.time : l'ordre jour / mois dépend de la langue. -->
+    <string name="date_pattern_short">MMM d</string>
+    <string name="date_pattern_short_year">MMM d, yyyy</string>
+    <string name="date_pattern_long">EEEE, MMMM d</string>
+    <string name="date_pattern_long_year">EEEE, MMMM d, yyyy</string>
+    <string name="date_pattern_month_year">MMMM yyyy</string>
+    <string name="date_pattern_month_abbrev">MMM</string>
+    <string name="date_pattern_spoken_day">EEEE, MMMM d</string>
+
+    <!-- Types d'exercice -->
+    <string name="kind_weighted_reps">Weight and reps</string>
+    <string name="kind_reps_only">Reps</string>
+    <string name="kind_timed">Timed</string>
+
+    <!-- Programme d'origine -->
+    <string name="program_upper_body">Upper body</string>
+    <string name="program_lower_body">Lower body</string>
+    <string name="exercise_bike_warmup">Bike</string>
+    <string name="exercise_chest_press">Chest Press</string>
+    <string name="exercise_pec_deck">Pec Deck</string>
+    <string name="exercise_lat_pulldown">Lat pulldown</string>
+    <string name="exercise_seated_row">Seated row</string>
+    <string name="exercise_leg_press">Leg press</string>
+    <string name="exercise_leg_curl">Leg Curl</string>
+    <string name="exercise_leg_extension">Leg Extension</string>
+    <string name="exercise_calf_raise">Calf raise</string>
+    <string name="exercise_plank">Plank</string>
+    <string name="exercise_stomach_vacuum">Stomach Vacuum</string>
+
+    <!-- Onglets -->
+    <string name="tab_home">Home</string>
+    <string name="tab_history">History</string>
+    <string name="tab_exercises">Exercises</string>
+
+    <!-- Chronomètre et notifications -->
+    <string name="timer_rest">Rest</string>
+    <string name="timer_paused">Paused</string>
+    <string name="timer_paused_with_clock">Paused · %1$s</string>
+    <string name="timer_action_pause">Pause</string>
+    <string name="timer_action_resume">Resume</string>
+    <string name="timer_rest_done">Rest over</string>
+    <string name="timer_effort_done">%1$s done</string>
+    <string name="timer_rest_done_text">Next set</string>
+    <string name="timer_effort_done_text">Set saved</string>
+    <string name="channel_running_name">Timer running</string>
+    <string name="channel_running_description">Countdown shown during rest or a timed exercise, including on the lock screen.</string>
+    <string name="channel_done_name">Timer finished</string>
+    <string name="channel_done_description">Signals the end of a rest or a timed set.</string>
+
+    <!-- Divers -->
+    <string name="back">Back</string>
+</resources>

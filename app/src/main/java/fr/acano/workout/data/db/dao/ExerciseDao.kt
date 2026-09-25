@@ -29,6 +29,10 @@ interface ExerciseDao {
     @Insert(onConflict = OnConflictStrategy.REPLACE)
     suspend fun insertAll(exercises: List<ExerciseEntity>)
 
+    /** Renomme un exercice de l'application ; ceux de l'utilisateur ne sont jamais touchés. */
+    @Query("UPDATE exercise SET name = :name WHERE id = :id AND isCustom = 0 AND name != :name")
+    suspend fun renameBuiltIn(id: String, name: String)
+
     @Upsert
     suspend fun upsert(exercise: ExerciseEntity)
 }

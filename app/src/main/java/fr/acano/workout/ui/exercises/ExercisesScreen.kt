@@ -30,14 +30,19 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.res.pluralStringResource
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import fr.acano.workout.R
 import fr.acano.workout.domain.ExerciseKind
 import fr.acano.workout.ui.common.LocalWeightUnit
 import fr.acano.workout.ui.common.formatDate
 import fr.acano.workout.ui.common.formatWeight
 import fr.acano.workout.ui.common.label
+import fr.acano.workout.ui.common.locale
 import fr.acano.workout.ui.components.ExerciseImage
 import fr.acano.workout.ui.components.RowDivider
 import fr.acano.workout.ui.components.SectionHeader
@@ -75,16 +80,16 @@ fun ExercisesScreen(
         modifier = Modifier.fillMaxSize(),
     ) {
         item {
-            ScreenTitle("Exercices")
+            ScreenTitle(stringResource(R.string.tab_exercises))
             OutlinedTextField(
                 value = state.query,
                 onValueChange = viewModel::setQuery,
-                placeholder = { Text("Rechercher un exercice") },
+                placeholder = { Text(stringResource(R.string.exercises_search_placeholder)) },
                 leadingIcon = { Icon(Icons.Rounded.Search, contentDescription = null) },
                 trailingIcon = {
                     if (searching) {
                         IconButton(onClick = { viewModel.setQuery("") }) {
-                            Icon(Icons.Rounded.Close, contentDescription = "Effacer la recherche")
+                            Icon(Icons.Rounded.Close, contentDescription = stringResource(R.string.exercises_clear_search))
                         }
                     }
                 },
@@ -99,7 +104,7 @@ fun ExercisesScreen(
         if (searching && state.custom.isEmpty() && state.builtIn.isEmpty()) {
             item {
                 Text(
-                    text = "Aucun exercice ne correspond à « ${state.query.trim()} ».",
+                    text = stringResource(R.string.exercises_no_match, state.query.trim()),
                     style = MaterialTheme.typography.bodyMedium,
                     color = MaterialTheme.colorScheme.onSurfaceVariant,
                 )
@@ -109,10 +114,10 @@ fun ExercisesScreen(
 
         if (!searching || state.custom.isNotEmpty()) {
             item {
-                SectionHeader("Mes exercices")
+                SectionHeader(stringResource(R.string.exercises_mine))
                 if (!state.hasCustom) {
                     Text(
-                        text = "Ajoute tes propres exercices, avec une photo de la machine.",
+                        text = stringResource(R.string.exercises_mine_empty),
                         style = MaterialTheme.typography.bodyMedium,
                         color = MaterialTheme.colorScheme.onSurfaceVariant,
                         modifier = Modifier.padding(bottom = WorkoutTheme.spacing.md),
@@ -128,7 +133,7 @@ fun ExercisesScreen(
             item {
                 Spacer(Modifier.height(WorkoutTheme.spacing.md))
                 WorkoutTonalButton(
-                    text = "Créer un exercice",
+                    text = stringResource(R.string.exercises_create),
                     onClick = onCreateExercise,
                     icon = Icons.Rounded.Add,
                     modifier = Modifier.fillMaxWidth(),
@@ -139,7 +144,7 @@ fun ExercisesScreen(
         if (state.builtIn.isNotEmpty()) {
             item {
                 if (searching && state.custom.isNotEmpty()) Spacer(Modifier.height(WorkoutTheme.spacing.xl))
-                SectionHeader("Exercices de l'app")
+                SectionHeader(stringResource(R.string.exercises_built_in))
             }
             items(state.builtIn, key = { it.exercise.id }) { row ->
                 ExerciseRow(row, onClick = { onOpenExercise(row.exercise.id) })
@@ -192,10 +197,11 @@ private fun ExerciseRow(row: ExerciseRow, onClick: () -> Unit) {
 }
 
 /** « 3 séances · il y a 3 jours », ou « Jamais fait ». */
+@Composable
 private fun usageLabel(sessionCount: Int, lastDoneAt: Long?): String = when {
-    sessionCount == 0 || lastDoneAt == null -> "Jamais fait"
-    sessionCount == 1 -> "1 séance  ·  ${formatDate(lastDoneAt)}"
-    else -> "$sessionCount séances  ·  ${formatDate(lastDoneAt)}"
+    sessionCount == 0 || lastDoneAt == null -> stringResource(R.string.exercises_never_done)
+    else -> pluralStringResource(R.plurals.exercises_session_count, sessionCount, sessionCount) +
+        "  ·  ${formatDate(lastDoneAt)}"
 }
 
 /**
@@ -213,6 +219,7 @@ fun ExerciseDetailScreen(
     val state by viewModel.state.collectAsStateWithLifecycle()
     val exercise = state.exercise
     val unit = LocalWeightUnit.current
+    val locale = LocalContext.current.locale
 
     Column(
         modifier = Modifier
@@ -239,7 +246,9 @@ fun ExerciseDetailScreen(
                         color = MaterialTheme.colorScheme.onSurfaceVariant,
                     )
                     Text(
-                        text = if (exercise.isCustom) "Ajouté par toi" else "Exercice de l'app",
+                        text = stringResource(
+                            if (exercise.isCustom) R.string.exercises_added_by_you else R.string.exercises_built_in_single,
+                        ),
                         style = MaterialTheme.typography.bodyMedium,
                         color = MaterialTheme.colorScheme.onSurfaceVariant,
                     )
@@ -248,7 +257,7 @@ fun ExerciseDetailScreen(
             // Les exercices de l'application sont décrits par le code : seuls les siens se modifient.
             if (exercise.isCustom) {
                 Spacer(Modifier.height(WorkoutTheme.spacing.md))
-                WorkoutTonalButton(text = "Modifier", onClick = onEdit, icon = Icons.Rounded.Edit)
+                WorkoutTonalButton(text = stringResource(R.string.exercises_edit), onClick = onEdit, icon = Icons.Rounded.Edit)
             }
         }
 
@@ -262,7 +271,7 @@ fun ExerciseDetailScreen(
                 color = MaterialTheme.colorScheme.primary,
             )
             Text(
-                text = "Charge de la dernière séance, ${formatDate(lastDate)}",
+                text = stringResource(R.string.exercises_last_weight, formatDate(lastDate)),
                 style = MaterialTheme.typography.bodyMedium,
                 color = MaterialTheme.colorScheme.onSurfaceVariant,
             )
@@ -270,7 +279,7 @@ fun ExerciseDetailScreen(
 
         if (state.chartPoints.size >= 2) {
             Spacer(Modifier.height(WorkoutTheme.spacing.xxl))
-            SectionHeader("Évolution de la charge")
+            SectionHeader(stringResource(R.string.exercises_weight_progress))
             WeightChart(
                 points = state.chartPoints,
                 modifier = Modifier
@@ -280,11 +289,11 @@ fun ExerciseDetailScreen(
         }
 
         Spacer(Modifier.height(WorkoutTheme.spacing.xxl))
-        SectionHeader("Historique")
+        SectionHeader(stringResource(R.string.exercises_history))
 
         if (state.history.isEmpty()) {
             Text(
-                text = "Pas encore fait. Ajoute-le à un entraînement pour suivre sa progression.",
+                text = stringResource(R.string.exercises_not_done_yet),
                 style = MaterialTheme.typography.bodyMedium,
                 color = MaterialTheme.colorScheme.onSurfaceVariant,
             )
@@ -294,7 +303,7 @@ fun ExerciseDetailScreen(
             if (index > 0) RowDivider()
             Column(Modifier.padding(vertical = WorkoutTheme.spacing.lg)) {
                 Text(
-                    text = formatDate(entry.date).replaceFirstChar { it.titlecase() },
+                    text = formatDate(entry.date).replaceFirstChar { it.titlecase(locale) },
                     style = MaterialTheme.typography.titleMedium,
                 )
                 Spacer(Modifier.height(WorkoutTheme.spacing.sm))

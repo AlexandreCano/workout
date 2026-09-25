@@ -204,7 +204,8 @@ class ActiveSessionViewModel(
         RestTimerService.start(
             context = context,
             kind = TimerKind.REST,
-            label = "Repos",
+            // Titre fourni par le service, dans la langue du téléphone.
+            label = "",
             durationMs = step.restSeconds * 1000L,
         )
     }

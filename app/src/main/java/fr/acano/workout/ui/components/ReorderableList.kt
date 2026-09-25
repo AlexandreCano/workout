@@ -36,12 +36,14 @@ import androidx.compose.ui.hapticfeedback.HapticFeedbackType
 import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.platform.LocalHapticFeedback
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.semantics.CustomAccessibilityAction
 import androidx.compose.ui.semantics.customActions
 import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.unit.IntOffset
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.zIndex
+import fr.acano.workout.R
 import fr.acano.workout.ui.theme.WorkoutMotion
 import fr.acano.workout.ui.theme.WorkoutTheme
 import kotlin.math.roundToInt
@@ -90,6 +92,8 @@ fun ReorderableList(
     // l'ordre de la liste redémarrerait le détecteur à chaque permutation.
     val itemCount by rememberUpdatedState(items.size)
     val currentOnMove by rememberUpdatedState(onMove)
+    val moveUpLabel = stringResource(R.string.comp_move_up)
+    val moveDownLabel = stringResource(R.string.comp_move_down)
 
     Column(
         verticalArrangement = Arrangement.spacedBy(ROW_GAP),
@@ -114,14 +118,14 @@ fun ReorderableList(
                         customActions = buildList {
                             if (index > 0) {
                                 add(
-                                    CustomAccessibilityAction("Monter") {
+                                    CustomAccessibilityAction(moveUpLabel) {
                                         onMove(index, index - 1); true
                                     },
                                 )
                             }
                             if (index < items.lastIndex) {
                                 add(
-                                    CustomAccessibilityAction("Descendre") {
+                                    CustomAccessibilityAction(moveDownLabel) {
                                         onMove(index, index + 1); true
                                     },
                                 )
@@ -255,7 +259,7 @@ private fun ReorderRow(
             ) {
                 Icon(
                     imageVector = Icons.Rounded.DragIndicator,
-                    contentDescription = "Déplacer ${item.title}",
+                    contentDescription = stringResource(R.string.comp_drag_item, item.title),
                     tint = MaterialTheme.colorScheme.onSurfaceVariant,
                 )
             }

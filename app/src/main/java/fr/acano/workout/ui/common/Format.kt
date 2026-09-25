@@ -1,8 +1,15 @@
 package fr.acano.workout.ui.common
 
+import android.content.Context
+import androidx.compose.runtime.Composable
+import androidx.compose.ui.platform.LocalConfiguration
+import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.res.stringResource
+import fr.acano.workout.R
 import fr.acano.workout.domain.ExerciseKind
 import fr.acano.workout.domain.PlannedStep
 import fr.acano.workout.domain.WeightUnit
+import java.text.NumberFormat
 import java.time.Instant
 import java.time.LocalDate
 import java.time.ZoneId
@@ -10,9 +17,11 @@ import java.time.format.DateTimeFormatter
 import java.time.temporal.ChronoUnit
 import java.util.Locale
 
-
-
-
+/*
+ * Formats d'affichage. Les nombres et les dates suivent la langue du téléphone
+ * (« 42,5 kg » en français, « 42.5 kg » en anglais) ; les unités — kg, lb,
+ * min, s, reps, kcal — s'écrivent de la même façon dans les deux langues.
+ */
 
 /** « 47 min », ou « 1 h 12 » au-delà d'une heure. */
 fun formatDuration(millis: Long): String {
@@ -33,12 +42,19 @@ fun formatWeight(kg: Double?, unit: WeightUnit = WeightUnit.KG): String {
 fun formatWeightValue(kg: Double, unit: WeightUnit = WeightUnit.KG): String =
     formatNumber(unit.fromKg(kg), decimals = if (unit == WeightUnit.KG) 2 else 1)
 
-/** Un nombre déjà dans l'unité voulue (un pas de charge en livres, par exemple). */
-fun formatNumber(value: Double, decimals: Int = 2): String {
+/**
+ * Un nombre déjà dans l'unité voulue (un pas de charge en livres, par exemple),
+ * sans zéros inutiles et avec le séparateur décimal de la langue.
+ */
+fun formatNumber(value: Double, decimals: Int = 2, locale: Locale = Locale.getDefault()): String {
     // Arrondi d'abord : 45 kg = 99,2080… lb, et 100 lb reconverti depuis les kg
     // doit redonner « 100 », pas « 99,99 ».
-    val text = "%.${decimals}f".format(Locale.FRENCH, value)
-    return if (text.contains(',')) text.trimEnd('0').trimEnd(',') else text
+    val format = NumberFormat.getNumberInstance(locale).apply {
+        minimumFractionDigits = 0
+        maximumFractionDigits = decimals
+        isGroupingUsed = false
+    }
+    return format.format(value)
 }
 
 /** « 8–12 reps » ou « 1 min » : la cible d'une étape, selon ce qui la définit. */
@@ -54,10 +70,13 @@ fun PlannedStep.targetLabel(): String = targetLabel(targetRepsMin, targetRepsMax
 
 /** Ce que l'exercice demande, pour le catalogue : il n'a plus de séries ni de reps à lui. */
 val ExerciseKind.label: String
+    @Composable get() = stringResource(labelRes)
+
+val ExerciseKind.labelRes: Int
     get() = when (this) {
-        ExerciseKind.WEIGHTED_REPS -> "Charge et répétitions"
-        ExerciseKind.REPS_ONLY -> "Répétitions"
-        ExerciseKind.TIMED -> "Chronométré"
+        ExerciseKind.WEIGHTED_REPS -> R.string.kind_weighted_reps
+        ExerciseKind.REPS_ONLY -> R.string.kind_reps_only
+        ExerciseKind.TIMED -> R.string.kind_timed
     }
 
 /**
@@ -85,47 +104,67 @@ fun formatSet(weightKg: Double?, repetitions: Int?, durationSeconds: Int?, unit:
  * Charge totale soulevée, arrondie et groupée par milliers : « 1 230 kg ».
  * Au-delà de la centaine, les décimales n'apportent rien.
  */
-fun formatVolume(kg: Double, unit: WeightUnit = WeightUnit.KG): String =
-    "${java.text.NumberFormat.getIntegerInstance(Locale.FRENCH).format(kotlin.math.round(unit.fromKg(kg)).toLong())} ${unit.symbol}"
-
-private val shortDateFormatter = DateTimeFormatter.ofPattern("d MMM", Locale.FRENCH)
-private val shortDateWithYearFormatter = DateTimeFormatter.ofPattern("d MMM yyyy", Locale.FRENCH)
-private val longDateFormatter = DateTimeFormatter.ofPattern("EEEE d MMMM", Locale.FRENCH)
-private val longDateWithYearFormatter = DateTimeFormatter.ofPattern("EEEE d MMMM yyyy", Locale.FRENCH)
+fun formatVolume(kg: Double, unit: WeightUnit = WeightUnit.KG, locale: Locale = Locale.getDefault()): String =
+    "${NumberFormat.getIntegerInstance(locale).format(kotlin.math.round(unit.fromKg(kg)).toLong())} ${unit.symbol}"
 
 private fun Long.toLocalDate(zone: ZoneId): LocalDate = Instant.ofEpochMilli(this).atZone(zone).toLocalDate()
 
 /**
  * La date d'un évènement passé, dans le format unique de l'application :
  * « aujourd'hui », « hier », « il y a 3 jours » pour la semaine écoulée, puis
- * « 22 sept. » — l'année n'apparaît que si ce n'est pas l'année en cours.
+ * « 22 sept. » (« Sep 22 » en anglais) — l'année n'apparaît que si ce n'est pas
+ * l'année en cours.
  */
 fun formatDate(
+    context: Context,
     epochMillis: Long,
     today: LocalDate = LocalDate.now(),
     zone: ZoneId = ZoneId.systemDefault(),
 ): String {
+    val res = context.resources
     val day = epochMillis.toLocalDate(zone)
     val days = ChronoUnit.DAYS.between(day, today)
     return when {
-        days == 0L -> "aujourd'hui"
-        days == 1L -> "hier"
-        days in 2..6 -> "il y a $days jours"
-        day.year == today.year -> day.format(shortDateFormatter)
-        else -> day.format(shortDateWithYearFormatter)
+        days == 0L -> res.getString(R.string.date_today)
+        days == 1L -> res.getString(R.string.date_yesterday)
+        days in 2..6 -> res.getQuantityString(R.plurals.date_days_ago, days.toInt(), days.toInt())
+        else -> day.format(
+            pattern(context, if (day.year == today.year) R.string.date_pattern_short else R.string.date_pattern_short_year),
+        )
     }
 }
 
-/** En-tête d'une séance : « mardi 22 septembre », avec l'année si elle diffère. */
+@Composable
+fun formatDate(epochMillis: Long): String {
+    LocalConfiguration.current // se recalcule quand la langue change
+    return formatDate(LocalContext.current, epochMillis)
+}
+
+/** En-tête d'une séance : « Mardi 22 septembre » / « Tuesday, September 22 », avec l'année si elle diffère. */
 fun formatLongDate(
+    context: Context,
     epochMillis: Long,
     today: LocalDate = LocalDate.now(),
     zone: ZoneId = ZoneId.systemDefault(),
 ): String {
     val day = epochMillis.toLocalDate(zone)
-    val text = day.format(if (day.year == today.year) longDateFormatter else longDateWithYearFormatter)
-    return text.replaceFirstChar { it.titlecase(Locale.FRENCH) }
+    val text = day.format(
+        pattern(context, if (day.year == today.year) R.string.date_pattern_long else R.string.date_pattern_long_year),
+    )
+    return text.replaceFirstChar { it.titlecase(context.locale) }
 }
+
+@Composable
+fun formatLongDate(epochMillis: Long): String {
+    LocalConfiguration.current
+    return formatLongDate(LocalContext.current, epochMillis)
+}
+
+/** Motif de date lu dans les ressources, appliqué dans la langue de l'interface. */
+fun pattern(context: Context, patternRes: Int): DateTimeFormatter =
+    DateTimeFormatter.ofPattern(context.getString(patternRes), context.locale)
+
+val Context.locale: Locale get() = resources.configuration.locales[0]
 
 /** « ≈ 245 kcal » : arrondi à l'unité, et le « ≈ » rappelle qu'il s'agit d'une estimation. */
 fun formatKcal(kcal: Double): String = "≈ ${kotlin.math.round(kcal).toInt()} kcal"

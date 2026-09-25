@@ -14,10 +14,12 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.semantics.clearAndSetSemantics
 import androidx.compose.ui.semantics.contentDescription
 import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.unit.dp
+import fr.acano.workout.R
 import fr.acano.workout.ui.theme.WorkoutMotion
 
 /**
@@ -38,12 +40,13 @@ fun SetProgress(
     modifier: Modifier = Modifier,
 ) {
     if (totalSets <= 1) return
+    val description = stringResource(R.string.comp_set_progress, currentSet, totalSets)
 
     Row(
         horizontalArrangement = Arrangement.spacedBy(10.dp),
         verticalAlignment = Alignment.CenterVertically,
         modifier = modifier.semantics {
-            contentDescription = "Série $currentSet sur $totalSets"
+            contentDescription = description
         },
     ) {
         repeat(totalSets) { index ->

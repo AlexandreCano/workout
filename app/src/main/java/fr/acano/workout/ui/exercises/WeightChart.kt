@@ -26,9 +26,11 @@ import androidx.compose.ui.graphics.PathEffect
 import androidx.compose.ui.graphics.StrokeCap
 import androidx.compose.ui.graphics.StrokeJoin
 import androidx.compose.ui.graphics.drawscope.Stroke
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.semantics.contentDescription
 import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.unit.dp
+import fr.acano.workout.R
 import fr.acano.workout.ui.common.LocalWeightUnit
 import fr.acano.workout.ui.common.formatDate
 import fr.acano.workout.ui.common.formatWeight
@@ -94,7 +96,11 @@ private fun ChartCanvas(points: List<Double>, modifier: Modifier) {
     val recordIndex = points.indexOf(points.max())
     val fillColor = MaterialTheme.colorScheme.primary.copy(alpha = 0.16f)
     val gridColor = MaterialTheme.colorScheme.outlineVariant
-    val description = "Évolution de ${formatWeight(points.first(), LocalWeightUnit.current)} à ${formatWeight(points.last(), LocalWeightUnit.current)}"
+    val description = stringResource(
+        R.string.exercises_chart_description,
+        formatWeight(points.first(), LocalWeightUnit.current),
+        formatWeight(points.last(), LocalWeightUnit.current),
+    )
 
     Canvas(modifier.semantics { contentDescription = description }) {
         val minValue = points.min()

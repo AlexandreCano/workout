@@ -32,16 +32,19 @@ import androidx.compose.ui.draw.rotate
 import androidx.compose.ui.draw.scale
 import androidx.compose.ui.hapticfeedback.HapticFeedbackType
 import androidx.compose.ui.platform.LocalHapticFeedback
+import androidx.compose.ui.res.pluralStringResource
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.semantics.clearAndSetSemantics
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import fr.acano.workout.R
 import fr.acano.workout.ui.common.formatDuration
-import fr.acano.workout.ui.history.CaloriesLine
-import fr.acano.workout.ui.history.ExerciseSetsBreakdown
 import fr.acano.workout.ui.components.RowDivider
 import fr.acano.workout.ui.components.SectionHeader
 import fr.acano.workout.ui.components.WorkoutPrimaryButton
+import fr.acano.workout.ui.history.CaloriesLine
+import fr.acano.workout.ui.history.ExerciseSetsBreakdown
 import fr.acano.workout.ui.history.SessionDetailViewModel
 import fr.acano.workout.ui.theme.WorkoutMotion
 import fr.acano.workout.ui.theme.WorkoutTheme
@@ -79,7 +82,7 @@ fun SessionSummaryScreen(
         Spacer(Modifier.height(WorkoutTheme.spacing.xl))
 
         Text(
-            text = "Séance terminée",
+            text = stringResource(R.string.session_complete_title),
             style = MaterialTheme.typography.headlineLarge,
             textAlign = TextAlign.Center,
         )
@@ -87,7 +90,7 @@ fun SessionSummaryScreen(
         Spacer(Modifier.height(WorkoutTheme.spacing.sm))
 
         Text(
-            text = "+1 étoile",
+            text = stringResource(R.string.session_star_earned),
             style = MaterialTheme.typography.titleLarge,
             color = MaterialTheme.colorScheme.tertiary,
         )
@@ -100,18 +103,19 @@ fun SessionSummaryScreen(
         ) {
             SummaryMetric(
                 value = formatDuration(state.durationMillis),
-                label = "Durée",
+                label = stringResource(R.string.session_metric_duration),
             )
             SummaryMetric(
                 value = "${state.lines.size}",
-                label = "Exercices",
+                label = pluralStringResource(R.plurals.session_metric_exercises, state.lines.size),
             )
+            val setCount = state.lines.sumOf { it.sets.size }
             SummaryMetric(
-                value = "${state.lines.sumOf { it.sets.size }}",
-                label = "Séries",
+                value = "$setCount",
+                label = pluralStringResource(R.plurals.session_metric_sets, setCount),
             )
             state.totalKcal?.let {
-                SummaryMetric(value = "≈ ${kotlin.math.round(it).toInt()}", label = "kcal")
+                SummaryMetric(value = "≈ ${kotlin.math.round(it).toInt()}", label = stringResource(R.string.session_metric_kcal))
             }
         }
         if (state.needsProfileForCalories) {
@@ -130,7 +134,7 @@ fun SessionSummaryScreen(
 
         Spacer(Modifier.height(WorkoutTheme.spacing.xxl))
 
-        WorkoutPrimaryButton(text = "TERMINER", onClick = onDone)
+        WorkoutPrimaryButton(text = stringResource(R.string.session_finish), onClick = onDone)
 
         Spacer(Modifier.height(WorkoutTheme.spacing.xxl))
     }
@@ -161,7 +165,7 @@ private fun AwardedStar() {
     Box(contentAlignment = Alignment.Center) {
         Icon(
             imageVector = Icons.Rounded.Star,
-            contentDescription = "Étoile obtenue",
+            contentDescription = stringResource(R.string.session_star_cd),
             tint = MaterialTheme.colorScheme.tertiary,
             modifier = Modifier
                 .size(128.dp)

@@ -45,6 +45,9 @@ interface CustomWorkoutDao {
     @Query("DELETE FROM custom_workout_exercise WHERE exerciseId = :exerciseId")
     suspend fun removeExerciseEverywhere(exerciseId: String)
 
+    @Query("UPDATE custom_workout SET name = :name WHERE name IN (:knownNames) AND name != :name")
+    suspend fun renameMatching(knownNames: List<String>, name: String)
+
     @Query("DELETE FROM custom_workout WHERE id = :id")
     suspend fun delete(id: Long)
 

@@ -48,10 +48,14 @@ import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.LocalResources
+import androidx.compose.ui.res.pluralStringResource
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.input.KeyboardCapitalization
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import fr.acano.workout.R
 import fr.acano.workout.data.db.entity.ExerciseEntity
 import fr.acano.workout.ui.common.label
 import fr.acano.workout.ui.common.targetLabel
@@ -93,6 +97,9 @@ fun WorkoutEditorScreen(
     var confirmDelete by rememberSaveable { mutableStateOf(false) }
     var confirmDiscard by rememberSaveable { mutableStateOf(false) }
     val snackbar = remember { SnackbarHostState() }
+    // Textes du snackbar résolus pendant la composition : il s'affiche depuis une coroutine.
+    val context = LocalResources.current
+    val undoLabel = stringResource(R.string.workouts_undo)
 
     // Quitter avec des modifications non enregistrées demande confirmation,
     // qu'on passe par la flèche ou par le geste retour du système.
@@ -115,7 +122,7 @@ fun WorkoutEditorScreen(
             if (state.isLoading) return@Column
 
             Text(
-                text = if (state.isExisting) "Modifier l'entraînement" else "Nouvel entraînement",
+                text = stringResource(if (state.isExisting) R.string.workouts_title_edit else R.string.workouts_title_new),
                 style = MaterialTheme.typography.headlineLarge,
             )
 
@@ -124,8 +131,8 @@ fun WorkoutEditorScreen(
             OutlinedTextField(
                 value = state.name,
                 onValueChange = viewModel::setName,
-                label = { Text("Nom") },
-                placeholder = { Text("Ex. : Full body") },
+                label = { Text(stringResource(R.string.workouts_name_label)) },
+                placeholder = { Text(stringResource(R.string.workouts_name_placeholder)) },
                 singleLine = true,
                 keyboardOptions = KeyboardOptions(
                     capitalization = KeyboardCapitalization.Sentences,
@@ -135,11 +142,11 @@ fun WorkoutEditorScreen(
             )
 
             Spacer(Modifier.height(WorkoutTheme.spacing.xxl))
-            SectionHeader("Exercices")
+            SectionHeader(stringResource(R.string.workouts_exercises_header))
 
             if (state.steps.isEmpty()) {
                 Text(
-                    text = "Aucun exercice pour l'instant. Ajoute-en depuis le catalogue.",
+                    text = stringResource(R.string.workouts_empty),
                     style = MaterialTheme.typography.bodyMedium,
                     color = MaterialTheme.colorScheme.onSurfaceVariant,
                 )
@@ -163,12 +170,12 @@ fun WorkoutEditorScreen(
                                 // Une croix se touche par erreur : on laisse quelques secondes pour revenir en arrière.
                                 scope.launch {
                                     snackbar.currentSnackbarData?.dismiss()
-                                    val result = snackbar.showSnackbar("Retiré : $name", actionLabel = "Annuler", duration = SnackbarDuration.Short)
+                                    val result = snackbar.showSnackbar(context.getString(R.string.workouts_removed, name), actionLabel = undoLabel, duration = SnackbarDuration.Short)
                                     if (result == SnackbarResult.ActionPerformed) viewModel.undoRemove()
                                 }
                             },
                         ) {
-                            Icon(Icons.Rounded.Close, contentDescription = "Retirer ${item.title}")
+                            Icon(Icons.Rounded.Close, contentDescription = stringResource(R.string.workouts_remove_description, item.title))
                         }
                     },
                 )
@@ -177,7 +184,7 @@ fun WorkoutEditorScreen(
             Spacer(Modifier.height(WorkoutTheme.spacing.lg))
 
             WorkoutTonalButton(
-                text = "Ajouter des exercices",
+                text = stringResource(R.string.workouts_add_exercises),
                 onClick = { showPicker = true },
                 icon = Icons.Rounded.Add,
                 modifier = Modifier.fillMaxWidth(),
@@ -186,7 +193,7 @@ fun WorkoutEditorScreen(
             Spacer(Modifier.height(WorkoutTheme.spacing.xxl))
 
             WorkoutPrimaryButton(
-                text = "ENREGISTRER",
+                text = stringResource(R.string.workouts_save),
                 onClick = { scope.launch { if (viewModel.save()) onDone() } },
                 enabled = state.canSave,
                 icon = Icons.Rounded.Check,
@@ -196,7 +203,7 @@ fun WorkoutEditorScreen(
                 Spacer(Modifier.height(WorkoutTheme.spacing.sm))
                 Box(Modifier.fillMaxWidth(), contentAlignment = Alignment.Center) {
                     WorkoutTextButton(
-                        text = "Supprimer l'entraînement",
+                        text = stringResource(R.string.workouts_delete_workout),
                         onClick = { confirmDelete = true },
                         icon = Icons.Rounded.Delete,
                     )
@@ -211,13 +218,13 @@ fun WorkoutEditorScreen(
     if (confirmDiscard) {
         AlertDialog(
             onDismissRequest = { confirmDiscard = false },
-            title = { Text("Quitter sans enregistrer ?") },
-            text = { Text("Tes modifications de cet entraînement seront perdues.") },
+            title = { Text(stringResource(R.string.workouts_discard_title)) },
+            text = { Text(stringResource(R.string.workouts_discard_text)) },
             confirmButton = {
-                TextButton(onClick = { confirmDiscard = false; onDone() }) { Text("Quitter") }
+                TextButton(onClick = { confirmDiscard = false; onDone() }) { Text(stringResource(R.string.workouts_discard_confirm)) }
             },
             dismissButton = {
-                TextButton(onClick = { confirmDiscard = false }) { Text("Continuer") }
+                TextButton(onClick = { confirmDiscard = false }) { Text(stringResource(R.string.workouts_discard_dismiss)) }
             },
         )
     }
@@ -251,8 +258,8 @@ fun WorkoutEditorScreen(
     if (confirmDelete) {
         AlertDialog(
             onDismissRequest = { confirmDelete = false },
-            title = { Text("Supprimer « ${state.name.trim()} » ?") },
-            text = { Text("Les séances déjà réalisées avec cet entraînement restent dans l'historique.") },
+            title = { Text(stringResource(R.string.workouts_delete_title, state.name.trim())) },
+            text = { Text(stringResource(R.string.workouts_delete_text)) },
             confirmButton = {
                 TextButton(
                     onClick = {
@@ -262,10 +269,10 @@ fun WorkoutEditorScreen(
                             onDone()
                         }
                     },
-                ) { Text("Supprimer") }
+                ) { Text(stringResource(R.string.workouts_delete_confirm)) }
             },
             dismissButton = {
-                TextButton(onClick = { confirmDelete = false }) { Text("Annuler") }
+                TextButton(onClick = { confirmDelete = false }) { Text(stringResource(R.string.workouts_cancel)) }
             },
         )
     }
@@ -287,11 +294,11 @@ private fun ExercisePicker(
                 .padding(horizontal = WorkoutTheme.spacing.xl),
         ) {
             Text(
-                text = "Catalogue",
+                text = stringResource(R.string.workouts_catalog),
                 style = MaterialTheme.typography.titleLarge,
                 modifier = Modifier.weight(1f),
             )
-            TextButton(onClick = onDone) { Text("Terminé") }
+            TextButton(onClick = onDone) { Text(stringResource(R.string.workouts_done)) }
         }
 
         LazyColumn(
@@ -355,7 +362,7 @@ private fun StepSettingsDialog(
         text = {
             Column(verticalArrangement = Arrangement.spacedBy(WorkoutTheme.spacing.sm)) {
                 StepperRow(
-                    label = "Séries",
+                    label = stringResource(R.string.workouts_sets),
                     value = "${planned.plannedSets}",
                     onDecrement = { onSetsChange(planned.plannedSets - 1) },
                     onIncrement = { onSetsChange(planned.plannedSets + 1) },
@@ -365,7 +372,7 @@ private fun StepSettingsDialog(
                 val duration = planned.targetDurationSeconds
                 if (step.isTimed && duration != null) {
                     StepperRow(
-                        label = "Durée",
+                        label = stringResource(R.string.workouts_duration),
                         value = durationLabel(duration),
                         onDecrement = { onDurationChange(previousDuration(duration)) },
                         onIncrement = { onDurationChange(nextDuration(duration)) },
@@ -377,7 +384,7 @@ private fun StepSettingsDialog(
                 val max = planned.targetRepsMax
                 if (!step.isTimed && min != null && max != null) {
                     StepperRow(
-                        label = "Reps min",
+                        label = stringResource(R.string.workouts_reps_min),
                         value = "$min",
                         onDecrement = { onRepsMinChange(min - 1) },
                         onIncrement = { onRepsMinChange(min + 1) },
@@ -385,7 +392,7 @@ private fun StepSettingsDialog(
                         canIncrement = min < vm.MAX_REPS,
                     )
                     StepperRow(
-                        label = "Reps max",
+                        label = stringResource(R.string.workouts_reps_max),
                         value = "$max",
                         onDecrement = { onRepsMaxChange(max - 1) },
                         onIncrement = { onRepsMaxChange(max + 1) },
@@ -394,8 +401,8 @@ private fun StepSettingsDialog(
                     )
                 }
                 StepperRow(
-                    label = "Repos",
-                    value = if (planned.restSeconds == 0) "Aucun" else durationLabel(planned.restSeconds),
+                    label = stringResource(R.string.workouts_rest),
+                    value = if (planned.restSeconds == 0) stringResource(R.string.workouts_rest_none) else durationLabel(planned.restSeconds),
                     onDecrement = { onRestChange(planned.restSeconds - REST_STEP_SECONDS) },
                     onIncrement = { onRestChange(planned.restSeconds + REST_STEP_SECONDS) },
                     canDecrement = planned.restSeconds > 0,
@@ -403,13 +410,16 @@ private fun StepSettingsDialog(
                 )
             }
         },
-        confirmButton = { TextButton(onClick = onDismiss) { Text("OK") } },
+        confirmButton = { TextButton(onClick = onDismiss) { Text(stringResource(R.string.workouts_ok)) } },
     )
 }
 
-private fun setsLabel(sets: Int): String = if (sets > 1) "$sets séries" else "1 série"
+@Composable
+private fun setsLabel(sets: Int): String = pluralStringResource(R.plurals.workouts_sets_count, sets, sets)
 
 /** « · repos 1 min », ou rien quand l'étape n'a pas de repos. */
-private fun restLabel(seconds: Int): String = if (seconds > 0) "  ·  repos ${durationLabel(seconds)}" else ""
+@Composable
+private fun restLabel(seconds: Int): String =
+    if (seconds > 0) "  ·  " + stringResource(R.string.workouts_rest_suffix, durationLabel(seconds)) else ""
 
 private const val REST_STEP_SECONDS = 15

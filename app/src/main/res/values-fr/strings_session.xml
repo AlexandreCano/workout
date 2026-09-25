@@ -1,0 +1,69 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Écran de séance : saisie des séries, chronomètre, réorganisation et récapitulatif. -->
+<resources xmlns:tools="http://schemas.android.com/tools">
+    <!-- Barre du haut et sortie -->
+    <string name="session_reorder_remaining_cd">Réorganiser la suite</string>
+    <string name="session_quit_cd">Quitter la séance</string>
+    <string name="session_quit_title">Quitter la séance ?</string>
+    <string name="session_quit_text">La séance est enregistrée au fur et à mesure : tu pourras la reprendre exactement là où tu en es.</string>
+    <string name="session_quit_pause">Mettre en pause</string>
+    <string name="session_quit_discard">Abandonner</string>
+
+    <!-- Légende du chronomètre -->
+    <string name="session_next_set_caption">Prochaine série</string>
+    <string name="session_set_of">Série %1$d / %2$d</string>
+
+    <!-- Réorganisation -->
+    <string name="session_reorder_title">Réorganiser</string>
+    <string name="session_reorder_hint">Fais glisser les exercices par la poignée. Le premier de la liste sera celui que tu fais maintenant.</string>
+    <string name="session_reorder_section">À faire</string>
+    <string name="session_reorder_confirm">VALIDER L\'ORDRE</string>
+    <string name="session_cancel">Annuler</string>
+    <string name="session_resumed_at_set">Repris à la série %1$d / %2$d</string>
+    <plurals name="session_sets_count">
+        <item quantity="one">%d série</item>
+        <item quantity="other">%d séries</item>
+        <item quantity="many">%d séries</item>
+    </plurals>
+
+    <!-- Saisie d'une série -->
+    <string name="session_undo_last_set">Annuler la dernière série</string>
+    <string name="session_already_done">Déjà fait</string>
+    <plurals name="session_reps_count">
+        <item quantity="one">%d rep</item>
+        <item quantity="other">%d reps</item>
+        <item quantity="many">%d reps</item>
+    </plurals>
+    <string name="session_last_session_weight">Dernière séance : %1$s</string>
+    <string name="session_long_press_hint">appui long : demi-pas</string>
+    <string name="session_validate_set">VALIDER LA SÉRIE</string>
+    <string name="session_validate">VALIDER</string>
+    <string name="session_start">COMMENCER</string>
+    <string name="session_mark_done">Marquer comme fait</string>
+
+    <!-- Chronomètre -->
+    <string name="session_next_set_button">SÉRIE SUIVANTE</string>
+    <string name="session_continue">CONTINUER</string>
+    <string name="session_skip">Passer</string>
+    <string name="session_timer_go">C\'est reparti</string>
+    <string name="session_timer_done">Terminé</string>
+    <string name="session_timer_rest">Récupération</string>
+
+    <!-- Récapitulatif -->
+    <string name="session_complete_title">Séance terminée</string>
+    <string name="session_star_earned">+1 étoile</string>
+    <string name="session_star_cd">Étoile obtenue</string>
+    <string name="session_metric_duration">Durée</string>
+    <plurals name="session_metric_exercises" tools:ignore="ImpliedQuantity">
+        <item quantity="one">Exercice</item>
+        <item quantity="other">Exercices</item>
+        <item quantity="many">Exercices</item>
+    </plurals>
+    <plurals name="session_metric_sets" tools:ignore="ImpliedQuantity">
+        <item quantity="one">Série</item>
+        <item quantity="other">Séries</item>
+        <item quantity="many">Séries</item>
+    </plurals>
+    <string name="session_metric_kcal">kcal</string>
+    <string name="session_finish">TERMINER</string>
+</resources>

@@ -22,9 +22,11 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
+import fr.acano.workout.R
 import fr.acano.workout.ui.theme.WorkoutTheme
 
 /**
@@ -174,7 +176,7 @@ fun TrendIndicator(trend: Int, modifier: Modifier = Modifier) {
     ) {
         Icon(
             imageVector = if (rising) Icons.Rounded.ArrowUpward else Icons.Rounded.ArrowDownward,
-            contentDescription = if (rising) "en progression" else "en baisse",
+            contentDescription = stringResource(if (rising) R.string.comp_trend_up else R.string.comp_trend_down),
             tint = if (rising) {
                 MaterialTheme.colorScheme.primary
             } else {

@@ -1,0 +1,54 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="date_today">aujourd\'hui</string>
+    <string name="date_yesterday">hier</string>
+    <plurals name="date_days_ago">
+        <item quantity="one">il y a %d jour</item>
+        <item quantity="other">il y a %d jours</item>
+        <item quantity="many">il y a %d jours</item>
+    </plurals>
+    <string name="date_pattern_short">d MMM</string>
+    <string name="date_pattern_short_year">d MMM yyyy</string>
+    <string name="date_pattern_long">EEEE d MMMM</string>
+    <string name="date_pattern_long_year">EEEE d MMMM yyyy</string>
+    <string name="date_pattern_month_year">MMMM yyyy</string>
+    <string name="date_pattern_month_abbrev">MMM</string>
+    <string name="date_pattern_spoken_day">EEEE d MMMM</string>
+
+    <string name="kind_weighted_reps">Charge et répétitions</string>
+    <string name="kind_reps_only">Répétitions</string>
+    <string name="kind_timed">Chronométré</string>
+
+    <string name="program_upper_body">Haut du corps</string>
+    <string name="program_lower_body">Bas du corps</string>
+    <string name="exercise_bike_warmup">Vélo</string>
+    <string name="exercise_chest_press">Chest Press</string>
+    <string name="exercise_pec_deck">Pec Deck</string>
+    <string name="exercise_lat_pulldown">Tirage vertical</string>
+    <string name="exercise_seated_row">Tirage horizontal</string>
+    <string name="exercise_leg_press">Presse à cuisses</string>
+    <string name="exercise_leg_curl">Leg Curl</string>
+    <string name="exercise_leg_extension">Leg Extension</string>
+    <string name="exercise_calf_raise">Mollets</string>
+    <string name="exercise_plank">Planche</string>
+    <string name="exercise_stomach_vacuum">Stomach Vacuum</string>
+
+    <string name="tab_home">Accueil</string>
+    <string name="tab_history">Historique</string>
+    <string name="tab_exercises">Exercices</string>
+
+    <string name="timer_rest">Repos</string>
+    <string name="timer_paused">En pause</string>
+    <string name="timer_paused_with_clock">En pause · %1$s</string>
+    <string name="timer_action_pause">Pause</string>
+    <string name="timer_action_resume">Reprendre</string>
+    <string name="timer_rest_done">Repos terminé</string>
+    <string name="timer_effort_done">%1$s terminé</string>
+    <string name="timer_rest_done_text">Série suivante</string>
+    <string name="timer_effort_done_text">Série validée</string>
+    <string name="channel_running_name">Chronomètre en cours</string>
+    <string name="channel_running_description">Décompte affiché pendant la récupération ou un exercice chronométré, y compris sur l\'écran verrouillé.</string>
+    <string name="channel_done_name">Fin de chronomètre</string>
+    <string name="channel_done_description">Signale la fin de la récupération ou de la série chronométrée.</string>
+    <string name="back">Retour</string>
+</resources>

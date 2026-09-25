@@ -23,6 +23,9 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.res.pluralStringResource
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.semantics.clearAndSetSemantics
 import androidx.compose.ui.semantics.contentDescription
@@ -32,15 +35,14 @@ import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
+import fr.acano.workout.R
+import fr.acano.workout.ui.common.locale
+import fr.acano.workout.ui.common.pattern
 import fr.acano.workout.ui.theme.WorkoutTheme
+import java.time.DayOfWeek
 import java.time.LocalDate
 import java.time.YearMonth
-import java.time.format.DateTimeFormatter
-import java.util.Locale
-
-private val monthFormatter = DateTimeFormatter.ofPattern("MMMM yyyy", Locale.FRENCH)
-private val spokenDayFormatter = DateTimeFormatter.ofPattern("EEEE d MMMM", Locale.FRENCH)
-private val weekDays = listOf("L", "M", "M", "J", "V", "S", "D")
+import java.time.format.TextStyle
 
 /**
  * Calendrier du mois : les jours d'entraînement portent une pastille pleine,
@@ -61,18 +63,22 @@ fun MonthCalendar(
     onDayClick: (LocalDate) -> Unit,
     modifier: Modifier = Modifier,
 ) {
+    val context = LocalContext.current
+    val locale = context.locale
+    // La semaine commence le lundi ; les initiales suivent la langue (« L M M J V S D », « M T W T F S S »).
+    val weekDays = DayOfWeek.entries.map { it.getDisplayName(TextStyle.NARROW, locale) }
     Column(modifier.fillMaxWidth()) {
         Row(verticalAlignment = Alignment.CenterVertically) {
             Text(
-                text = month.format(monthFormatter).replaceFirstChar { it.titlecase(Locale.FRENCH) },
+                text = month.format(pattern(context, R.string.date_pattern_month_year)).replaceFirstChar { it.titlecase(locale) },
                 style = MaterialTheme.typography.titleLarge,
                 modifier = Modifier.weight(1f),
             )
             IconButton(onClick = onPreviousMonth, enabled = canGoToPreviousMonth) {
-                Icon(Icons.AutoMirrored.Rounded.KeyboardArrowLeft, contentDescription = "Mois précédent")
+                Icon(Icons.AutoMirrored.Rounded.KeyboardArrowLeft, contentDescription = stringResource(R.string.history_previous_month))
             }
             IconButton(onClick = onNextMonth, enabled = canGoToNextMonth) {
-                Icon(Icons.AutoMirrored.Rounded.KeyboardArrowRight, contentDescription = "Mois suivant")
+                Icon(Icons.AutoMirrored.Rounded.KeyboardArrowRight, contentDescription = stringResource(R.string.history_next_month))
             }
         }
 
@@ -134,15 +140,14 @@ private fun DayCell(
         trained -> colors.onPrimaryContainer
         else -> colors.onSurface
     }
-    val spoken = buildString {
-        append(day.format(spokenDayFormatter))
-        when (sessions) {
-            0 -> Unit
-            1 -> append(", 1 séance")
-            else -> append(", $sessions séances")
-        }
-        if (isToday) append(", aujourd'hui")
+    val spokenDay = day.format(pattern(LocalContext.current, R.string.date_pattern_spoken_day))
+    val spokenSessions = if (sessions > 0) {
+        pluralStringResource(R.plurals.history_day_sessions, sessions, spokenDay, sessions)
+    } else {
+        spokenDay
     }
+    val todayLabel = stringResource(R.string.date_today)
+    val spoken = if (isToday) "$spokenSessions, $todayLabel" else spokenSessions
 
     Surface(
         color = container,

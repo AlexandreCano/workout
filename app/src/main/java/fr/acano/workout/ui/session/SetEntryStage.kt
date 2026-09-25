@@ -26,7 +26,10 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.res.pluralStringResource
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
+import fr.acano.workout.R
 import fr.acano.workout.domain.ExerciseKind
 import fr.acano.workout.ui.common.LocalWeightUnit
 import fr.acano.workout.ui.common.formatWeight
@@ -106,7 +109,7 @@ fun SetEntryStage(
             Spacer(Modifier.height(WorkoutTheme.spacing.sm))
             Box(Modifier.fillMaxWidth(), contentAlignment = Alignment.Center) {
                 WorkoutTextButton(
-                    text = "Annuler la dernière série",
+                    text = stringResource(R.string.session_undo_last_set),
                     onClick = onUndo,
                     icon = Icons.Rounded.Undo,
                 )
@@ -126,7 +129,7 @@ private fun CompletedSetsStrip(step: CurrentStep) {
         modifier = Modifier.fillMaxWidth(),
     ) {
         Text(
-            text = "Déjà fait",
+            text = stringResource(R.string.session_already_done),
             style = MaterialTheme.typography.labelMedium,
             color = MaterialTheme.colorScheme.onSurfaceVariant,
         )
@@ -138,7 +141,7 @@ private fun CompletedSetsStrip(step: CurrentStep) {
             ) {
                 Text(
                     // Même écriture que partout ailleurs : « 12 reps », « 0:45 ».
-                    text = set.repetitions?.let { if (it > 1) "$it reps" else "1 rep" }
+                    text = set.repetitions?.let { pluralStringResource(R.plurals.session_reps_count, it, it) }
                         ?: set.durationSeconds?.let { "%d:%02d".format(it / 60, it % 60) }
                         ?: "—",
                     style = MaterialTheme.typography.labelLarge,
@@ -168,10 +171,10 @@ private fun WeightedRepsControls(
         weightKg = step.plannedWeightKg,
         stepKg = step.exercise.weightStepKg,
         onChange = onWeightChange,
-        supportingText = buildString {
-            append("Dernière séance : ${formatWeight(step.lastSessionWeightKg, LocalWeightUnit.current)}")
-            append("   ·   appui long : demi-pas")
-        },
+        supportingText = stringResource(
+            R.string.session_last_session_weight,
+            formatWeight(step.lastSessionWeightKg, LocalWeightUnit.current),
+        ) + "   ·   " + stringResource(R.string.session_long_press_hint),
     )
 
     Spacer(Modifier.height(WorkoutTheme.spacing.xl))
@@ -185,7 +188,7 @@ private fun WeightedRepsControls(
 
     Spacer(Modifier.height(WorkoutTheme.spacing.xl))
 
-    ValidateButton(text = "VALIDER LA SÉRIE", onClick = { onValidate(reps) })
+    ValidateButton(text = stringResource(R.string.session_validate_set), onClick = { onValidate(reps) })
 }
 
 @Composable
@@ -210,7 +213,7 @@ private fun RepsOnlyControls(step: CurrentStep, onValidate: (Int) -> Unit) {
 
     Spacer(Modifier.height(WorkoutTheme.spacing.xl))
 
-    ValidateButton(text = "VALIDER", onClick = { onValidate(reps) })
+    ValidateButton(text = stringResource(R.string.session_validate), onClick = { onValidate(reps) })
 }
 
 @Composable
@@ -250,7 +253,7 @@ private fun TimedControls(
     val seconds = step.targetDurationSeconds ?: 60
 
     WorkoutPrimaryButton(
-        text = "COMMENCER  ·  ${seconds / 60}:${"%02d".format(seconds % 60)}",
+        text = "${stringResource(R.string.session_start)}  ·  ${seconds / 60}:${"%02d".format(seconds % 60)}",
         onClick = onStart,
         icon = Icons.Rounded.PlayArrow,
     )
@@ -258,7 +261,7 @@ private fun TimedControls(
     Spacer(Modifier.height(WorkoutTheme.spacing.md))
 
     Box(Modifier.fillMaxWidth(), contentAlignment = Alignment.Center) {
-        WorkoutTextButton(text = "Marquer comme fait", onClick = onMarkDone)
+        WorkoutTextButton(text = stringResource(R.string.session_mark_done), onClick = onMarkDone)
     }
 }
 

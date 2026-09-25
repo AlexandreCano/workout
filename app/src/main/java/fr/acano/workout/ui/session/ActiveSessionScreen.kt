@@ -35,7 +35,9 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalView
+import androidx.compose.ui.res.stringResource
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import fr.acano.workout.R
 import fr.acano.workout.timer.TimerKind
 import fr.acano.workout.ui.components.StepBar
 import fr.acano.workout.ui.theme.WorkoutMotion
@@ -178,18 +180,25 @@ private enum class Stage { SET_ENTRY, TIMER, REORDER }
  * Pendant une récupération, savoir « Chest Press · Série 3/4 » évite de devoir
  * quitter l'écran du chrono pour vérifier.
  */
+@Composable
 private fun ActiveSessionUiState.nextUpCaption(): String? {
     val current = step ?: return null
     return when (timer?.kind) {
-        TimerKind.REST -> buildString {
-            append("Prochaine série\n")
-            append(current.exercise.name)
-            if (current.plannedSets > 1) {
-                append("  ·  Série ${current.setNumber} / ${current.plannedSets}")
+        TimerKind.REST -> {
+            val nextSet = stringResource(R.string.session_next_set_caption)
+            val setOf = stringResource(R.string.session_set_of, current.setNumber, current.plannedSets)
+            buildString {
+                append(nextSet)
+                append("\n")
+                append(current.exercise.name)
+                if (current.plannedSets > 1) {
+                    append("  ·  ")
+                    append(setOf)
+                }
             }
         }
         TimerKind.EFFORT -> if (current.plannedSets > 1) {
-            "Série ${current.setNumber} / ${current.plannedSets}"
+            stringResource(R.string.session_set_of, current.setNumber, current.plannedSets)
         } else {
             null
         }
@@ -215,11 +224,11 @@ private fun SessionTopBar(currentStep: Int, totalSteps: Int, onQuit: () -> Unit,
             )
             if (onReorder != null) {
                 IconButton(onClick = onReorder) {
-                    Icon(Icons.Rounded.SwapVert, contentDescription = "Réorganiser la suite")
+                    Icon(Icons.Rounded.SwapVert, contentDescription = stringResource(R.string.session_reorder_remaining_cd))
                 }
             }
             IconButton(onClick = onQuit) {
-                Icon(Icons.Rounded.Close, contentDescription = "Quitter la séance")
+                Icon(Icons.Rounded.Close, contentDescription = stringResource(R.string.session_quit_cd))
             }
         }
         Spacer(Modifier.height(WorkoutTheme.spacing.xs))
@@ -241,17 +250,14 @@ private fun QuitDialog(
     AlertDialog(
         onDismissRequest = onKeepGoing,
         shape = MaterialTheme.shapes.extraLarge,
-        title = { Text("Quitter la séance ?") },
+        title = { Text(stringResource(R.string.session_quit_title)) },
         text = {
-            Text(
-                "La séance est enregistrée au fur et à mesure : tu pourras la reprendre " +
-                    "exactement là où tu en es.",
-            )
+            Text(stringResource(R.string.session_quit_text))
         },
-        confirmButton = { TextButton(onClick = onPause) { Text("Mettre en pause") } },
+        confirmButton = { TextButton(onClick = onPause) { Text(stringResource(R.string.session_quit_pause)) } },
         dismissButton = {
             TextButton(onClick = onAbort) {
-                Text("Abandonner", color = MaterialTheme.colorScheme.error)
+                Text(stringResource(R.string.session_quit_discard), color = MaterialTheme.colorScheme.error)
             }
         },
     )

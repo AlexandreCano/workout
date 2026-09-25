@@ -26,9 +26,11 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import fr.acano.workout.R
 import fr.acano.workout.data.Settings
 import fr.acano.workout.domain.Sex
 import fr.acano.workout.domain.UserProfile
@@ -55,10 +57,13 @@ fun SettingsScreen(settings: Settings, onBack: () -> Unit) {
             .padding(horizontal = WorkoutTheme.spacing.xl),
     ) {
         BackRow(onBack)
-        ScreenTitle("Réglages")
+        ScreenTitle(stringResource(R.string.settings_title))
 
-        SectionHeader("Unité de poids")
-        val options = listOf(WeightUnit.KG to "Kilos (kg)", WeightUnit.LB to "Livres (lb)")
+        SectionHeader(stringResource(R.string.settings_weight_unit))
+        val options = listOf(
+            WeightUnit.KG to stringResource(R.string.settings_unit_kg),
+            WeightUnit.LB to stringResource(R.string.settings_unit_lb),
+        )
         SingleChoiceSegmentedButtonRow(Modifier.fillMaxWidth()) {
             options.forEachIndexed { index, (option, label) ->
                 SegmentedButton(
@@ -70,8 +75,7 @@ fun SettingsScreen(settings: Settings, onBack: () -> Unit) {
         }
         Spacer(Modifier.height(WorkoutTheme.spacing.sm))
         Text(
-            text = "Les charges sont enregistrées en kilos et converties à l'affichage : " +
-                "changer d'unité ne modifie pas ton historique.",
+            text = stringResource(R.string.settings_unit_explanation),
             style = MaterialTheme.typography.bodyMedium,
             color = MaterialTheme.colorScheme.onSurfaceVariant,
         )
@@ -88,17 +92,19 @@ fun SettingsScreen(settings: Settings, onBack: () -> Unit) {
  */
 @Composable
 private fun ProfileSection(profile: UserProfile, unit: WeightUnit, onChange: (UserProfile) -> Unit) {
-    SectionHeader("Profil")
+    SectionHeader(stringResource(R.string.settings_profile))
     Text(
-        text = "Sert uniquement à estimer les calories dépensées pendant les exercices de l'app. " +
-            "Le poids suffit ; la taille, le sexe et l'année de naissance affinent le calcul.",
+        text = stringResource(R.string.settings_profile_explanation),
         style = MaterialTheme.typography.bodyMedium,
         color = MaterialTheme.colorScheme.onSurfaceVariant,
     )
     Spacer(Modifier.height(WorkoutTheme.spacing.lg))
 
-    val sexes = listOf(Sex.MALE to "Homme", Sex.FEMALE to "Femme")
-    Text("Sexe", style = MaterialTheme.typography.labelLarge, color = MaterialTheme.colorScheme.onSurfaceVariant)
+    val sexes = listOf(
+        Sex.MALE to stringResource(R.string.settings_sex_male),
+        Sex.FEMALE to stringResource(R.string.settings_sex_female),
+    )
+    Text(stringResource(R.string.settings_sex), style = MaterialTheme.typography.labelLarge, color = MaterialTheme.colorScheme.onSurfaceVariant)
     Spacer(Modifier.height(WorkoutTheme.spacing.xs))
     SingleChoiceSegmentedButtonRow(Modifier.fillMaxWidth()) {
         sexes.forEachIndexed { index, (sex, label) ->
@@ -115,28 +121,33 @@ private fun ProfileSection(profile: UserProfile, unit: WeightUnit, onChange: (Us
     // Le poids se saisit dans l'unité choisie mais reste stocké en kilos.
     val weightRange = unit.fromKg(20.0)..unit.fromKg(300.0)
     NumberField(
-        label = "Poids (${unit.symbol})",
+        label = stringResource(R.string.settings_weight_label, unit.symbol),
         initial = profile.weightKg?.let { formatNumber(unit.fromKg(it), decimals = 1) }.orEmpty(),
         decimal = true,
         key = unit,
         isValid = { it in weightRange },
-        error = "Entre un poids entre ${formatNumber(weightRange.start, 0)} et ${formatNumber(weightRange.endInclusive, 0)} ${unit.symbol}",
+        error = stringResource(
+            R.string.settings_weight_error,
+            formatNumber(weightRange.start, 0),
+            formatNumber(weightRange.endInclusive, 0),
+            unit.symbol,
+        ),
         onValue = { value -> onChange(profile.copy(weightKg = value?.let(unit::toKg))) },
     )
     Spacer(Modifier.height(WorkoutTheme.spacing.md))
     NumberField(
-        label = "Taille (cm)",
+        label = stringResource(R.string.settings_height_label),
         initial = profile.heightCm?.toString().orEmpty(),
         isValid = { it in 100.0..250.0 },
-        error = "Entre une taille entre 100 et 250 cm",
+        error = stringResource(R.string.settings_height_error, 100, 250),
         onValue = { value -> onChange(profile.copy(heightCm = value?.toInt())) },
     )
     Spacer(Modifier.height(WorkoutTheme.spacing.md))
     NumberField(
-        label = "Année de naissance (facultatif)",
+        label = stringResource(R.string.settings_birth_year_label),
         initial = profile.birthYear?.toString().orEmpty(),
         isValid = { it in 1900.0..2020.0 },
-        error = "Entre une année entre 1900 et 2020",
+        error = stringResource(R.string.settings_birth_year_error, 1900, 2020),
         onValue = { value -> onChange(profile.copy(birthYear = value?.toInt())) },
     )
 }

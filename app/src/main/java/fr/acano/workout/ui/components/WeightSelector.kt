@@ -36,12 +36,14 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.scale
 import androidx.compose.ui.hapticfeedback.HapticFeedbackType
 import androidx.compose.ui.platform.LocalHapticFeedback
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.semantics.contentDescription
 import androidx.compose.ui.semantics.role
 import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
+import fr.acano.workout.R
 import fr.acano.workout.domain.WeightUnit
 import fr.acano.workout.domain.stepWeight
 import fr.acano.workout.ui.common.LocalWeightUnit
@@ -89,7 +91,10 @@ fun WeightSelector(
         ) {
             StepperTarget(
                 icon = Icons.Rounded.Remove,
-                contentDescription = "Diminuer la charge de ${formatNumber(step)} ${unit.spokenName}",
+                contentDescription = stringResource(
+                    if (unit == WeightUnit.KG) R.string.comp_weight_decrease_kg else R.string.comp_weight_decrease_lb,
+                    formatNumber(step),
+                ),
                 onClick = { apply(-step) },
                 onLongClick = { apply(-step / 2) },
             )
@@ -102,7 +107,10 @@ fun WeightSelector(
 
             StepperTarget(
                 icon = Icons.Rounded.Add,
-                contentDescription = "Augmenter la charge de ${formatNumber(step)} ${unit.spokenName}",
+                contentDescription = stringResource(
+                    if (unit == WeightUnit.KG) R.string.comp_weight_increase_kg else R.string.comp_weight_increase_lb,
+                    formatNumber(step),
+                ),
                 onClick = { apply(step) },
                 onLongClick = { apply(step / 2) },
             )

@@ -44,12 +44,15 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.draw.scale
+import androidx.compose.ui.res.pluralStringResource
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.semantics.clearAndSetSemantics
 import androidx.compose.ui.semantics.contentDescription
 import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import fr.acano.workout.R
 import fr.acano.workout.ui.common.LocalWeightUnit
 import fr.acano.workout.ui.common.formatDate
 import fr.acano.workout.ui.common.formatWeight
@@ -122,22 +125,26 @@ fun HomeScreen(
                 trailing = {
                     Icon(
                         if (workoutsExpanded) Icons.Rounded.ExpandLess else Icons.Rounded.ExpandMore,
-                        contentDescription = if (workoutsExpanded) "Replier" else "Déplier",
+                        contentDescription = stringResource(if (workoutsExpanded) R.string.home_collapse else R.string.home_expand),
                     )
                 },
             ) {
                 Text(
-                    text = if (state.workouts.size > 1) "${state.workouts.size} entraînements" else "Entraînements",
+                    text = if (state.workouts.size > 1) {
+                        pluralStringResource(R.plurals.home_workouts_count, state.workouts.size, state.workouts.size)
+                    } else {
+                        stringResource(R.string.home_workouts)
+                    },
                     style = MaterialTheme.typography.titleMedium,
                 )
                 Text(
-                    text = "Termine la séance en cours pour en lancer un autre.",
+                    text = stringResource(R.string.home_finish_session_first),
                     style = MaterialTheme.typography.bodyMedium,
                     color = MaterialTheme.colorScheme.onSurfaceVariant,
                 )
             }
         } else {
-            SectionHeader("Entraînements")
+            SectionHeader(stringResource(R.string.home_workouts))
         }
 
         AnimatedVisibility(
@@ -170,7 +177,7 @@ fun HomeScreen(
                 }
                 Spacer(Modifier.height(WorkoutTheme.spacing.md))
                 WorkoutTonalButton(
-                    text = "Créer un entraînement",
+                    text = stringResource(R.string.home_create_workout),
                     onClick = onCreateWorkout,
                     icon = Icons.Rounded.Add,
                     modifier = Modifier.fillMaxWidth(),
@@ -180,7 +187,7 @@ fun HomeScreen(
 
         if (state.progression.isNotEmpty()) {
             Spacer(Modifier.height(WorkoutTheme.spacing.xxl))
-            SectionHeader("Progression récente")
+            SectionHeader(stringResource(R.string.home_recent_progress))
             state.progression.forEachIndexed { index, line ->
                 if (index > 0) RowDivider()
                 ProgressionRow(line, onClick = { onOpenExercise(line.exerciseId) })
@@ -204,10 +211,11 @@ private fun StarHero(stars: Int, onOpenSettings: () -> Unit) {
         label = "starScale",
     )
 
+    val starsDescription = pluralStringResource(R.plurals.home_stars_description, stars, stars)
     Column {
         Row(verticalAlignment = Alignment.CenterVertically) {
             Text(
-                text = "Workout",
+                text = stringResource(R.string.app_name),
                 style = MaterialTheme.typography.labelLarge,
                 color = MaterialTheme.colorScheme.onSurfaceVariant,
                 modifier = Modifier.weight(1f),
@@ -215,7 +223,7 @@ private fun StarHero(stars: Int, onOpenSettings: () -> Unit) {
             IconButton(onClick = onOpenSettings) {
                 Icon(
                     Icons.Rounded.Settings,
-                    contentDescription = "Réglages",
+                    contentDescription = stringResource(R.string.home_settings),
                     tint = MaterialTheme.colorScheme.onSurfaceVariant,
                 )
             }
@@ -226,7 +234,7 @@ private fun StarHero(stars: Int, onOpenSettings: () -> Unit) {
         Row(
             verticalAlignment = Alignment.CenterVertically,
             modifier = Modifier.semantics {
-                contentDescription = if (stars <= 1) "$stars séance réalisée" else "$stars séances réalisées"
+                contentDescription = starsDescription
             },
         ) {
             Icon(
@@ -249,9 +257,8 @@ private fun StarHero(stars: Int, onOpenSettings: () -> Unit) {
 
         Text(
             text = when (stars) {
-                0 -> "Aucune séance pour l'instant"
-                1 -> "séance réalisée"
-                else -> "séances réalisées"
+                0 -> stringResource(R.string.home_no_session_yet)
+                else -> pluralStringResource(R.plurals.home_stars_caption, stars)
             },
             style = MaterialTheme.typography.bodyLarge,
             color = MaterialTheme.colorScheme.onSurfaceVariant,
@@ -287,7 +294,7 @@ private fun SessionLaunchButton(
         ) {
             Column(Modifier.weight(1f)) {
                 Text(
-                    text = "Suggéré",
+                    text = stringResource(R.string.home_suggested),
                     style = MaterialTheme.typography.labelLarge,
                     color = MaterialTheme.colorScheme.onPrimaryContainer.copy(alpha = 0.8f),
                 )
@@ -305,7 +312,7 @@ private fun SessionLaunchButton(
                 )
             }
             IconButton(onClick = onEdit) {
-                Icon(Icons.Rounded.Edit, contentDescription = "Modifier $title")
+                Icon(Icons.Rounded.Edit, contentDescription = stringResource(R.string.home_edit_workout, title))
             }
             Spacer(Modifier.width(WorkoutTheme.spacing.sm))
             Surface(
@@ -332,16 +339,17 @@ private fun WorkoutRow(
     onStart: () -> Unit,
     onEdit: () -> Unit,
 ) {
+    val startLabel = stringResource(R.string.home_start_workout, workout.name)
     ListRow(
-        modifier = Modifier.clickable(enabled = canStart, onClickLabel = "Lancer ${workout.name}", onClick = onStart),
+        modifier = Modifier.clickable(enabled = canStart, onClickLabel = startLabel, onClick = onStart),
         trailing = {
             Row(verticalAlignment = Alignment.CenterVertically) {
                 IconButton(onClick = onEdit) {
-                    Icon(Icons.Rounded.Edit, contentDescription = "Modifier ${workout.name}")
+                    Icon(Icons.Rounded.Edit, contentDescription = stringResource(R.string.home_edit_workout, workout.name))
                 }
                 if (canStart) {
                     FilledTonalIconButton(onClick = onStart) {
-                        Icon(Icons.Rounded.PlayArrow, contentDescription = "Lancer ${workout.name}")
+                        Icon(Icons.Rounded.PlayArrow, contentDescription = startLabel)
                     }
                 }
             }
@@ -359,17 +367,18 @@ private fun WorkoutRow(
 }
 
 /** « 7 étapes · il y a 3 jours », ou « 7 étapes · jamais fait ». */
-private fun WorkoutLaunch.subtitle(): String = buildString {
-    append(if (stepCount > 1) "$stepCount étapes" else "$stepCount étape")
-    append("  ·  ")
-    append(lastDoneAt?.let { formatDate(it) } ?: "jamais fait")
+@Composable
+private fun WorkoutLaunch.subtitle(): String {
+    val steps = pluralStringResource(R.plurals.home_step_count, stepCount, stepCount)
+    val lastDone = lastDoneAt?.let { formatDate(it) } ?: stringResource(R.string.home_never_done)
+    return "$steps  ·  $lastDone"
 }
 
 /** Reprise d'une séance interrompue : prend la place des boutons de lancement. */
 @Composable
 private fun ResumeBlock(resumable: ResumableSession, onClick: () -> Unit) {
     Column {
-        SectionHeader("Séance en cours")
+        SectionHeader(stringResource(R.string.home_session_in_progress))
 
         Surface(
             shape = MaterialTheme.shapes.large,
@@ -379,11 +388,12 @@ private fun ResumeBlock(resumable: ResumableSession, onClick: () -> Unit) {
             Column(Modifier.padding(WorkoutTheme.spacing.xl)) {
                 Text(resumable.title, style = MaterialTheme.typography.headlineSmall)
                 Spacer(Modifier.height(WorkoutTheme.spacing.xs))
+                val setLabel = stringResource(R.string.home_resume_set, resumable.setNumber, resumable.plannedSets)
                 Text(
                     text = buildString {
                         append(resumable.exerciseName)
                         if (resumable.plannedSets > 1) {
-                            append("  ·  Série ${resumable.setNumber} / ${resumable.plannedSets}")
+                            append("  ·  $setLabel")
                         }
                         append("  ·  ${resumable.stepIndex} / ${resumable.totalSteps}")
                     },
@@ -392,7 +402,7 @@ private fun ResumeBlock(resumable: ResumableSession, onClick: () -> Unit) {
                 )
                 Spacer(Modifier.height(WorkoutTheme.spacing.xl))
                 WorkoutPrimaryButton(
-                    text = "REPRENDRE",
+                    text = stringResource(R.string.home_resume),
                     onClick = onClick,
                     icon = Icons.Rounded.PlayArrow,
                 )
@@ -407,7 +417,7 @@ private fun ProgressionRow(line: ProgressionLine, onClick: () -> Unit) {
         verticalAlignment = Alignment.CenterVertically,
         modifier = Modifier
             .fillMaxWidth()
-            .clickable(onClickLabel = "Voir ${line.exerciseName}", onClick = onClick)
+            .clickable(onClickLabel = stringResource(R.string.home_view_exercise, line.exerciseName), onClick = onClick)
             .padding(vertical = WorkoutTheme.spacing.lg),
     ) {
         Text(

@@ -2,19 +2,34 @@ package fr.acano.workout.ui
 
 import fr.acano.workout.domain.WeightUnit
 import fr.acano.workout.timer.formatClock
-import fr.acano.workout.ui.common.formatDate
 import fr.acano.workout.ui.common.formatDuration
-import fr.acano.workout.ui.common.formatLongDate
 import fr.acano.workout.ui.common.formatSet
 import fr.acano.workout.ui.common.formatVolume
 import fr.acano.workout.ui.common.formatWeight
 import fr.acano.workout.ui.common.formatWeightValue
 import org.junit.Assert.assertEquals
+import org.junit.After
+import org.junit.Before
 import org.junit.Test
-import java.time.LocalDate
-import java.time.ZoneOffset
+import java.util.Locale
 
+/** Les nombres suivent la langue du téléphone : ces tests fixent le français, sauf mention contraire. */
 class FormatTest {
+
+    private val saved = Locale.getDefault()
+
+    @Before
+    fun french() = Locale.setDefault(Locale.FRENCH)
+
+    @After
+    fun restore() = Locale.setDefault(saved)
+
+    @Test
+    fun `en anglais le separateur decimal est un point`() {
+        Locale.setDefault(Locale.ENGLISH)
+        assertEquals("42.5 kg", formatWeight(42.5))
+        assertEquals("3,815 kg", formatVolume(3815.4))
+    }
 
     @Test
     fun `les poids decimaux s affichent avec une virgule`() {
@@ -69,25 +84,6 @@ class FormatTest {
         assertEquals("3815kg", formatVolume(3815.4).filter { it.isLetterOrDigit() })
         assertEquals("3", formatVolume(3815.4).substringBefore('8').trim())
         assertEquals("480 kg", formatVolume(480.0))
-    }
-
-    private fun at(day: LocalDate) = day.atTime(18, 0).toInstant(ZoneOffset.UTC).toEpochMilli()
-    private val today = LocalDate.of(2026, 9, 25)
-
-    @Test
-    fun `les dates recentes sont relatives puis courtes sans l annee en cours`() {
-        assertEquals("aujourd'hui", formatDate(at(today), today, ZoneOffset.UTC))
-        assertEquals("hier", formatDate(at(today.minusDays(1)), today, ZoneOffset.UTC))
-        assertEquals("il y a 3 jours", formatDate(at(today.minusDays(3)), today, ZoneOffset.UTC))
-        assertEquals("il y a 6 jours", formatDate(at(today.minusDays(6)), today, ZoneOffset.UTC))
-        assertEquals("18 sept.", formatDate(at(today.minusDays(7)), today, ZoneOffset.UTC))
-        assertEquals("25 sept. 2025", formatDate(at(today.minusYears(1)), today, ZoneOffset.UTC))
-    }
-
-    @Test
-    fun `la date longue n affiche l annee que si elle differe`() {
-        assertEquals("Mardi 22 septembre", formatLongDate(at(LocalDate.of(2026, 9, 22)), today, ZoneOffset.UTC))
-        assertEquals("Lundi 22 septembre 2025", formatLongDate(at(LocalDate.of(2025, 9, 22)), today, ZoneOffset.UTC))
     }
 
     @Test

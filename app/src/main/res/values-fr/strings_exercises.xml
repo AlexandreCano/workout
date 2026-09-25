@@ -1,0 +1,51 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources xmlns:tools="http://schemas.android.com/tools">
+    <string name="exercises_search_placeholder">Rechercher un exercice</string>
+    <string name="exercises_clear_search">Effacer la recherche</string>
+    <string name="exercises_no_match">Aucun exercice ne correspond à « %1$s ».</string>
+    <string name="exercises_mine">Mes exercices</string>
+    <string name="exercises_mine_empty">Ajoute tes propres exercices, avec une photo de la machine.</string>
+    <string name="exercises_create">Créer un exercice</string>
+    <string name="exercises_built_in">Exercices de l\'app</string>
+    <string name="exercises_never_done">Jamais fait</string>
+    <plurals name="exercises_session_count" tools:ignore="ImpliedQuantity">
+        <item quantity="one">%1$d séance</item>
+        <item quantity="other">%1$d séances</item>
+        <item quantity="many">%1$d séances</item>
+    </plurals>
+
+    <string name="exercises_added_by_you">Ajouté par toi</string>
+    <string name="exercises_built_in_single">Exercice de l\'app</string>
+    <string name="exercises_edit">Modifier</string>
+    <string name="exercises_last_weight">Charge de la dernière séance, %1$s</string>
+    <string name="exercises_weight_progress">Évolution de la charge</string>
+    <string name="exercises_history">Historique</string>
+    <string name="exercises_not_done_yet">Pas encore fait. Ajoute-le à un entraînement pour suivre sa progression.</string>
+    <string name="exercises_chart_description">Évolution de %1$s à %2$s</string>
+
+    <string name="exercises_editor_title_edit">Modifier l\'exercice</string>
+    <string name="exercises_editor_title_new">Nouvel exercice</string>
+    <string name="exercises_choose_image">Choisir une image</string>
+    <string name="exercises_change_image">Changer l\'image</string>
+    <string name="exercises_remove_image">Retirer</string>
+    <string name="exercises_name_label">Nom</string>
+    <string name="exercises_name_placeholder">Ex. : Développé incliné</string>
+    <string name="exercises_type">Type</string>
+    <string name="exercises_kind_weighted">Charge</string>
+    <string name="exercises_kind_reps_only">Reps seules</string>
+    <string name="exercises_kind_timed">Durée</string>
+    <string name="exercises_kind_weighted_hint">Une charge et des répétitions, comme sur une machine.</string>
+    <string name="exercises_kind_reps_only_hint">Des répétitions au poids du corps, sans charge à noter.</string>
+    <string name="exercises_kind_timed_hint">Un effort chronométré, comme la planche ou le vélo.</string>
+    <string name="exercises_machine">Machine</string>
+    <string name="exercises_weight_step">Pas de charge</string>
+    <string name="exercises_settings_in_workout">Les séries, les répétitions ou la durée et le repos se règlent dans chaque entraînement.</string>
+    <string name="exercises_image_error">Impossible de lire cette image.</string>
+    <string name="exercises_save">ENREGISTRER</string>
+    <string name="exercises_delete">Supprimer l\'exercice</string>
+    <string name="exercises_delete_title">Supprimer « %1$s » ?</string>
+    <string name="exercises_delete_used_by">Il sera retiré de : %1$s.</string>
+    <string name="exercises_delete_history_kept">Les séances déjà faites restent dans l\'historique.</string>
+    <string name="exercises_delete_confirm">Supprimer</string>
+    <string name="exercises_cancel">Annuler</string>
+</resources>

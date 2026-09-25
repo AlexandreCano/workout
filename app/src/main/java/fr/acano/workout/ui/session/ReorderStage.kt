@@ -19,6 +19,9 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.snapshots.SnapshotStateList
 import androidx.compose.runtime.toMutableStateList
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.res.pluralStringResource
+import androidx.compose.ui.res.stringResource
+import fr.acano.workout.R
 import fr.acano.workout.ui.components.ReorderableItem
 import fr.acano.workout.ui.components.ReorderableList
 import fr.acano.workout.ui.components.SectionHeader
@@ -56,19 +59,18 @@ fun ReorderStage(
             .padding(horizontal = WorkoutTheme.spacing.xl),
     ) {
         Text(
-            text = "Réorganiser",
+            text = stringResource(R.string.session_reorder_title),
             style = MaterialTheme.typography.headlineLarge,
         )
         Spacer(Modifier.height(WorkoutTheme.spacing.xs))
         Text(
-            text = "Fais glisser les exercices par la poignée. Le premier de la liste " +
-                "sera celui que tu fais maintenant.",
+            text = stringResource(R.string.session_reorder_hint),
             style = MaterialTheme.typography.bodyMedium,
             color = MaterialTheme.colorScheme.onSurfaceVariant,
         )
 
         Spacer(Modifier.height(WorkoutTheme.spacing.xl))
-        SectionHeader("À faire")
+        SectionHeader(stringResource(R.string.session_reorder_section))
 
         ReorderableList(
             items = order.map {
@@ -84,7 +86,7 @@ fun ReorderStage(
         Spacer(Modifier.height(WorkoutTheme.spacing.xxl))
 
         WorkoutPrimaryButton(
-            text = "VALIDER L'ORDRE",
+            text = stringResource(R.string.session_reorder_confirm),
             // Toujours actif : un ordre inchangé est ignoré côté ViewModel, et un
             // gros bouton grisé se lit comme une panne plutôt qu'une contrainte.
             onClick = { onConfirm(order.map { it.exerciseSessionId }) },
@@ -97,15 +99,15 @@ fun ReorderStage(
             Modifier.fillMaxWidth(),
             contentAlignment = androidx.compose.ui.Alignment.Center,
         ) {
-            WorkoutTextButton(text = "Annuler", onClick = onCancel)
+            WorkoutTextButton(text = stringResource(R.string.session_cancel), onClick = onCancel)
         }
 
         Spacer(Modifier.height(WorkoutTheme.spacing.xxl))
     }
 }
 
+@Composable
 private fun PendingStep.progressLabel(): String = when {
-    completedSets > 0 -> "Repris à la série ${completedSets + 1} / $plannedSets"
-    plannedSets > 1 -> "$plannedSets séries"
-    else -> "1 série"
+    completedSets > 0 -> stringResource(R.string.session_resumed_at_set, completedSets + 1, plannedSets)
+    else -> plannedSets.coerceAtLeast(1).let { pluralStringResource(R.plurals.session_sets_count, it, it) }
 }

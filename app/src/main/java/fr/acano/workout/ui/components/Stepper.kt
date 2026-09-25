@@ -13,8 +13,10 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
+import fr.acano.workout.R
 
 /** Une ligne « libellé   −  valeur  + ». Le libellé est répété dans les descriptions pour TalkBack. */
 @Composable
@@ -37,7 +39,7 @@ fun StepperRow(
             modifier = Modifier.weight(1f),
         )
         IconButton(onClick = onDecrement, enabled = canDecrement) {
-            Icon(Icons.Rounded.Remove, contentDescription = "$label : diminuer")
+            Icon(Icons.Rounded.Remove, contentDescription = stringResource(R.string.comp_stepper_decrease, label))
         }
         Text(
             text = value,
@@ -48,7 +50,7 @@ fun StepperRow(
             modifier = Modifier.width(112.dp),
         )
         IconButton(onClick = onIncrement, enabled = canIncrement) {
-            Icon(Icons.Rounded.Add, contentDescription = "$label : augmenter")
+            Icon(Icons.Rounded.Add, contentDescription = stringResource(R.string.comp_stepper_increase, label))
         }
     }
 }

@@ -47,6 +47,14 @@ android {
         }
     }
 
+    // Les noms du programme sont reconnus dans toutes les langues de l'app
+    // (voir LocalizedNames) : chaque installation doit donc toutes les contenir.
+    bundle {
+        language {
+            enableSplit = false
+        }
+    }
+
     packaging {
         resources {
             excludes += "/META-INF/{AL2.0,LGPL2.1}"

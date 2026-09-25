@@ -182,6 +182,9 @@ interface WorkoutDao {
     )
     fun observeExerciseUsage(): Flow<List<ExerciseUsage>>
 
+    @Query("UPDATE workout_session SET name = :name WHERE name IN (:knownNames) AND name != :name")
+    suspend fun renameSessionsMatching(knownNames: List<String>, name: String)
+
     // --- Abandon ---
 
     @Query("DELETE FROM set_result WHERE exerciseSessionId IN (SELECT id FROM exercise_session WHERE sessionId = :sessionId)")

@@ -26,7 +26,8 @@ data class ExerciseEditorUiState(
     val pickedImage: String? = null,
     val imageRemoved: Boolean = false,
     val isSaving: Boolean = false,
-    val error: String? = null,
+    /** Vrai si l'image choisie n'a pas pu être lue. */
+    val imageError: Boolean = false,
 ) {
     val canSave: Boolean get() = name.isNotBlank() && !isSaving
 
@@ -84,7 +85,7 @@ class ExerciseEditorViewModel(
 
     fun setWeightStep(kg: Double) = _state.update { it.copy(weightStepKg = kg) }
 
-    fun pickImage(uri: Uri) = _state.update { it.copy(pickedImage = uri.toString(), imageRemoved = false, error = null) }
+    fun pickImage(uri: Uri) = _state.update { it.copy(pickedImage = uri.toString(), imageRemoved = false, imageError = false) }
 
     fun removeImage() = _state.update { it.copy(pickedImage = null, imageRemoved = true) }
 
@@ -92,12 +93,12 @@ class ExerciseEditorViewModel(
     suspend fun save(): Boolean {
         val state = _state.value
         if (!state.canSave) return false
-        _state.update { it.copy(isSaving = true, error = null) }
+        _state.update { it.copy(isSaving = true, imageError = false) }
 
         val id = existing?.id ?: "custom_${now()}"
         val newImage = state.pickedImage?.let { picked ->
             runCatching { images.import(picked.toUri(), id) }.getOrElse {
-                _state.update { it.copy(isSaving = false, error = "Impossible de lire cette image.") }
+                _state.update { it.copy(isSaving = false, imageError = true) }
                 return false
             }
         }

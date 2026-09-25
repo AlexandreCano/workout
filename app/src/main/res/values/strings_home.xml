@@ -1,0 +1,71 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Accueil, réglages et composants partagés. -->
+<resources xmlns:tools="http://schemas.android.com/tools">
+    <!-- Accueil -->
+    <string name="home_settings">Settings</string>
+    <string name="home_collapse">Collapse</string>
+    <string name="home_expand">Expand</string>
+    <string name="home_workouts">Workouts</string>
+    <plurals name="home_workouts_count">
+        <item quantity="one">%d workout</item>
+        <item quantity="other">%d workouts</item>
+    </plurals>
+    <string name="home_finish_session_first">Finish the current session to start another one.</string>
+    <string name="home_create_workout">Create a workout</string>
+    <string name="home_recent_progress">Recent progress</string>
+    <plurals name="home_stars_description">
+        <item quantity="one">%d session completed</item>
+        <item quantity="other">%d sessions completed</item>
+    </plurals>
+    <string name="home_no_session_yet">No sessions yet</string>
+    <plurals name="home_stars_caption">
+        <item quantity="one">session completed</item>
+        <item quantity="other">sessions completed</item>
+    </plurals>
+    <string name="home_suggested">Suggested</string>
+    <string name="home_edit_workout">Edit %1$s</string>
+    <string name="home_start_workout">Start %1$s</string>
+    <plurals name="home_step_count">
+        <item quantity="one">%d step</item>
+        <item quantity="other">%d steps</item>
+    </plurals>
+    <string name="home_never_done">never done</string>
+    <string name="home_session_in_progress">Session in progress</string>
+    <string name="home_resume_set">Set %1$d / %2$d</string>
+    <string name="home_resume">RESUME</string>
+    <string name="home_view_exercise">View %1$s</string>
+
+    <!-- Réglages -->
+    <string name="settings_title">Settings</string>
+    <string name="settings_weight_unit">Weight unit</string>
+    <string name="settings_unit_kg">Kilograms (kg)</string>
+    <string name="settings_unit_lb">Pounds (lb)</string>
+    <string name="settings_unit_explanation">Weights are stored in kilograms and converted for display: changing the unit doesn\'t alter your history.</string>
+    <string name="settings_profile">Profile</string>
+    <string name="settings_profile_explanation">Only used to estimate the calories burned during the app\'s exercises. Weight is enough; height, sex and birth year refine the estimate.</string>
+    <string name="settings_sex">Sex</string>
+    <string name="settings_sex_male">Male</string>
+    <string name="settings_sex_female">Female</string>
+    <string name="settings_weight_label">Weight (%1$s)</string>
+    <string name="settings_weight_error">Enter a weight between %1$s and %2$s %3$s</string>
+    <string name="settings_height_label">Height (cm)</string>
+    <string name="settings_height_error" tools:ignore="PluralsCandidate">Enter a height between %1$d and %2$d cm</string>
+    <string name="settings_birth_year_label">Birth year (optional)</string>
+    <string name="settings_birth_year_error" tools:ignore="PluralsCandidate">Enter a year between %1$d and %2$d</string>
+
+    <!-- Composants -->
+    <string name="comp_move_up">Move up</string>
+    <string name="comp_move_down">Move down</string>
+    <string name="comp_drag_item">Move %1$s</string>
+    <string name="comp_set_progress">Set %1$d of %2$d</string>
+    <string name="comp_step_progress">Exercise %1$d of %2$d</string>
+    <string name="comp_stepper_decrease">%1$s: decrease</string>
+    <string name="comp_stepper_increase">%1$s: increase</string>
+    <string name="comp_trend_up">improving</string>
+    <string name="comp_trend_down">declining</string>
+    <string name="comp_weight_decrease_kg">Decrease weight by %1$s kilograms</string>
+    <string name="comp_weight_increase_kg">Increase weight by %1$s kilograms</string>
+    <string name="comp_weight_decrease_lb">Decrease weight by %1$s pounds</string>
+    <string name="comp_weight_increase_lb">Increase weight by %1$s pounds</string>
+    <string name="comp_timer_spoken">%1$s minutes %2$s seconds</string>
+</resources>
