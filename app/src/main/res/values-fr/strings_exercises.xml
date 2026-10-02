@@ -31,9 +31,6 @@
     <string name="exercises_name_label">Nom</string>
     <string name="exercises_name_placeholder">Ex. : Développé incliné</string>
     <string name="exercises_type">Type</string>
-    <string name="exercises_kind_weighted">Charge</string>
-    <string name="exercises_kind_reps_only">Reps seules</string>
-    <string name="exercises_kind_timed">Durée</string>
     <string name="exercises_kind_weighted_hint">Une charge et des répétitions, comme sur une machine.</string>
     <string name="exercises_kind_reps_only_hint">Des répétitions au poids du corps, sans charge à noter.</string>
     <string name="exercises_kind_timed_hint">Un effort chronométré, comme la planche ou le vélo.</string>
@@ -48,4 +45,16 @@
     <string name="exercises_delete_history_kept">Les séances déjà faites restent dans l\'historique.</string>
     <string name="exercises_delete_confirm">Supprimer</string>
     <string name="exercises_cancel">Annuler</string>
+    <string name="exercises_filter_all">Tous</string>
+    <string name="exercises_no_filter_match">Aucun exercice dans cette famille.</string>
+    <string name="exercises_details">Détails</string>
+    <string name="exercises_category">Famille</string>
+    <string name="exercises_primary_muscle">Muscle principal</string>
+    <string name="exercises_secondary_muscles">Muscles secondaires</string>
+    <string name="exercises_equipment">Matériel</string>
+    <string name="exercises_not_set">Non renseigné</string>
+    <string name="exercises_kind_weighted_timed_hint">Un effort chronométré sous charge, comme la planche lestée.</string>
+    <string name="exercises_kind_distance_hint">Une distance à parcourir, sans charge ni chrono.</string>
+    <string name="exercises_kind_weighted_distance_hint">Une charge portée sur une distance, comme le farmer carry.</string>
+    <string name="exercises_kind_timed_distance_hint">Un effort chronométré, puis la distance parcourue, comme le tapis.</string>
 </resources>

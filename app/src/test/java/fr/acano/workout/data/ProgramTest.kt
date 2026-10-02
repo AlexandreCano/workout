@@ -86,6 +86,20 @@ class ProgramTest {
     }
 
     @Test
+    fun `le cardio et les exercices en distance recoivent des reglages adaptes`() {
+        // Tapis : une série de dix minutes, sans repos ni reps.
+        val treadmill = Program.defaultStepFor("treadmill", ExerciseKind.TIMED_DISTANCE)
+        assertEquals(1 to 600, treadmill.plannedSets to treadmill.targetDurationSeconds)
+        assertEquals(0, treadmill.restSeconds)
+        // Un exercice chronométré de la famille cardio aussi.
+        assertEquals(600, Program.defaultStepFor("elliptical", ExerciseKind.TIMED).targetDurationSeconds)
+        // Farmer carry : une distance à parcourir, pas une durée.
+        val carry = Program.defaultStepFor("farmer_carry", ExerciseKind.WEIGHTED_DISTANCE)
+        assertEquals(30, carry.targetDistanceMeters)
+        assertNull(carry.targetDurationSeconds)
+    }
+
+    @Test
     fun `aucun identifiant d exercice n est duplique`() {
         val ids = Program.exercises.map { it.id }
         assertEquals(ids.size, ids.toSet().size)

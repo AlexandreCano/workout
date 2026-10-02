@@ -5,7 +5,8 @@ import fr.acano.workout.data.db.entity.SetResultEntity
 /**
  * Indice de la meilleure série d'un exercice dans une séance : la plus lourde,
  * départagée par le nombre de répétitions ; à défaut de charge, le plus de
- * répétitions ; pour un exercice chronométré, la plus longue.
+ * répétitions ; pour un exercice chronométré, la plus longue ; à durée égale,
+ * la plus grande distance.
  *
  * Null s'il n'y a qu'une série : la mettre en avant n'apprendrait rien.
  */
@@ -14,11 +15,16 @@ fun bestSetIndex(sets: List<SetResultEntity>): Int? {
     val best = sets.withIndex().maxWithOrNull(
         compareBy<IndexedValue<SetResultEntity>> { it.value.weightKg ?: 0.0 }
             .thenBy { it.value.repetitions ?: 0 }
-            .thenBy { it.value.durationSeconds ?: 0 },
+            .thenBy { it.value.durationSeconds ?: 0 }
+            .thenBy { it.value.distanceMeters ?: 0.0 },
     ) ?: return null
     // Toutes les séries identiques : aucune ne se distingue.
     val first = sets.first()
-    if (sets.all { it.weightKg == first.weightKg && it.repetitions == first.repetitions && it.durationSeconds == first.durationSeconds }) {
+    if (sets.all {
+            it.weightKg == first.weightKg && it.repetitions == first.repetitions &&
+                it.durationSeconds == first.durationSeconds && it.distanceMeters == first.distanceMeters
+        }
+    ) {
         return null
     }
     return best.index

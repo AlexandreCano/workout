@@ -5,7 +5,10 @@ import androidx.room.Entity
 import androidx.room.ForeignKey
 import androidx.room.Index
 import androidx.room.PrimaryKey
+import fr.acano.workout.domain.Equipment
+import fr.acano.workout.domain.ExerciseCategory
 import fr.acano.workout.domain.ExerciseKind
+import fr.acano.workout.domain.Muscle
 import fr.acano.workout.domain.WorkoutType
 
 /**
@@ -22,6 +25,9 @@ import fr.acano.workout.domain.WorkoutType
  *
  * Supprimer un exercice de l'utilisateur ne fait que l'archiver ([archivedAt]) :
  * il disparaît du catalogue, mais l'historique garde son nom.
+ *
+ * Catégorie, muscles et matériel viennent du catalogue pour les exercices de
+ * l'application, et restent facultatifs pour ceux de l'utilisateur.
  */
 @Entity(tableName = "exercise")
 data class ExerciseEntity(
@@ -33,6 +39,10 @@ data class ExerciseEntity(
     val imagePath: String? = null,
     @ColumnInfo(defaultValue = "0") val isCustom: Boolean = false,
     val archivedAt: Long? = null,
+    val category: ExerciseCategory? = null,
+    val primaryMuscle: Muscle? = null,
+    @ColumnInfo(defaultValue = "") val secondaryMuscles: List<Muscle> = emptyList(),
+    val equipment: Equipment? = null,
 ) {
     val isArchived: Boolean get() = archivedAt != null
 }
@@ -84,6 +94,7 @@ data class ExerciseSessionEntity(
     val targetDurationSeconds: Int? = null,
     /** Repos automatique après une série, en secondes. 0 = pas de chrono. */
     @ColumnInfo(defaultValue = "60") val restSeconds: Int = 60,
+    val targetDistanceMeters: Int? = null,
 )
 
 /** Le résultat réel d'une série. */
@@ -109,6 +120,7 @@ data class SetResultEntity(
     val repetitions: Int? = null,
     val durationSeconds: Int? = null,
     val completedAt: Long,
+    val distanceMeters: Double? = null,
 )
 
 /** Un entraînement composé par l'utilisateur à partir du catalogue. */
@@ -144,4 +156,5 @@ data class CustomWorkoutExerciseEntity(
     val targetDurationSeconds: Int? = null,
     /** Repos automatique après une série, en secondes. 0 = pas de chrono. */
     @ColumnInfo(defaultValue = "60") val restSeconds: Int = 60,
+    val targetDistanceMeters: Int? = null,
 )

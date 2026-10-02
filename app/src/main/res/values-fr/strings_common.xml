@@ -18,20 +18,13 @@
     <string name="kind_weighted_reps">Charge et répétitions</string>
     <string name="kind_reps_only">Répétitions</string>
     <string name="kind_timed">Chronométré</string>
+    <string name="kind_weighted_timed">Chronométré, avec charge</string>
+    <string name="kind_distance">Distance</string>
+    <string name="kind_weighted_distance">Charge et distance</string>
+    <string name="kind_timed_distance">Durée et distance</string>
 
     <string name="program_upper_body">Haut du corps</string>
     <string name="program_lower_body">Bas du corps</string>
-    <string name="exercise_bike_warmup">Vélo</string>
-    <string name="exercise_chest_press">Chest Press</string>
-    <string name="exercise_pec_deck">Pec Deck</string>
-    <string name="exercise_lat_pulldown">Tirage vertical</string>
-    <string name="exercise_seated_row">Tirage horizontal</string>
-    <string name="exercise_leg_press">Presse à cuisses</string>
-    <string name="exercise_leg_curl">Leg Curl</string>
-    <string name="exercise_leg_extension">Leg Extension</string>
-    <string name="exercise_calf_raise">Mollets</string>
-    <string name="exercise_plank">Planche</string>
-    <string name="exercise_stomach_vacuum">Stomach Vacuum</string>
 
     <string name="tab_home">Accueil</string>
     <string name="tab_history">Historique</string>

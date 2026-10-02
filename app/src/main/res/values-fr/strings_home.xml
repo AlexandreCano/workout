@@ -71,4 +71,6 @@
     <string name="comp_weight_decrease_lb">Diminuer la charge de %1$s livres</string>
     <string name="comp_weight_increase_lb">Augmenter la charge de %1$s livres</string>
     <string name="comp_timer_spoken">%1$s minutes %2$s secondes</string>
+    <string name="comp_distance_decrease">Diminuer la distance</string>
+    <string name="comp_distance_increase">Augmenter la distance</string>
 </resources>

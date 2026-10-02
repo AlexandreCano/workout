@@ -62,4 +62,6 @@
     </plurals>
     <string name="session_metric_kcal">kcal</string>
     <string name="session_finish">DONE</string>
+    <string name="session_distance_title">Distance covered?</string>
+    <string name="session_distance_hint">Read it on the machine\'s display.</string>
 </resources>

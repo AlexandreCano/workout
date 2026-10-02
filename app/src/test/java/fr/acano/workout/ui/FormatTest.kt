@@ -2,13 +2,15 @@ package fr.acano.workout.ui
 
 import fr.acano.workout.domain.WeightUnit
 import fr.acano.workout.timer.formatClock
+import fr.acano.workout.ui.common.formatDistance
 import fr.acano.workout.ui.common.formatDuration
 import fr.acano.workout.ui.common.formatSet
 import fr.acano.workout.ui.common.formatVolume
 import fr.acano.workout.ui.common.formatWeight
 import fr.acano.workout.ui.common.formatWeightValue
-import org.junit.Assert.assertEquals
+import fr.acano.workout.ui.common.targetLabel
 import org.junit.After
+import org.junit.Assert.assertEquals
 import org.junit.Before
 import org.junit.Test
 import java.util.Locale
@@ -103,5 +105,28 @@ class FormatTest {
     fun `la duree d une seance s affiche en minutes puis en heures`() {
         assertEquals("47 min", formatDuration(47 * 60_000L))
         assertEquals("1 h 12", formatDuration(72 * 60_000L))
+    }
+
+    @Test
+    fun `les distances passent en kilometres a partir de mille metres`() {
+        assertEquals("30 m", formatDistance(30.0))
+        assertEquals("950 m", formatDistance(950.0))
+        assertEquals("1 km", formatDistance(1000.0))
+        assertEquals("2,15 km", formatDistance(2150.0))
+    }
+
+    @Test
+    fun `une serie avec distance s ecrit avec ce qui l accompagne`() {
+        assertEquals("40 kg · 30 m", formatSet(40.0, null, null, distanceMeters = 30.0))
+        assertEquals("10 min · 2,1 km", formatSet(null, null, 600, distanceMeters = 2100.0))
+        assertEquals("20 kg · 45 s", formatSet(20.0, null, 45))
+        assertEquals("1,2 km", formatSet(null, null, null, distanceMeters = 1200.0))
+    }
+
+    @Test
+    fun `une cible en distance`() {
+        assertEquals("30 m", targetLabel(null, null, null, 30))
+        // La durée prime : sur un tapis, c'est le chrono qui fixe la série.
+        assertEquals("10 min", targetLabel(null, null, 600, 2000))
     }
 }

@@ -57,8 +57,14 @@ import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import fr.acano.workout.R
 import fr.acano.workout.data.db.entity.ExerciseEntity
-import fr.acano.workout.ui.common.label
+import fr.acano.workout.domain.ExerciseCategory
+import fr.acano.workout.domain.stepDistance
+import fr.acano.workout.ui.common.CatalogFilter
+import fr.acano.workout.ui.common.formatDistance
+import fr.acano.workout.ui.common.summary
 import fr.acano.workout.ui.common.targetLabel
+import fr.acano.workout.ui.components.CatalogSearchField
+import fr.acano.workout.ui.components.CategoryFilterRow
 import fr.acano.workout.ui.components.ExerciseImage
 import fr.acano.workout.ui.components.ReorderableItem
 import fr.acano.workout.ui.components.ReorderableList
@@ -74,6 +80,7 @@ import fr.acano.workout.ui.components.previousDuration
 import fr.acano.workout.ui.history.BackRow
 import fr.acano.workout.ui.theme.WorkoutTheme
 import kotlinx.coroutines.launch
+import kotlin.math.roundToInt
 
 /**
  * Création ou modification d'un entraînement personnalisé : un nom, puis les
@@ -235,8 +242,12 @@ fun WorkoutEditorScreen(
             sheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true),
         ) {
             ExercisePicker(
-                catalogue = state.catalogue,
+                catalogue = state.visibleCatalogue,
+                categories = state.categories,
+                filter = state.filter,
                 selectedIds = state.selectedIds,
+                onQueryChange = viewModel::setQuery,
+                onCategoryChange = viewModel::setCategory,
                 onToggle = viewModel::toggleExercise,
                 onDone = { showPicker = false },
             )
@@ -250,6 +261,7 @@ fun WorkoutEditorScreen(
             onRepsMinChange = { viewModel.setRepsMin(step.key, it) },
             onRepsMaxChange = { viewModel.setRepsMax(step.key, it) },
             onDurationChange = { viewModel.setDuration(step.key, it) },
+            onDistanceChange = { viewModel.setDistance(step.key, it) },
             onRestChange = { viewModel.setRest(step.key, it) },
             onDismiss = { editingKey = null },
         )
@@ -278,11 +290,19 @@ fun WorkoutEditorScreen(
     }
 }
 
-/** Le catalogue en liste à cocher : cocher ajoute en fin d'entraînement, décocher retire. */
+/**
+ * Le catalogue en liste à cocher : cocher ajoute en fin d'entraînement, décocher
+ * retire. Une recherche et un filtre par famille, pour s'y retrouver parmi
+ * deux cents exercices.
+ */
 @Composable
 private fun ExercisePicker(
     catalogue: List<ExerciseEntity>,
+    categories: List<ExerciseCategory>,
+    filter: CatalogFilter,
     selectedIds: Set<String>,
+    onQueryChange: (String) -> Unit,
+    onCategoryChange: (ExerciseCategory?) -> Unit,
     onToggle: (ExerciseEntity) -> Unit,
     onDone: () -> Unit,
 ) {
@@ -301,6 +321,20 @@ private fun ExercisePicker(
             TextButton(onClick = onDone) { Text(stringResource(R.string.workouts_done)) }
         }
 
+        CatalogSearchField(
+            query = filter.query,
+            onQueryChange = onQueryChange,
+            modifier = Modifier.padding(horizontal = WorkoutTheme.spacing.xl),
+        )
+        Spacer(Modifier.height(WorkoutTheme.spacing.md))
+        CategoryFilterRow(
+            categories = categories,
+            selected = filter.category,
+            onSelect = onCategoryChange,
+            contentPadding = PaddingValues(horizontal = WorkoutTheme.spacing.xl),
+        )
+        Spacer(Modifier.height(WorkoutTheme.spacing.sm))
+
         LazyColumn(
             contentPadding = PaddingValues(
                 start = WorkoutTheme.spacing.xl,
@@ -308,6 +342,16 @@ private fun ExercisePicker(
                 bottom = WorkoutTheme.spacing.xxl,
             ),
         ) {
+            if (catalogue.isEmpty()) {
+                item {
+                    Text(
+                        text = stringResource(R.string.exercises_no_filter_match),
+                        style = MaterialTheme.typography.bodyMedium,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant,
+                        modifier = Modifier.padding(vertical = WorkoutTheme.spacing.lg),
+                    )
+                }
+            }
             items(catalogue, key = { it.id }) { exercise ->
                 val selected = exercise.id in selectedIds
                 Row(
@@ -326,7 +370,7 @@ private fun ExercisePicker(
                     Column(Modifier.weight(1f)) {
                         Text(exercise.name, style = MaterialTheme.typography.titleMedium)
                         Text(
-                            text = exercise.kind.label,
+                            text = exercise.summary(),
                             style = MaterialTheme.typography.bodySmall,
                             color = MaterialTheme.colorScheme.onSurfaceVariant,
                         )
@@ -351,6 +395,7 @@ private fun StepSettingsDialog(
     onRepsMinChange: (Int) -> Unit,
     onRepsMaxChange: (Int) -> Unit,
     onDurationChange: (Int) -> Unit,
+    onDistanceChange: (Int) -> Unit,
     onRestChange: (Int) -> Unit,
     onDismiss: () -> Unit,
 ) {
@@ -380,9 +425,20 @@ private fun StepSettingsDialog(
                         canIncrement = duration < vm.MAX_DURATION_SECONDS,
                     )
                 }
+                val distance = planned.targetDistanceMeters
+                if (step.targetsDistance && distance != null) {
+                    StepperRow(
+                        label = stringResource(R.string.workouts_distance),
+                        value = formatDistance(distance.toDouble()),
+                        onDecrement = { onDistanceChange(stepDistance(distance.toDouble(), up = false).roundToInt()) },
+                        onIncrement = { onDistanceChange(stepDistance(distance.toDouble(), up = true).roundToInt()) },
+                        canDecrement = distance > vm.MIN_DISTANCE_METERS,
+                        canIncrement = distance < vm.MAX_DISTANCE_METERS,
+                    )
+                }
                 val min = planned.targetRepsMin
                 val max = planned.targetRepsMax
-                if (!step.isTimed && min != null && max != null) {
+                if (!step.isTimed && !step.targetsDistance && min != null && max != null) {
                     StepperRow(
                         label = stringResource(R.string.workouts_reps_min),
                         value = "$min",

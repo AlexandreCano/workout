@@ -57,16 +57,30 @@ fun formatNumber(value: Double, decimals: Int = 2, locale: Locale = Locale.getDe
     return format.format(value)
 }
 
-/** « 8–12 reps » ou « 1 min » : la cible d'une étape, selon ce qui la définit. */
-fun targetLabel(repsMin: Int?, repsMax: Int?, durationSeconds: Int?): String = when {
+/** « 8–12 reps », « 1 min » ou « 30 m » : la cible d'une étape, selon ce qui la définit. */
+fun targetLabel(repsMin: Int?, repsMax: Int?, durationSeconds: Int?, distanceMeters: Int? = null): String = when {
     durationSeconds != null ->
         if (durationSeconds % 60 == 0) "${durationSeconds / 60} min" else "$durationSeconds s"
+    distanceMeters != null -> formatDistance(distanceMeters.toDouble())
     repsMin != null && repsMax != null ->
         if (repsMin == repsMax) "$repsMin reps" else "$repsMin–$repsMax reps"
     else -> ""
 }
 
-fun PlannedStep.targetLabel(): String = targetLabel(targetRepsMin, targetRepsMax, targetDurationSeconds)
+fun PlannedStep.targetLabel(): String =
+    targetLabel(targetRepsMin, targetRepsMax, targetDurationSeconds, targetDistanceMeters)
+
+/**
+ * « 850 m », ou « 2,15 km » à partir du kilomètre. Les distances sont
+ * toujours en mètres, quelle que soit l'unité de charge choisie : les
+ * machines de cardio des salles affichent des kilomètres.
+ */
+fun formatDistance(meters: Double, locale: Locale = Locale.getDefault()): String =
+    if (meters < 1000) {
+        "${formatNumber(meters, decimals = 0, locale = locale)} m"
+    } else {
+        "${formatNumber(meters / 1000, decimals = 2, locale = locale)} km"
+    }
 
 /** Ce que l'exercice demande, pour le catalogue : il n'a plus de séries ni de reps à lui. */
 val ExerciseKind.label: String
@@ -77,28 +91,44 @@ val ExerciseKind.labelRes: Int
         ExerciseKind.WEIGHTED_REPS -> R.string.kind_weighted_reps
         ExerciseKind.REPS_ONLY -> R.string.kind_reps_only
         ExerciseKind.TIMED -> R.string.kind_timed
+        ExerciseKind.WEIGHTED_TIMED -> R.string.kind_weighted_timed
+        ExerciseKind.DISTANCE -> R.string.kind_distance
+        ExerciseKind.WEIGHTED_DISTANCE -> R.string.kind_weighted_distance
+        ExerciseKind.TIMED_DISTANCE -> R.string.kind_timed_distance
     }
 
 /**
- * Une série telle qu'elle a été faite : « 42,5 kg × 12 », « 12 reps » ou
- * « 1 min 30 » selon ce qui a été enregistré.
+ * Une série telle qu'elle a été faite : « 42,5 kg × 12 », « 12 reps »,
+ * « 1 min 30 » ou « 10 min · 2,1 km » selon ce qui a été enregistré.
  */
-fun formatSet(weightKg: Double?, repetitions: Int?, durationSeconds: Int?, unit: WeightUnit = WeightUnit.KG): String =
-    when {
-        weightKg != null && repetitions != null -> "${formatWeight(weightKg, unit)} × $repetitions"
-        repetitions != null -> if (repetitions > 1) "$repetitions reps" else "1 rep"
-        durationSeconds != null -> {
-            val minutes = durationSeconds / 60
-            val rest = durationSeconds % 60
-            when {
-                minutes == 0 -> "$rest s"
-                rest == 0 -> "$minutes min"
-                else -> "$minutes min %02d".format(rest)
-            }
-        }
-        weightKg != null -> formatWeight(weightKg, unit)
-        else -> "—"
+fun formatSet(
+    weightKg: Double?,
+    repetitions: Int?,
+    durationSeconds: Int?,
+    unit: WeightUnit = WeightUnit.KG,
+    distanceMeters: Double? = null,
+): String =
+    if (weightKg != null && repetitions != null) {
+        "${formatWeight(weightKg, unit)} × $repetitions"
+    } else {
+        listOfNotNull(
+            weightKg?.let { formatWeight(it, unit) },
+            repetitions?.let { if (it > 1) "$it reps" else "1 rep" },
+            durationSeconds?.let(::formatSeconds),
+            distanceMeters?.let { formatDistance(it) },
+        ).joinToString(" · ").ifEmpty { "—" }
     }
+
+/** « 45 s », « 1 min 30 », « 5 min ». */
+private fun formatSeconds(seconds: Int): String {
+    val minutes = seconds / 60
+    val rest = seconds % 60
+    return when {
+        minutes == 0 -> "$rest s"
+        rest == 0 -> "$minutes min"
+        else -> "$minutes min %02d".format(rest)
+    }
+}
 
 /**
  * Charge totale soulevée, arrondie et groupée par milliers : « 1 230 kg ».

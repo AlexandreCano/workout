@@ -1,0 +1,76 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Détails des exercices du catalogue : familles, muscles et matériel. -->
+<resources>
+    <!-- Familles (filtres du catalogue) -->
+    <string name="category_chest">Chest</string>
+    <string name="category_back">Back</string>
+    <string name="category_shoulders">Shoulders</string>
+    <string name="category_traps">Traps</string>
+    <string name="category_biceps">Biceps</string>
+    <string name="category_triceps">Triceps</string>
+    <string name="category_forearms">Forearms</string>
+    <string name="category_core">Core</string>
+    <string name="category_legs">Legs</string>
+    <string name="category_glutes">Glutes</string>
+    <string name="category_calves">Calves</string>
+    <string name="category_full_body">Full body</string>
+    <string name="category_cardio">Cardio</string>
+
+    <!-- Muscles -->
+    <string name="muscle_chest">Chest</string>
+    <string name="muscle_upper_chest">Upper chest</string>
+    <string name="muscle_lower_chest">Lower chest</string>
+    <string name="muscle_shoulders">Shoulders</string>
+    <string name="muscle_front_delts">Front delts</string>
+    <string name="muscle_side_delts">Side delts</string>
+    <string name="muscle_rear_delts">Rear delts</string>
+    <string name="muscle_rotator_cuff">Rotator cuff</string>
+    <string name="muscle_back">Back</string>
+    <string name="muscle_lats">Lats</string>
+    <string name="muscle_mid_back">Mid back</string>
+    <string name="muscle_lower_back">Lower back</string>
+    <string name="muscle_traps">Traps</string>
+    <string name="muscle_arms">Arms</string>
+    <string name="muscle_biceps">Biceps</string>
+    <string name="muscle_biceps_long_head">Biceps long head</string>
+    <string name="muscle_biceps_short_head">Biceps short head</string>
+    <string name="muscle_brachialis">Brachialis</string>
+    <string name="muscle_brachioradialis">Brachioradialis</string>
+    <string name="muscle_triceps">Triceps</string>
+    <string name="muscle_triceps_long_head">Triceps long head</string>
+    <string name="muscle_forearms">Forearms</string>
+    <string name="muscle_core">Core</string>
+    <string name="muscle_abs">Abs</string>
+    <string name="muscle_obliques">Obliques</string>
+    <string name="muscle_transverse_abdominis">Transverse abdominis</string>
+    <string name="muscle_hip_flexors">Hip flexors</string>
+    <string name="muscle_legs">Legs</string>
+    <string name="muscle_quads">Quads</string>
+    <string name="muscle_hamstrings">Hamstrings</string>
+    <string name="muscle_adductors">Adductors</string>
+    <string name="muscle_glutes">Glutes</string>
+    <string name="muscle_glute_medius">Glute medius</string>
+    <string name="muscle_calves">Calves</string>
+    <string name="muscle_soleus">Soleus</string>
+    <string name="muscle_posterior_chain">Posterior chain</string>
+    <string name="muscle_full_body">Full body</string>
+    <string name="muscle_cardio">Cardio</string>
+
+    <!-- Matériel -->
+    <string name="equipment_machine">Machine</string>
+    <string name="equipment_cable">Cable</string>
+    <string name="equipment_smith_machine">Smith machine</string>
+    <string name="equipment_barbell">Barbell</string>
+    <string name="equipment_ez_bar">EZ bar</string>
+    <string name="equipment_trap_bar">Trap bar</string>
+    <string name="equipment_dumbbell">Dumbbells</string>
+    <string name="equipment_kettlebell">Kettlebell</string>
+    <string name="equipment_plate">Weight plate</string>
+    <string name="equipment_bodyweight">Bodyweight</string>
+    <string name="equipment_ab_wheel">Ab wheel</string>
+    <string name="equipment_cardio_machine">Cardio machine</string>
+    <string name="equipment_sled">Sled</string>
+    <string name="equipment_battle_rope">Battle rope</string>
+    <string name="equipment_jump_rope">Jump rope</string>
+    <string name="equipment_other">Other</string>
+</resources>

@@ -15,6 +15,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import fr.acano.workout.R
 
@@ -36,6 +37,10 @@ fun StepperRow(
             text = label,
             style = MaterialTheme.typography.bodyLarge,
             color = MaterialTheme.colorScheme.onSurfaceVariant,
+            // Sur une ligne : « Distance » coupé en « Distanc / e » se lit mal.
+            maxLines = 1,
+            softWrap = false,
+            overflow = TextOverflow.Ellipsis,
             modifier = Modifier.weight(1f),
         )
         IconButton(onClick = onDecrement, enabled = canDecrement) {
@@ -46,8 +51,9 @@ fun StepperRow(
             style = MaterialTheme.typography.titleLarge,
             textAlign = TextAlign.Center,
             maxLines = 1,
-            // Assez large pour « 1 min 30 » sans retour à la ligne.
-            modifier = Modifier.width(112.dp),
+            // Assez large pour « 1 min 30 » sans retour à la ligne, en laissant
+            // au libellé la place de « Distance » dans une boîte de dialogue.
+            modifier = Modifier.width(100.dp),
         )
         IconButton(onClick = onIncrement, enabled = canIncrement) {
             Icon(Icons.Rounded.Add, contentDescription = stringResource(R.string.comp_stepper_increase, label))

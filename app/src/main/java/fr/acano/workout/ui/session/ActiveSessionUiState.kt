@@ -22,6 +22,28 @@ data class CurrentStep(
     val targetDurationSeconds: Int? = null,
     /** Repos après une série, en secondes. 0 = pas de chrono. */
     val restSeconds: Int = 0,
+    val targetDistanceMeters: Int? = null,
+    /** Dernière distance des séances précédentes, pour pré-remplir la saisie. */
+    val lastSessionDistanceMeters: Double? = null,
+) {
+    /**
+     * La distance proposée pour la série : celle de la série précédente du
+     * jour, sinon la cible, sinon celle de la dernière séance.
+     */
+    val suggestedDistanceMeters: Double?
+        get() = setsDoneToday.lastOrNull()?.distanceMeters
+            ?: targetDistanceMeters?.toDouble()
+            ?: lastSessionDistanceMeters
+}
+
+/**
+ * Une série chronométrée terminée, dont il reste à noter la distance
+ * parcourue (tapis, rameur…) avant de l'enregistrer.
+ */
+data class PendingDistance(
+    val exerciseSessionId: Long,
+    val setNumber: Int,
+    val durationSeconds: Int,
 )
 
 /** Un exercice restant, tel qu'il apparaît dans la feuille « changer d'exercice ». */
@@ -44,4 +66,6 @@ data class ActiveSessionUiState(
     val isFinished: Boolean = false,
     /** Exercices restants, dans l'ordre : l'étape courante est la première. */
     val pendingSteps: List<PendingStep> = emptyList(),
+    /** Non nul quand une série chronométrée attend sa distance. */
+    val pendingDistance: PendingDistance? = null,
 )

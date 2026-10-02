@@ -21,21 +21,14 @@
     <string name="kind_weighted_reps">Weight and reps</string>
     <string name="kind_reps_only">Reps</string>
     <string name="kind_timed">Timed</string>
+    <string name="kind_weighted_timed">Timed, with weight</string>
+    <string name="kind_distance">Distance</string>
+    <string name="kind_weighted_distance">Weight and distance</string>
+    <string name="kind_timed_distance">Duration and distance</string>
 
     <!-- Programme d'origine -->
     <string name="program_upper_body">Upper body</string>
     <string name="program_lower_body">Lower body</string>
-    <string name="exercise_bike_warmup">Bike</string>
-    <string name="exercise_chest_press">Chest Press</string>
-    <string name="exercise_pec_deck">Pec Deck</string>
-    <string name="exercise_lat_pulldown">Lat pulldown</string>
-    <string name="exercise_seated_row">Seated row</string>
-    <string name="exercise_leg_press">Leg press</string>
-    <string name="exercise_leg_curl">Leg Curl</string>
-    <string name="exercise_leg_extension">Leg Extension</string>
-    <string name="exercise_calf_raise">Calf raise</string>
-    <string name="exercise_plank">Plank</string>
-    <string name="exercise_stomach_vacuum">Stomach Vacuum</string>
 
     <!-- Onglets -->
     <string name="tab_home">Home</string>

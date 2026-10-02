@@ -36,4 +36,5 @@
         <item quantity="other">%d séries</item>
         <item quantity="many">%d séries</item>
     </plurals>
+    <string name="workouts_distance">Distance</string>
 </resources>

@@ -14,17 +14,11 @@ import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.rememberScrollState
-import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.rounded.Add
-import androidx.compose.material.icons.rounded.Close
 import androidx.compose.material.icons.rounded.Edit
-import androidx.compose.material.icons.rounded.Search
-import androidx.compose.material3.Icon
-import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
@@ -33,16 +27,18 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.pluralStringResource
 import androidx.compose.ui.res.stringResource
-import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import fr.acano.workout.R
-import fr.acano.workout.domain.ExerciseKind
+import fr.acano.workout.data.db.entity.ExerciseEntity
 import fr.acano.workout.ui.common.LocalWeightUnit
 import fr.acano.workout.ui.common.formatDate
 import fr.acano.workout.ui.common.formatWeight
 import fr.acano.workout.ui.common.label
 import fr.acano.workout.ui.common.locale
+import fr.acano.workout.ui.common.summary
+import fr.acano.workout.ui.components.CatalogSearchField
+import fr.acano.workout.ui.components.CategoryFilterRow
 import fr.acano.workout.ui.components.ExerciseImage
 import fr.acano.workout.ui.components.RowDivider
 import fr.acano.workout.ui.components.SectionHeader
@@ -68,7 +64,7 @@ fun ExercisesScreen(
     onCreateExercise: () -> Unit,
 ) {
     val state by viewModel.state.collectAsStateWithLifecycle()
-    val searching = state.query.isNotBlank()
+    val searching = state.filter.isActive
 
     LazyColumn(
         contentPadding = PaddingValues(
@@ -81,22 +77,12 @@ fun ExercisesScreen(
     ) {
         item {
             ScreenTitle(stringResource(R.string.tab_exercises))
-            OutlinedTextField(
-                value = state.query,
-                onValueChange = viewModel::setQuery,
-                placeholder = { Text(stringResource(R.string.exercises_search_placeholder)) },
-                leadingIcon = { Icon(Icons.Rounded.Search, contentDescription = null) },
-                trailingIcon = {
-                    if (searching) {
-                        IconButton(onClick = { viewModel.setQuery("") }) {
-                            Icon(Icons.Rounded.Close, contentDescription = stringResource(R.string.exercises_clear_search))
-                        }
-                    }
-                },
-                singleLine = true,
-                keyboardOptions = KeyboardOptions(imeAction = ImeAction.Search),
-                shape = MaterialTheme.shapes.extraLarge,
-                modifier = Modifier.fillMaxWidth(),
+            CatalogSearchField(query = state.query, onQueryChange = viewModel::setQuery)
+            Spacer(Modifier.height(WorkoutTheme.spacing.md))
+            CategoryFilterRow(
+                categories = state.categories,
+                selected = state.filter.category,
+                onSelect = viewModel::setCategory,
             )
             Spacer(Modifier.height(WorkoutTheme.spacing.xl))
         }
@@ -104,7 +90,11 @@ fun ExercisesScreen(
         if (searching && state.custom.isEmpty() && state.builtIn.isEmpty()) {
             item {
                 Text(
-                    text = stringResource(R.string.exercises_no_match, state.query.trim()),
+                    text = if (state.query.isNotBlank()) {
+                        stringResource(R.string.exercises_no_match, state.query.trim())
+                    } else {
+                        stringResource(R.string.exercises_no_filter_match)
+                    },
                     style = MaterialTheme.typography.bodyMedium,
                     color = MaterialTheme.colorScheme.onSurfaceVariant,
                 )
@@ -175,23 +165,58 @@ private fun ExerciseRow(row: ExerciseRow, onClick: () -> Unit) {
             Text(row.exercise.name, style = MaterialTheme.typography.titleMedium)
             Spacer(Modifier.height(2.dp))
             Text(
-                text = usageLabel(row.sessionCount, row.lastDoneAt),
+                text = row.exercise.summary(),
                 style = MaterialTheme.typography.bodySmall,
                 color = MaterialTheme.colorScheme.onSurfaceVariant,
             )
+            // Sur deux cents exercices, « Jamais fait » partout ne dirait rien.
+            if (row.sessionCount > 0) {
+                Text(
+                    text = usageLabel(row.sessionCount, row.lastDoneAt),
+                    style = MaterialTheme.typography.bodySmall,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                )
+            }
         }
 
-        // Une charge n'a de sens que pour un exercice chargé.
-        if (row.exercise.kind == ExerciseKind.WEIGHTED_REPS) {
+        // Une charge n'a de sens que pour un exercice chargé, et une fois qu'il a
+        // été fait : sur deux cents lignes, une colonne de tirets ne dirait rien.
+        if (row.exercise.kind.hasWeight && row.lastWeightKg != null) {
             Text(
                 text = formatWeight(row.lastWeightKg, LocalWeightUnit.current),
                 style = WorkoutTheme.emphasis.metricSmall,
-                color = if (row.lastWeightKg != null) {
-                    MaterialTheme.colorScheme.onSurface
-                } else {
-                    MaterialTheme.colorScheme.onSurfaceVariant
-                },
+                color = MaterialTheme.colorScheme.onSurface,
             )
+        }
+    }
+}
+
+/**
+ * Ce que l'exercice travaille et avec quoi : muscle principal, muscles
+ * secondaires, matériel. Une ligne n'apparaît que si l'information existe.
+ */
+@Composable
+private fun ExerciseDetails(exercise: ExerciseEntity) {
+    val rows = listOfNotNull(
+        exercise.primaryMuscle?.let { stringResource(R.string.exercises_primary_muscle) to it.label },
+        exercise.secondaryMuscles.takeIf { it.isNotEmpty() }?.let { muscles ->
+            stringResource(R.string.exercises_secondary_muscles) to muscles.map { it.label }.joinToString(", ")
+        },
+        exercise.equipment?.let { stringResource(R.string.exercises_equipment) to it.label },
+        exercise.category?.let { stringResource(R.string.exercises_category) to it.label },
+    )
+    if (rows.isEmpty()) return
+
+    Spacer(Modifier.height(WorkoutTheme.spacing.xl))
+    rows.forEach { (label, value) ->
+        Row(Modifier.padding(vertical = WorkoutTheme.spacing.xs)) {
+            Text(
+                text = label,
+                style = MaterialTheme.typography.bodyMedium,
+                color = MaterialTheme.colorScheme.onSurfaceVariant,
+                modifier = Modifier.width(150.dp),
+            )
+            Text(text = value, style = MaterialTheme.typography.bodyMedium, modifier = Modifier.weight(1f))
         }
     }
 }
@@ -259,6 +284,8 @@ fun ExerciseDetailScreen(
                 Spacer(Modifier.height(WorkoutTheme.spacing.md))
                 WorkoutTonalButton(text = stringResource(R.string.exercises_edit), onClick = onEdit, icon = Icons.Rounded.Edit)
             }
+
+            ExerciseDetails(exercise)
         }
 
         val lastWeight = state.lastWeightKg

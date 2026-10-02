@@ -5,16 +5,19 @@ import androidx.lifecycle.viewModelScope
 import fr.acano.workout.data.db.entity.ExerciseEntity
 import fr.acano.workout.data.db.entity.SetResultEntity
 import fr.acano.workout.data.repository.WorkoutRepository
-import fr.acano.workout.data.seed.Program
+import fr.acano.workout.domain.ExerciseCategory
 import fr.acano.workout.domain.bestSetIndex
 import fr.acano.workout.domain.latestSessionBest
+import fr.acano.workout.ui.common.CatalogFilter
+import fr.acano.workout.ui.common.catalogueOrder
+import fr.acano.workout.ui.common.categoriesOf
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.stateIn
-import java.text.Normalizer
+import kotlinx.coroutines.flow.update
 
 data class ExerciseRow(
     val exercise: ExerciseEntity,
@@ -27,23 +30,27 @@ data class ExerciseRow(
 
 /** Le catalogue en deux parties : ce que fournit l'application, et ce que l'utilisateur a ajouté. */
 data class ExercisesUiState(
-    val query: String = "",
+    val filter: CatalogFilter = CatalogFilter(),
     val builtIn: List<ExerciseRow> = emptyList(),
     val custom: List<ExerciseRow> = emptyList(),
     /** Vrai si l'utilisateur a au moins un exercice à lui, recherche ou pas. */
     val hasCustom: Boolean = false,
-)
+    /** Les familles proposées en filtre : celles qui ont au moins un exercice. */
+    val categories: List<ExerciseCategory> = emptyList(),
+) {
+    val query: String get() = filter.query
+}
 
 class ExercisesViewModel(repository: WorkoutRepository) : ViewModel() {
 
-    private val query = MutableStateFlow("")
+    private val filter = MutableStateFlow(CatalogFilter())
 
     val state: StateFlow<ExercisesUiState> = combine(
         repository.observeCatalogue(),
         repository.observeRecentWeightedSets(),
         repository.observeExerciseUsage(),
-        query,
-    ) { exercises, recentSets, usage, query ->
+        filter,
+    ) { exercises, recentSets, usage, filter ->
         val byExercise = recentSets.groupBy { it.exerciseId }
         fun row(exercise: ExerciseEntity) = ExerciseRow(
             exercise = exercise,
@@ -51,32 +58,30 @@ class ExercisesViewModel(repository: WorkoutRepository) : ViewModel() {
             sessionCount = usage[exercise.id]?.sessionCount ?: 0,
             lastDoneAt = usage[exercise.id]?.lastDoneAt,
         )
-        val needle = query.normalized()
-        val (custom, builtIn) = exercises
-            .filter { it.id != Program.BIKE }
-            .partition { it.isCustom }
+        val (custom, builtIn) = exercises.partition { it.isCustom }
         ExercisesUiState(
-            query = query,
+            filter = filter,
             builtIn = builtIn
-                .filter { needle.isEmpty() || needle in it.name.normalized() }
-                .sortedBy { Program.exercises.indexOfFirst { e -> e.id == it.id } }
+                .filter(filter::matches)
+                .sortedWith(catalogueOrder)
                 .map(::row),
             custom = custom
-                .filter { needle.isEmpty() || needle in it.name.normalized() }
+                .filter(filter::matches)
                 .sortedBy { it.name.lowercase() }
                 .map(::row),
             hasCustom = custom.isNotEmpty(),
+            categories = categoriesOf(exercises),
         )
     }.stateIn(viewModelScope, SharingStarted.WhileSubscribed(5_000), ExercisesUiState())
 
     fun setQuery(value: String) {
-        query.value = value.take(40)
+        filter.update { it.copy(query = value.take(40)) }
+    }
+
+    fun setCategory(category: ExerciseCategory?) {
+        filter.update { it.copy(category = category) }
     }
 }
-
-/** Recherche tolérante : « presse », « Presse » et « préssé » se retrouvent. */
-private fun String.normalized(): String =
-    Normalizer.normalize(trim().lowercase(), Normalizer.Form.NFD).replace(Regex("\\p{Mn}+"), "")
 
 /** Une séance passée, dans l'historique d'un exercice : sa date et ses séries. */
 data class ExerciseHistoryEntry(

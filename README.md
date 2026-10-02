@@ -96,16 +96,34 @@ premier plan, donc Android ne gèle pas le process et la vibration part bien à 
 premier lancement pour que les séries enregistrées pointent vers des exercices stables ;
 il n'y a pas de table « modèle de séance ».
 
+## Le catalogue d'exercices
+
+Les exercices fournis sont décrits dans `app/src/main/resources/catalog/exercises.json` :
+identifiant, nom en français et en anglais, famille (`category`), muscle principal et
+muscles secondaires, matériel et mode de suivi (`tracking_type`). Le fichier est lu par
+`ExerciseCatalog` ; une valeur inconnue fait échouer `ExerciseCatalogTest`.
+
+Au démarrage, les exercices absents de la base y sont ajoutés et ceux déjà présents
+reprennent les détails du catalogue. Un identifiant publié ne change plus : les séries
+enregistrées y font référence.
+
+| `tracking_type` | Saisie pendant la séance |
+|---|---|
+| `WEIGHT_REPS` | charge + répétitions |
+| `REPS_ONLY` | répétitions |
+| `DURATION` | chrono |
+| `WEIGHT_DURATION` | charge + chrono |
+| `DISTANCE` | distance |
+| `WEIGHT_DISTANCE` | charge + distance |
+| `DURATION_DISTANCE` | chrono, puis la distance lue sur la machine |
+
 ## Animations des exercices
 
 Dépose les fichiers dans `app/src/main/assets/exercises/`, nommés d'après l'identifiant
-de l'exercice : `chest_press.gif`, `leg_press.webp`, `plank.gif`…
+de l'exercice du catalogue : `chest_press.webp`, `leg_press.webp`, `plank.webp`…
 Les extensions `.gif`, `.webp`, `.png`, `.jpg` sont acceptées — **le WebP animé est
-recommandé**, 3 à 5 fois plus léger qu'un GIF à qualité égale.
-
-Identifiants attendus :
-`bike_warmup`, `chest_press`, `pec_deck`, `lat_pulldown`, `seated_row`,
-`leg_press`, `leg_curl`, `leg_extension`, `calf_raise`, `plank`, `stomach_vacuum`.
+recommandé** (724 × 724, fond transparent, comme les animations actuelles), 3 à 5 fois
+plus léger qu'un GIF à qualité égale.
 
 Tant qu'un fichier est absent, un visuel de remplacement s'affiche : rien ne casse.
 
@@ -117,9 +135,9 @@ Les deux séances comptent 7 étapes et commencent par 5 minutes de vélo.
 |---|---|
 | Vélo 5 min | Vélo 5 min |
 | Chest Press — 4 × 8–12 | Presse à cuisses — 4 × 8–12 |
-| Pec Deck — 3 × 10–15 | Leg Curl — 3 × 10–15 |
+| Pec Deck — 3 × 10–15 | Leg Curl allongé — 3 × 10–15 |
 | Tirage vertical — 3 × 8–12 | Leg Extension — 3 × 10–15 |
-| Tirage horizontal — 3 × 8–12 | Mollets — 3 × 12–20 |
+| Tirage horizontal — 3 × 8–12 | Mollets debout machine — 3 × 12–20 |
 | Planche — 4 × 1 min | Planche — 4 × 1 min |
 | Stomach Vacuum — 3 à 5 | Stomach Vacuum — 3 à 5 |
 

@@ -14,6 +14,7 @@ import fr.acano.workout.data.db.entity.ExerciseEntity
 import fr.acano.workout.data.db.entity.ExerciseSessionEntity
 import fr.acano.workout.data.db.entity.SetResultEntity
 import fr.acano.workout.data.db.entity.WorkoutSessionEntity
+import fr.acano.workout.data.seed.ExerciseCatalog
 import fr.acano.workout.data.seed.LocalizedNames
 import fr.acano.workout.data.seed.Program
 import fr.acano.workout.domain.PlannedStep
@@ -28,11 +29,38 @@ class WorkoutRepository(
     private val now: () -> Long = System::currentTimeMillis,
 ) {
 
-    /** Insère le programme au premier lancement, et complète le catalogue après une mise à jour. */
+    /**
+     * Insère le catalogue au premier lancement, le complète après une mise à
+     * jour, et remet les exercices déjà présents en accord avec lui (muscles,
+     * matériel…) : une installation ancienne reçoit ainsi les mêmes détails
+     * qu'une nouvelle. Les exercices renommés (voir [ExerciseCatalog.renamedIds])
+     * emportent leur historique sous leur nouvel identifiant.
+     */
     suspend fun ensureSeeded() {
         val existing = exerciseDao.getAll().associateBy { it.id }
         val missing = Program.exercises.filter { it.id !in existing }
         if (missing.isNotEmpty()) exerciseDao.insertAll(missing)
+        ExerciseCatalog.renamedIds.forEach { (oldId, newId) ->
+            if (existing[oldId]?.isCustom == false) exerciseDao.replaceBuiltInId(oldId, newId)
+        }
+        Program.exercises.forEach { expected ->
+            val current = existing[expected.id]?.takeUnless { it.isCustom } ?: return@forEach
+            val upToDate = current.kind == expected.kind &&
+                current.category == expected.category &&
+                current.primaryMuscle == expected.primaryMuscle &&
+                current.secondaryMuscles == expected.secondaryMuscles &&
+                current.equipment == expected.equipment
+            if (!upToDate) {
+                exerciseDao.updateBuiltInDetails(
+                    id = expected.id,
+                    kind = expected.kind,
+                    category = expected.category,
+                    primaryMuscle = expected.primaryMuscle,
+                    secondaryMuscles = expected.secondaryMuscles,
+                    equipment = expected.equipment,
+                )
+            }
+        }
     }
 
     /** Tous les exercices, archivés compris : l'historique a besoin de leurs noms. */
@@ -106,6 +134,14 @@ class WorkoutRepository(
                 .toMap()
         }
 
+    /** Dernière distance connue par exercice, en excluant la séance en cours. */
+    fun observePreviousDistances(sessionId: Long): Flow<Map<String, Double>> =
+        workoutDao.observePreviousDistances(sessionId).map { sets ->
+            sets.groupBy { it.exerciseId }
+                .mapNotNull { (id, rows) -> rows.firstOrNull()?.distanceMeters?.let { id to it } }
+                .toMap()
+        }
+
     // --- Séance ---
 
     fun observeActiveSession(): Flow<SessionWithContent?> = workoutDao.observeActiveSession()
@@ -145,6 +181,7 @@ class WorkoutRepository(
                 targetRepsMax = it.targetRepsMax,
                 targetDurationSeconds = it.targetDurationSeconds,
                 restSeconds = it.restSeconds,
+                targetDistanceMeters = it.targetDistanceMeters,
             )
         }
         return createSession(
@@ -174,6 +211,7 @@ class WorkoutRepository(
                 targetRepsMax = step.targetRepsMax,
                 targetDurationSeconds = step.targetDurationSeconds,
                 restSeconds = step.restSeconds,
+                targetDistanceMeters = step.targetDistanceMeters,
             )
         }
         workoutDao.insertExerciseSessions(steps)
@@ -218,6 +256,7 @@ class WorkoutRepository(
                     targetRepsMax = step.targetRepsMax,
                     targetDurationSeconds = step.targetDurationSeconds,
                     restSeconds = step.restSeconds.coerceAtLeast(0),
+                    targetDistanceMeters = step.targetDistanceMeters,
                 )
             },
         )
@@ -276,6 +315,7 @@ class WorkoutRepository(
         weightKg: Double? = null,
         repetitions: Int? = null,
         durationSeconds: Int? = null,
+        distanceMeters: Double? = null,
     ) {
         workoutDao.insertSetResult(
             SetResultEntity(
@@ -286,6 +326,7 @@ class WorkoutRepository(
                 repetitions = repetitions,
                 durationSeconds = durationSeconds,
                 completedAt = now(),
+                distanceMeters = distanceMeters,
             ),
         )
     }

@@ -112,6 +112,34 @@ class MigrationTest {
     }
 
     @Test
+    fun `la v7 ajoute les details sans toucher aux donnees`() {
+        createAt(6) {
+            execSQL(
+                "INSERT INTO exercise (id, name, kind, weightStepKg, imagePath, isCustom, archivedAt) VALUES " +
+                    "('custom_1', 'Gainage', 'TIMED', 2.5, NULL, 1, NULL)",
+            )
+            execSQL("INSERT INTO workout_session (id, type, startedAt, starAwarded) VALUES (1, 'CUSTOM', 0, 0)")
+            execSQL(
+                "INSERT INTO exercise_session (id, sessionId, exerciseId, position, plannedSets, restSeconds) " +
+                    "VALUES (1, 1, 'custom_1', 0, 3, 30)",
+            )
+            execSQL(
+                "INSERT INTO set_result (exerciseSessionId, exerciseId, setNumber, durationSeconds, completedAt) " +
+                    "VALUES (1, 'custom_1', 1, 45, 10)",
+            )
+        }
+
+        val db = openMigrated()
+
+        assertEquals(
+            listOf(listOf("Gainage", "TIMED", null, "", null)),
+            db.rows("SELECT name, kind, category, secondaryMuscles, equipment FROM exercise WHERE id = 'custom_1'"),
+        )
+        assertEquals(listOf(listOf("45", null)), db.rows("SELECT durationSeconds, distanceMeters FROM set_result"))
+        assertEquals(listOf(listOf("30", null)), db.rows("SELECT restSeconds, targetDistanceMeters FROM exercise_session"))
+    }
+
+    @Test
     fun `toute la chaine de migrations mene au schema courant`() {
         createAt(1)
         val db = openMigrated()

@@ -7,7 +7,10 @@ import androidx.lifecycle.viewModelScope
 import fr.acano.workout.data.ExerciseImageStore
 import fr.acano.workout.data.db.entity.ExerciseEntity
 import fr.acano.workout.data.repository.WorkoutRepository
+import fr.acano.workout.domain.Equipment
+import fr.acano.workout.domain.ExerciseCategory
 import fr.acano.workout.domain.ExerciseKind
+import fr.acano.workout.domain.Muscle
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
@@ -20,6 +23,10 @@ data class ExerciseEditorUiState(
     val name: String = "",
     val kind: ExerciseKind = ExerciseKind.WEIGHTED_REPS,
     val weightStepKg: Double = 2.5,
+    /** Facultatifs : ils rangent l'exercice dans les filtres du catalogue. */
+    val category: ExerciseCategory? = null,
+    val primaryMuscle: Muscle? = null,
+    val equipment: Equipment? = null,
     /** Image déjà enregistrée pour cet exercice. */
     val savedImagePath: String? = null,
     /** Image choisie dans la galerie, pas encore copiée : elle ne l'est qu'à l'enregistrement. */
@@ -39,7 +46,8 @@ data class ExerciseEditorUiState(
 /**
  * Création et modification d'un exercice de l'utilisateur.
  *
- * Un exercice ne décrit que le mouvement : nom, type, image et pas de charge.
+ * Un exercice ne décrit que le mouvement : nom, type, image, pas de charge et,
+ * si on le souhaite, sa famille, son muscle principal et son matériel.
  * Séries, répétitions et repos se règlent dans chaque entraînement.
  *
  * Comme pour les entraînements, rien n'est écrit avant l'enregistrement — pas
@@ -73,6 +81,9 @@ class ExerciseEditorViewModel(
                     name = exercise.name,
                     kind = exercise.kind,
                     weightStepKg = exercise.weightStepKg,
+                    category = exercise.category,
+                    primaryMuscle = exercise.primaryMuscle,
+                    equipment = exercise.equipment,
                     savedImagePath = exercise.imagePath,
                 )
             }
@@ -84,6 +95,12 @@ class ExerciseEditorViewModel(
     fun setKind(kind: ExerciseKind) = _state.update { it.copy(kind = kind) }
 
     fun setWeightStep(kg: Double) = _state.update { it.copy(weightStepKg = kg) }
+
+    fun setCategory(category: ExerciseCategory?) = _state.update { it.copy(category = category) }
+
+    fun setPrimaryMuscle(muscle: Muscle?) = _state.update { it.copy(primaryMuscle = muscle) }
+
+    fun setEquipment(equipment: Equipment?) = _state.update { it.copy(equipment = equipment) }
 
     fun pickImage(uri: Uri) = _state.update { it.copy(pickedImage = uri.toString(), imageRemoved = false, imageError = false) }
 
@@ -115,6 +132,11 @@ class ExerciseEditorViewModel(
                 weightStepKg = state.weightStepKg,
                 imagePath = imagePath,
                 isCustom = true,
+                category = state.category,
+                primaryMuscle = state.primaryMuscle,
+                // Les muscles secondaires ne se saisissent pas : on les garde tels quels.
+                secondaryMuscles = existing?.secondaryMuscles.orEmpty(),
+                equipment = state.equipment,
             ),
         )
         // L'ancienne copie n'est effacée qu'une fois la nouvelle référencée en base.

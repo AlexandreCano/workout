@@ -28,7 +28,7 @@ import fr.acano.workout.data.seed.ProgramSeed
         CustomWorkoutEntity::class,
         CustomWorkoutExerciseEntity::class,
     ],
-    version = 6,
+    version = 7,
     exportSchema = true,
     // v2 : entraînements personnalisés. Deux tables et deux colonnes nullables
     // ajoutées, rien de supprimé : Room sait générer la migration seul.
@@ -39,10 +39,13 @@ import fr.acano.workout.data.seed.ProgramSeed
     // v6 : séries, cibles et repos quittent l'exercice pour les étapes
     // d'entraînement et de séance ; archivage des exercices. Migration manuelle,
     // les valeurs devant être recopiées avant de disparaître : voir MIGRATION_5_6.
+    // v7 : catalogue complet — catégorie, muscles et matériel des exercices,
+    // distance des séries et des cibles. Colonnes ajoutées seulement.
     autoMigrations = [
         AutoMigration(from = 1, to = 2),
         AutoMigration(from = 2, to = 3),
         AutoMigration(from = 4, to = 5),
+        AutoMigration(from = 6, to = 7),
     ],
 )
 @TypeConverters(Converters::class)

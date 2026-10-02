@@ -1,6 +1,7 @@
 package fr.acano.workout.domain
 
 import fr.acano.workout.data.db.entity.SetResultEntity
+import fr.acano.workout.data.seed.ExerciseCatalog
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertNull
 import org.junit.Test
@@ -70,5 +71,31 @@ class CaloriesTest {
         )
         assertEquals(49.0, kcal[0]!!, 1e-9) // 10 min × 4,9 kcal/min
         assertNull(kcal[1])
+    }
+
+    private fun met(id: String) = Calories.metFor(ExerciseCatalog[id]!!)
+
+    @Test
+    fun `chaque exercice du catalogue a une estimation`() {
+        ExerciseCatalog.entries.forEach { assertEquals(it.id, true, Calories.hasEstimate(it.id)) }
+    }
+
+    @Test
+    fun `les exercices d origine gardent leur met`() {
+        assertEquals(5.5, met("bike_warmup"), 0.0)
+        assertEquals(3.5, met("chest_press"), 0.0)
+        assertEquals(3.5, met("lying_leg_curl"), 0.0)
+        assertEquals(5.0, met("leg_press"), 0.0)
+        assertEquals(3.8, met("plank"), 0.0)
+        assertEquals(1.5, met("stomach_vacuum"), 0.0)
+    }
+
+    @Test
+    fun `le met suit la famille de l exercice`() {
+        assertEquals(5.0, met("barbell_back_squat"), 0.0)
+        assertEquals(3.5, met("leg_extension"), 0.0)
+        assertEquals(3.8, met("push_up"), 0.0)
+        assertEquals(7.0, met("rowing_machine"), 0.0)
+        assertEquals(11.8, met("jump_rope"), 0.0)
     }
 }

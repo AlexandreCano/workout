@@ -172,7 +172,7 @@ private fun WeightValue(weightKg: Double?, unit: WeightUnit, modifier: Modifier 
 
 @OptIn(ExperimentalFoundationApi::class)
 @Composable
-private fun StepperTarget(
+internal fun StepperTarget(
     icon: androidx.compose.ui.graphics.vector.ImageVector,
     contentDescription: String,
     onClick: () -> Unit,

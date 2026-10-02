@@ -1,6 +1,7 @@
 package fr.acano.workout.data.seed
 
 import fr.acano.workout.data.db.entity.ExerciseEntity
+import fr.acano.workout.domain.ExerciseCategory
 import fr.acano.workout.domain.ExerciseKind
 import fr.acano.workout.domain.PlannedStep
 import fr.acano.workout.domain.WorkoutType
@@ -9,9 +10,10 @@ import fr.acano.workout.domain.WorkoutType
  * Le programme d'origine, défini en dur.
  *
  * Deux choses bien séparées :
- *  - [exercises], les exercices fournis avec l'application : le mouvement seul
- *    (nom, type, pas de charge), copié en base au premier lancement pour que
- *    les séries enregistrées pointent vers des exercices stables ;
+ *  - [exercises], les exercices fournis avec l'application, décrits par le
+ *    catalogue ([ExerciseCatalog]) : le mouvement seul (nom, type, muscles,
+ *    matériel), copié en base au premier lancement pour que les séries
+ *    enregistrées pointent vers des exercices stables ;
  *  - les plans des deux séances, qui portent séries, cibles et repos. Ils ne
  *    servent qu'à créer les entraînements « Haut du corps » et « Bas du corps »
  *    au premier lancement (voir `ProgramSeed`), qui se modifient ensuite comme
@@ -23,27 +25,7 @@ object Program {
     const val PLANK = "plank"
     const val STOMACH_VACUUM = "stomach_vacuum"
 
-    val exercises: List<ExerciseEntity> = listOf(
-        ExerciseEntity(id = BIKE, name = "Vélo", kind = ExerciseKind.TIMED),
-        // --- Haut du corps ---
-        ExerciseEntity(id = "chest_press", name = "Chest Press", kind = ExerciseKind.WEIGHTED_REPS),
-        ExerciseEntity(id = "pec_deck", name = "Pec Deck", kind = ExerciseKind.WEIGHTED_REPS),
-        ExerciseEntity(id = "lat_pulldown", name = "Tirage vertical", kind = ExerciseKind.WEIGHTED_REPS),
-        ExerciseEntity(id = "seated_row", name = "Tirage horizontal", kind = ExerciseKind.WEIGHTED_REPS),
-        // --- Bas du corps ---
-        ExerciseEntity(
-            id = "leg_press",
-            name = "Presse à cuisses",
-            kind = ExerciseKind.WEIGHTED_REPS,
-            weightStepKg = 5.0,
-        ),
-        ExerciseEntity(id = "leg_curl", name = "Leg Curl", kind = ExerciseKind.WEIGHTED_REPS),
-        ExerciseEntity(id = "leg_extension", name = "Leg Extension", kind = ExerciseKind.WEIGHTED_REPS),
-        ExerciseEntity(id = "calf_raise", name = "Mollets", kind = ExerciseKind.WEIGHTED_REPS),
-        // --- Fin de séance, commun aux deux séances ---
-        ExerciseEntity(id = PLANK, name = "Planche", kind = ExerciseKind.TIMED),
-        ExerciseEntity(id = STOMACH_VACUUM, name = "Stomach Vacuum", kind = ExerciseKind.REPS_ONLY),
-    )
+    val exercises: List<ExerciseEntity> by lazy { ExerciseCatalog.entries.map { it.toEntity() } }
 
     private val warmUp = PlannedStep(BIKE, plannedSets = 1, targetDurationSeconds = 5 * 60, restSeconds = 0)
 
@@ -61,9 +43,9 @@ object Program {
 
     private val lowerBody = listOf(warmUp) + listOf(
         PlannedStep("leg_press", plannedSets = 4, targetRepsMin = 8, targetRepsMax = 12),
-        PlannedStep("leg_curl", plannedSets = 3, targetRepsMin = 10, targetRepsMax = 15),
+        PlannedStep("lying_leg_curl", plannedSets = 3, targetRepsMin = 10, targetRepsMax = 15),
         PlannedStep("leg_extension", plannedSets = 3, targetRepsMin = 10, targetRepsMax = 15),
-        PlannedStep("calf_raise", plannedSets = 3, targetRepsMin = 12, targetRepsMax = 20),
+        PlannedStep("standing_calf_raise", plannedSets = 3, targetRepsMin = 12, targetRepsMax = 20),
     ) + core
 
     /** Les séances définies par le programme, dans l'ordre d'affichage. */
@@ -86,7 +68,20 @@ object Program {
                     PlannedStep(exerciseId, plannedSets = 3, targetRepsMin = 8, targetRepsMax = 12)
                 ExerciseKind.REPS_ONLY ->
                     PlannedStep(exerciseId, plannedSets = 3, targetRepsMin = 10, targetRepsMax = 15)
+                // Le cardio se fait d'une traite : une série de dix minutes, sans repos.
+                ExerciseKind.TIMED_DISTANCE ->
+                    PlannedStep(exerciseId, plannedSets = 1, targetDurationSeconds = 10 * 60, restSeconds = 0)
                 ExerciseKind.TIMED ->
-                    PlannedStep(exerciseId, plannedSets = 3, targetDurationSeconds = 60)
+                    if (ExerciseCatalog[exerciseId]?.category == ExerciseCategory.CARDIO) {
+                        PlannedStep(exerciseId, plannedSets = 1, targetDurationSeconds = 10 * 60, restSeconds = 0)
+                    } else {
+                        PlannedStep(exerciseId, plannedSets = 3, targetDurationSeconds = 60)
+                    }
+                ExerciseKind.WEIGHTED_TIMED ->
+                    PlannedStep(exerciseId, plannedSets = 3, targetDurationSeconds = 45)
+                ExerciseKind.WEIGHTED_DISTANCE ->
+                    PlannedStep(exerciseId, plannedSets = 3, targetDistanceMeters = 30, restSeconds = 90)
+                ExerciseKind.DISTANCE ->
+                    PlannedStep(exerciseId, plannedSets = 1, targetDistanceMeters = 1000, restSeconds = 0)
             }
 }

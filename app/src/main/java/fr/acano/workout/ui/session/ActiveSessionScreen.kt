@@ -110,13 +110,14 @@ fun ActiveSessionScreen(
                 onQuit = { showQuitDialog = true },
                 // Rarement utile : une icône discrète plutôt qu'un grand bouton au-dessus de l'exercice.
                 onReorder = { reordering = true }.takeIf {
-                    !reordering && state.timer == null && state.pendingSteps.size > 1
+                    !reordering && state.timer == null && state.pendingDistance == null && state.pendingSteps.size > 1
                 },
             )
 
             AnimatedContent(
                 targetState = when {
                     reordering -> Stage.REORDER
+                    state.pendingDistance != null -> Stage.DISTANCE
                     state.timer != null -> Stage.TIMER
                     else -> Stage.SET_ENTRY
                 },
@@ -152,11 +153,21 @@ fun ActiveSessionScreen(
                         )
                     }
 
+                    Stage.DISTANCE -> state.pendingDistance?.let { pending ->
+                        DistanceEntryStage(
+                            step = step,
+                            pending = pending,
+                            onConfirm = { viewModel.confirmPendingDistance(context, it) },
+                            onSkip = { viewModel.confirmPendingDistance(context, null) },
+                        )
+                    }
+
                     Stage.SET_ENTRY -> SetEntryStage(
                         step = step,
                         canUndo = step.setsDoneToday.isNotEmpty(),
                         onWeightChange = { viewModel.setWeight(context, it) },
                         onValidateReps = { viewModel.validateRepsSet(context, it) },
+                        onValidateDistance = { viewModel.validateDistanceSet(context, it) },
                         onStartEffort = { viewModel.startEffortTimer(context) },
                         onMarkTimedDone = {
                             viewModel.validateTimedSetManually(
@@ -172,8 +183,8 @@ fun ActiveSessionScreen(
     }
 }
 
-/** Les trois états exclusifs de l'écran de séance. */
-private enum class Stage { SET_ENTRY, TIMER, REORDER }
+/** Les états exclusifs de l'écran de séance. */
+private enum class Stage { SET_ENTRY, TIMER, DISTANCE, REORDER }
 
 /**
  * Légende affichée sous le chronomètre : ce qui vient après.

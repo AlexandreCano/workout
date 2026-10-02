@@ -6,12 +6,12 @@ import androidx.lifecycle.viewModelScope
 import fr.acano.workout.data.db.SessionWithContent
 import fr.acano.workout.data.db.entity.ExerciseEntity
 import fr.acano.workout.data.repository.WorkoutRepository
-import fr.acano.workout.domain.ExerciseKind
 import fr.acano.workout.domain.StepState
 import fr.acano.workout.domain.WorkoutProgression
 import fr.acano.workout.timer.ActiveTimer
 import fr.acano.workout.timer.RestTimerService
 import fr.acano.workout.timer.TimerKind
+import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.combine
@@ -30,25 +30,46 @@ class ActiveSessionViewModel(
      */
     private var pendingEffortStepId: Long? = null
 
+    /** Série chronométrée terminée qui attend sa distance (voir [PendingDistance]). */
+    private val pendingDistance = MutableStateFlow<PendingDistance?>(null)
+
+    private val previous = combine(
+        repository.observePreviousWeights(sessionId),
+        repository.observePreviousDistances(sessionId),
+    ) { weights, distances -> Previous(weights, distances) }
+
     val state: StateFlow<ActiveSessionUiState> = combine(
         repository.observeSession(sessionId),
         repository.observeExercises(),
-        repository.observePreviousWeights(sessionId),
+        previous,
         ActiveTimer.state,
-    ) { session, exercises, previousWeights, timer ->
-        buildState(session, exercises.associateBy { it.id }, previousWeights, timer)
+        pendingDistance,
+    ) { session, exercises, previous, timer, pending ->
+        buildState(session, exercises.associateBy { it.id }, previous, timer)
+            // Une distance en attente ne vaut que pour l'étape et la série affichées.
+            .let { state ->
+                state.copy(
+                    pendingDistance = pending?.takeIf {
+                        it.exerciseSessionId == state.step?.exerciseSessionId && it.setNumber == state.step.setNumber
+                    },
+                )
+            }
     }.stateIn(
         scope = viewModelScope,
         started = SharingStarted.WhileSubscribed(5_000),
         initialValue = ActiveSessionUiState(),
     )
 
+    /** Dernières valeurs connues par exercice, hors séance en cours. */
+    private data class Previous(val weights: Map<String, Double>, val distances: Map<String, Double>)
+
     private fun buildState(
         session: SessionWithContent?,
         catalogue: Map<String, ExerciseEntity>,
-        previousWeights: Map<String, Double>,
+        previous: Previous,
         timer: fr.acano.workout.timer.TimerState?,
     ): ActiveSessionUiState {
+        val previousWeights = previous.weights
         if (session == null) {
             return ActiveSessionUiState(isLoading = false, sessionMissing = true)
         }
@@ -74,6 +95,8 @@ class ActiveSessionViewModel(
                 targetRepsMax = planned.targetRepsMax,
                 targetDurationSeconds = planned.targetDurationSeconds,
                 restSeconds = planned.restSeconds,
+                targetDistanceMeters = planned.targetDistanceMeters,
+                lastSessionDistanceMeters = previous.distances[exercise.id],
             )
         }
         val pendingSteps = steps
@@ -126,9 +149,38 @@ class ActiveSessionViewModel(
                 exerciseSessionId = step.exerciseSessionId,
                 exerciseId = step.exercise.id,
                 setNumber = step.setNumber,
-                weightKg = step.plannedWeightKg.takeIf { step.exercise.kind == ExerciseKind.WEIGHTED_REPS },
+                weightKg = step.plannedWeightKg.takeIf { step.exercise.kind.hasWeight },
                 repetitions = repetitions,
             )
+            startRestIfNeeded(context, step)
+        }
+    }
+
+    /** Série mesurée en distance : charge éventuelle + distance parcourue. */
+    fun validateDistanceSet(context: Context, distanceMeters: Double) {
+        val step = state.value.step ?: return
+        viewModelScope.launch {
+            repository.recordSet(
+                exerciseSessionId = step.exerciseSessionId,
+                exerciseId = step.exercise.id,
+                setNumber = step.setNumber,
+                weightKg = step.plannedWeightKg.takeIf { step.exercise.kind.hasWeight },
+                distanceMeters = distanceMeters,
+            )
+            startRestIfNeeded(context, step)
+        }
+    }
+
+    /**
+     * Enregistre la série chronométrée en attente avec la distance saisie, ou
+     * sans distance si [distanceMeters] est nul (« Passer »).
+     */
+    fun confirmPendingDistance(context: Context, distanceMeters: Double?) {
+        val step = state.value.step ?: return
+        val pending = pendingDistance.value?.takeIf { it.exerciseSessionId == step.exerciseSessionId } ?: return
+        pendingDistance.value = null
+        viewModelScope.launch {
+            recordTimedSet(step, pending.durationSeconds, distanceMeters)
             startRestIfNeeded(context, step)
         }
     }
@@ -154,18 +206,19 @@ class ActiveSessionViewModel(
         val step = state.value.step ?: return
         if (pendingEffortStepId != step.exerciseSessionId) return
         pendingEffortStepId = null
+        // La durée réellement chronométrée : ±30 s en cours de série la
+        // font diverger de la cible, et c'est l'effort réel qu'on veut suivre.
+        val seconds = ActiveTimer.state.value
+            ?.takeIf { it.kind == TimerKind.EFFORT }
+            ?.let { ((it.totalMs + 500) / 1000).toInt() }
+            ?: step.targetDurationSeconds
+            ?: return
+        if (step.exercise.kind.hasDistance) {
+            askDistance(context, step, seconds)
+            return
+        }
         viewModelScope.launch {
-            repository.recordSet(
-                exerciseSessionId = step.exerciseSessionId,
-                exerciseId = step.exercise.id,
-                setNumber = step.setNumber,
-                // La durée réellement chronométrée : ±30 s en cours de série la
-                // font diverger de la cible, et c'est l'effort réel qu'on veut suivre.
-                durationSeconds = ActiveTimer.state.value
-                    ?.takeIf { it.kind == TimerKind.EFFORT }
-                    ?.let { ((it.totalMs + 500) / 1000).toInt() }
-                    ?: step.targetDurationSeconds,
-            )
+            recordTimedSet(step, seconds, distanceMeters = null)
             // Pas de stop() ici : startRestIfNeeded arrête déjà le chronomètre
             // quand il n'y a pas de récupération à lancer. Enchaîner un stop et
             // un start faisait se croiser destruction et création du service.
@@ -177,18 +230,35 @@ class ActiveSessionViewModel(
     fun validateTimedSetManually(context: Context, elapsedSeconds: Int) {
         val step = state.value.step ?: return
         pendingEffortStepId = null
+        if (step.exercise.kind.hasDistance) {
+            askDistance(context, step, elapsedSeconds)
+            return
+        }
         viewModelScope.launch {
-            repository.recordSet(
-                exerciseSessionId = step.exerciseSessionId,
-                exerciseId = step.exercise.id,
-                setNumber = step.setNumber,
-                durationSeconds = elapsedSeconds,
-            )
+            recordTimedSet(step, elapsedSeconds, distanceMeters = null)
             // Pas de stop() ici : startRestIfNeeded arrête déjà le chronomètre
             // quand il n'y a pas de récupération à lancer. Enchaîner un stop et
             // un start faisait se croiser destruction et création du service.
             startRestIfNeeded(context, step)
         }
+    }
+
+    /** Le chrono s'arrête ; la série attend la distance parcourue avant d'être enregistrée. */
+    private fun askDistance(context: Context, step: CurrentStep, durationSeconds: Int) {
+        RestTimerService.stop(context)
+        pendingDistance.value = PendingDistance(step.exerciseSessionId, step.setNumber, durationSeconds)
+    }
+
+    /** Une série chronométrée, avec sa charge si l'exercice en a une (planche lestée). */
+    private suspend fun recordTimedSet(step: CurrentStep, durationSeconds: Int, distanceMeters: Double?) {
+        repository.recordSet(
+            exerciseSessionId = step.exerciseSessionId,
+            exerciseId = step.exercise.id,
+            setNumber = step.setNumber,
+            weightKg = step.plannedWeightKg.takeIf { step.exercise.kind.hasWeight },
+            durationSeconds = durationSeconds,
+            distanceMeters = distanceMeters,
+        )
     }
 
     /**
@@ -246,6 +316,7 @@ class ActiveSessionViewModel(
 
     fun skipTimer(context: Context) {
         pendingEffortStepId = null
+        pendingDistance.value = null
         RestTimerService.stop(context)
     }
 

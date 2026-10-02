@@ -7,6 +7,7 @@ import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.FlowRow
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
@@ -21,20 +22,23 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.rounded.AddPhotoAlternate
 import androidx.compose.material.icons.rounded.Check
 import androidx.compose.material.icons.rounded.Delete
-import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.TextButton
 import androidx.compose.material3.AlertDialog
+import androidx.compose.material3.DropdownMenuItem
+import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.ExposedDropdownMenuAnchorType
+import androidx.compose.material3.ExposedDropdownMenuBox
+import androidx.compose.material3.ExposedDropdownMenuDefaults
+import androidx.compose.material3.FilterChip
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextField
-import androidx.compose.material3.SegmentedButton
-import androidx.compose.material3.SegmentedButtonDefaults
-import androidx.compose.material3.SingleChoiceSegmentedButtonRow
 import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.setValue
-import androidx.compose.runtime.remember
 import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -44,9 +48,13 @@ import androidx.compose.ui.text.input.KeyboardCapitalization
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import fr.acano.workout.R
+import fr.acano.workout.domain.Equipment
+import fr.acano.workout.domain.ExerciseCategory
 import fr.acano.workout.domain.ExerciseKind
+import fr.acano.workout.domain.Muscle
 import fr.acano.workout.ui.common.LocalWeightUnit
 import fr.acano.workout.ui.common.formatNumber
+import fr.acano.workout.ui.common.label
 import fr.acano.workout.ui.components.ExerciseImage
 import fr.acano.workout.ui.components.SectionHeader
 import fr.acano.workout.ui.components.StepperRow
@@ -150,35 +158,54 @@ fun ExerciseEditorScreen(
         // --- Type ---
         Spacer(Modifier.height(WorkoutTheme.spacing.xxl))
         SectionHeader(stringResource(R.string.exercises_type))
-        val kinds = listOf(
-            ExerciseKind.WEIGHTED_REPS to stringResource(R.string.exercises_kind_weighted),
-            ExerciseKind.REPS_ONLY to stringResource(R.string.exercises_kind_reps_only),
-            ExerciseKind.TIMED to stringResource(R.string.exercises_kind_timed),
-        )
-        SingleChoiceSegmentedButtonRow(Modifier.fillMaxWidth()) {
-            kinds.forEachIndexed { index, (kind, label) ->
-                SegmentedButton(
+        FlowRow(
+            horizontalArrangement = Arrangement.spacedBy(WorkoutTheme.spacing.sm),
+            modifier = Modifier.fillMaxWidth(),
+        ) {
+            ExerciseKind.entries.forEach { kind ->
+                FilterChip(
                     selected = state.kind == kind,
                     onClick = { viewModel.setKind(kind) },
-                    shape = SegmentedButtonDefaults.itemShape(index, kinds.size),
-                ) { Text(label, maxLines = 1) }
+                    label = { Text(kind.label) },
+                )
             }
         }
         Spacer(Modifier.height(WorkoutTheme.spacing.sm))
         Text(
-            text = stringResource(
-                when (state.kind) {
-                    ExerciseKind.WEIGHTED_REPS -> R.string.exercises_kind_weighted_hint
-                    ExerciseKind.REPS_ONLY -> R.string.exercises_kind_reps_only_hint
-                    ExerciseKind.TIMED -> R.string.exercises_kind_timed_hint
-                },
-            ),
+            text = stringResource(state.kind.hintRes),
             style = MaterialTheme.typography.bodyMedium,
             color = MaterialTheme.colorScheme.onSurfaceVariant,
         )
 
+        // --- Détails ---
+        Spacer(Modifier.height(WorkoutTheme.spacing.xxl))
+        SectionHeader(stringResource(R.string.exercises_details))
+        OptionDropdown(
+            label = stringResource(R.string.exercises_category),
+            selected = state.category,
+            options = ExerciseCategory.entries,
+            optionLabel = { it.label },
+            onSelect = viewModel::setCategory,
+        )
+        Spacer(Modifier.height(WorkoutTheme.spacing.md))
+        OptionDropdown(
+            label = stringResource(R.string.exercises_primary_muscle),
+            selected = state.primaryMuscle,
+            options = Muscle.entries,
+            optionLabel = { it.label },
+            onSelect = viewModel::setPrimaryMuscle,
+        )
+        Spacer(Modifier.height(WorkoutTheme.spacing.md))
+        OptionDropdown(
+            label = stringResource(R.string.exercises_equipment),
+            selected = state.equipment,
+            options = Equipment.entries,
+            optionLabel = { it.label },
+            onSelect = viewModel::setEquipment,
+        )
+
         // --- Charge ---
-        if (state.kind == ExerciseKind.WEIGHTED_REPS) {
+        if (state.kind.hasWeight) {
             Spacer(Modifier.height(WorkoutTheme.spacing.xxl))
             SectionHeader(stringResource(R.string.exercises_machine))
             val unit = LocalWeightUnit.current
@@ -264,3 +291,53 @@ fun ExerciseEditorScreen(
     }
 }
 
+
+/** L'explication affichée sous le type choisi. */
+private val ExerciseKind.hintRes: Int
+    get() = when (this) {
+        ExerciseKind.WEIGHTED_REPS -> R.string.exercises_kind_weighted_hint
+        ExerciseKind.REPS_ONLY -> R.string.exercises_kind_reps_only_hint
+        ExerciseKind.TIMED -> R.string.exercises_kind_timed_hint
+        ExerciseKind.WEIGHTED_TIMED -> R.string.exercises_kind_weighted_timed_hint
+        ExerciseKind.DISTANCE -> R.string.exercises_kind_distance_hint
+        ExerciseKind.WEIGHTED_DISTANCE -> R.string.exercises_kind_weighted_distance_hint
+        ExerciseKind.TIMED_DISTANCE -> R.string.exercises_kind_timed_distance_hint
+    }
+
+/** Un choix facultatif dans une liste : « Non renseigné » en tête pour revenir à rien. */
+@OptIn(ExperimentalMaterial3Api::class)
+@Composable
+private fun <T> OptionDropdown(
+    label: String,
+    selected: T?,
+    options: List<T>,
+    optionLabel: @Composable (T) -> String,
+    onSelect: (T?) -> Unit,
+) {
+    var expanded by remember { mutableStateOf(false) }
+    ExposedDropdownMenuBox(expanded = expanded, onExpandedChange = { expanded = it }) {
+        OutlinedTextField(
+            value = selected?.let { optionLabel(it) } ?: stringResource(R.string.exercises_not_set),
+            onValueChange = {},
+            readOnly = true,
+            label = { Text(label) },
+            trailingIcon = { ExposedDropdownMenuDefaults.TrailingIcon(expanded = expanded) },
+            singleLine = true,
+            modifier = Modifier
+                .fillMaxWidth()
+                .menuAnchor(ExposedDropdownMenuAnchorType.PrimaryNotEditable),
+        )
+        ExposedDropdownMenu(expanded = expanded, onDismissRequest = { expanded = false }) {
+            DropdownMenuItem(
+                text = { Text(stringResource(R.string.exercises_not_set)) },
+                onClick = { onSelect(null); expanded = false },
+            )
+            options.forEach { option ->
+                DropdownMenuItem(
+                    text = { Text(optionLabel(option)) },
+                    onClick = { onSelect(option); expanded = false },
+                )
+            }
+        }
+    }
+}

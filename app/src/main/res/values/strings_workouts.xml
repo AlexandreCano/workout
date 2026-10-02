@@ -36,4 +36,5 @@
         <item quantity="one">%d set</item>
         <item quantity="other">%d sets</item>
     </plurals>
+    <string name="workouts_distance">Distance</string>
 </resources>

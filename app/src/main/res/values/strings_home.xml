@@ -68,4 +68,6 @@
     <string name="comp_weight_decrease_lb">Decrease weight by %1$s pounds</string>
     <string name="comp_weight_increase_lb">Increase weight by %1$s pounds</string>
     <string name="comp_timer_spoken">%1$s minutes %2$s seconds</string>
+    <string name="comp_distance_decrease">Decrease distance</string>
+    <string name="comp_distance_increase">Increase distance</string>
 </resources>

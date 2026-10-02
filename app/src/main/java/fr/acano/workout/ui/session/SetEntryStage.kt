@@ -21,6 +21,7 @@ import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableDoubleStateOf
 import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
@@ -30,10 +31,11 @@ import androidx.compose.ui.res.pluralStringResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import fr.acano.workout.R
-import fr.acano.workout.domain.ExerciseKind
 import fr.acano.workout.ui.common.LocalWeightUnit
+import fr.acano.workout.ui.common.formatDistance
 import fr.acano.workout.ui.common.formatWeight
 import fr.acano.workout.ui.common.targetLabel
+import fr.acano.workout.ui.components.DistanceSelector
 import fr.acano.workout.ui.components.ExerciseHeader
 import fr.acano.workout.ui.components.ExerciseImage
 import fr.acano.workout.ui.components.RepsSelector
@@ -57,6 +59,7 @@ fun SetEntryStage(
     canUndo: Boolean,
     onWeightChange: (Double) -> Unit,
     onValidateReps: (Int) -> Unit,
+    onValidateDistance: (Double) -> Unit,
     onStartEffort: () -> Unit,
     onMarkTimedDone: () -> Unit,
     onUndo: () -> Unit,
@@ -73,7 +76,12 @@ fun SetEntryStage(
             completedSets = step.setsDoneToday.size,
             currentSet = step.setNumber,
             totalSets = step.plannedSets,
-            targetLabel = targetLabel(step.targetRepsMin, step.targetRepsMax, step.targetDurationSeconds),
+            targetLabel = targetLabel(
+                step.targetRepsMin,
+                step.targetRepsMax,
+                step.targetDurationSeconds,
+                step.targetDistanceMeters.takeIf { step.exercise.kind.targetsDistance },
+            ),
         )
 
         Spacer(Modifier.height(WorkoutTheme.spacing.xl))
@@ -99,10 +107,18 @@ fun SetEntryStage(
 
         Spacer(Modifier.height(WorkoutTheme.spacing.xl))
 
-        when (step.exercise.kind) {
-            ExerciseKind.WEIGHTED_REPS -> WeightedRepsControls(step, onWeightChange, onValidateReps)
-            ExerciseKind.REPS_ONLY -> RepsOnlyControls(step, onValidateReps)
-            ExerciseKind.TIMED -> TimedControls(step, onStartEffort, onMarkTimedDone)
+        // La charge d'abord quand l'exercice en a une, puis ce qui se compte.
+        val kind = step.exercise.kind
+        if (kind.hasWeight) {
+            SessionWeightSelector(step, onWeightChange)
+            Spacer(Modifier.height(WorkoutTheme.spacing.xl))
+        }
+        when {
+            kind.hasReps && kind.hasWeight -> WeightedRepsControls(step, onValidateReps)
+            kind.hasReps -> RepsOnlyControls(step, onValidateReps)
+            // Tapis, rameur : le chrono d'abord, la distance est demandée à la fin.
+            kind.isTimed -> TimedControls(step, onStartEffort, onMarkTimedDone)
+            kind.hasDistance -> DistanceControls(step, onValidateDistance)
         }
 
         if (canUndo) {
@@ -140,8 +156,9 @@ private fun CompletedSetsStrip(step: CurrentStep) {
                 shape = MaterialTheme.shapes.extraSmall,
             ) {
                 Text(
-                    // Même écriture que partout ailleurs : « 12 reps », « 0:45 ».
+                    // Même écriture que partout ailleurs : « 12 reps », « 0:45 », « 30 m ».
                     text = set.repetitions?.let { pluralStringResource(R.plurals.session_reps_count, it, it) }
+                        ?: set.distanceMeters?.let { formatDistance(it) }
                         ?: set.durationSeconds?.let { "%d:%02d".format(it / 60, it % 60) }
                         ?: "—",
                     style = MaterialTheme.typography.labelLarge,
@@ -156,17 +173,7 @@ private fun CompletedSetsStrip(step: CurrentStep) {
 }
 
 @Composable
-private fun WeightedRepsControls(
-    step: CurrentStep,
-    onWeightChange: (Double) -> Unit,
-    onValidate: (Int) -> Unit,
-) {
-    val minReps = step.targetRepsMin ?: 8
-    val maxReps = step.targetRepsMax ?: 12
-    var reps by remember(step.exerciseSessionId, step.setNumber) {
-        mutableIntStateOf(step.setsDoneToday.lastOrNull()?.repetitions ?: maxReps)
-    }
-
+private fun SessionWeightSelector(step: CurrentStep, onWeightChange: (Double) -> Unit) {
     WeightSelector(
         weightKg = step.plannedWeightKg,
         stepKg = step.exercise.weightStepKg,
@@ -176,8 +183,18 @@ private fun WeightedRepsControls(
             formatWeight(step.lastSessionWeightKg, LocalWeightUnit.current),
         ) + "   ·   " + stringResource(R.string.session_long_press_hint),
     )
+}
 
-    Spacer(Modifier.height(WorkoutTheme.spacing.xl))
+@Composable
+private fun WeightedRepsControls(
+    step: CurrentStep,
+    onValidate: (Int) -> Unit,
+) {
+    val minReps = step.targetRepsMin ?: 8
+    val maxReps = step.targetRepsMax ?: 12
+    var reps by remember(step.exerciseSessionId, step.setNumber) {
+        mutableIntStateOf(step.setsDoneToday.lastOrNull()?.repetitions ?: maxReps)
+    }
 
     RepsSelector(
         selected = reps,
@@ -191,24 +208,36 @@ private fun WeightedRepsControls(
     ValidateButton(text = stringResource(R.string.session_validate_set), onClick = { onValidate(reps) })
 }
 
+/**
+ * Répétitions sans charge. Une fourchette courte (3 à 5 vacuums) tient en
+ * grosses cases sur une ligne ; au-delà (10 à 15 pompes), on reprend le
+ * sélecteur défilant des exercices chargés.
+ */
 @Composable
 private fun RepsOnlyControls(step: CurrentStep, onValidate: (Int) -> Unit) {
     val minReps = step.targetRepsMin ?: 3
     val maxReps = step.targetRepsMax ?: 5
-    var reps by remember(step.exerciseSessionId, step.setNumber) { mutableIntStateOf(minReps) }
+    val compact = maxReps - minReps < MAX_BIG_CHOICES
+    var reps by remember(step.exerciseSessionId, step.setNumber) {
+        mutableIntStateOf(if (compact) minReps else step.setsDoneToday.lastOrNull()?.repetitions ?: maxReps)
+    }
 
-    Row(
-        horizontalArrangement = Arrangement.spacedBy(WorkoutTheme.spacing.md),
-        modifier = Modifier.fillMaxWidth(),
-    ) {
-        (minReps..maxReps).forEach { value ->
-            BigChoice(
-                value = value,
-                selected = value == reps,
-                onClick = { reps = value },
-                modifier = Modifier.weight(1f),
-            )
+    if (compact) {
+        Row(
+            horizontalArrangement = Arrangement.spacedBy(WorkoutTheme.spacing.md),
+            modifier = Modifier.fillMaxWidth(),
+        ) {
+            (minReps..maxReps).forEach { value ->
+                BigChoice(
+                    value = value,
+                    selected = value == reps,
+                    onClick = { reps = value },
+                    modifier = Modifier.weight(1f),
+                )
+            }
         }
+    } else {
+        RepsSelector(selected = reps, minReps = minReps, maxReps = maxReps, onSelect = { reps = it })
     }
 
     Spacer(Modifier.height(WorkoutTheme.spacing.xl))
@@ -265,8 +294,34 @@ private fun TimedControls(
     }
 }
 
+/** Farmer carry, traîneau : la distance parcourue, pré-remplie avec la précédente. */
+@Composable
+private fun DistanceControls(step: CurrentStep, onValidate: (Double) -> Unit) {
+    var meters by remember(step.exerciseSessionId, step.setNumber) {
+        mutableDoubleStateOf(step.suggestedDistanceMeters ?: DEFAULT_DISTANCE_METERS)
+    }
+
+    DistanceSelector(
+        meters = meters,
+        onChange = { meters = it },
+        supportingText = step.lastSessionDistanceMeters?.let {
+            stringResource(R.string.session_last_session_weight, formatDistance(it))
+        },
+    )
+
+    Spacer(Modifier.height(WorkoutTheme.spacing.xl))
+
+    ValidateButton(text = stringResource(R.string.session_validate_set), onClick = { onValidate(meters) })
+}
+
 /** Le bouton de validation grossit brièvement à l'appui : la série est prise en compte. */
 @Composable
 private fun ValidateButton(text: String, onClick: () -> Unit) {
     WorkoutPrimaryButton(text = text, onClick = onClick, icon = Icons.Rounded.Check)
 }
+
+/** Au-delà de cinq valeurs, les grosses cases deviennent trop étroites pour le pouce. */
+private const val MAX_BIG_CHOICES = 5
+
+/** Distance proposée sans cible ni historique : un aller-retour dans la salle. */
+internal const val DEFAULT_DISTANCE_METERS = 30.0

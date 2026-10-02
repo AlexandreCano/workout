@@ -1,6 +1,8 @@
 package fr.acano.workout.domain
 
 import fr.acano.workout.data.db.entity.SetResultEntity
+import fr.acano.workout.data.seed.CatalogExercise
+import fr.acano.workout.data.seed.ExerciseCatalog
 import fr.acano.workout.data.seed.Program
 
 /** Sexe utilisé par la formule de métabolisme de base (Mifflin-St Jeor). */
@@ -33,25 +35,74 @@ data class UserProfile(
  */
 object Calories {
 
-    /** MET du Compendium (2011, codes entre parenthèses) pour les exercices fournis. */
-    private val metByExercise: Map<String, Double> = mapOf(
+    /** MET de chaque exercice fourni, déduit de sa description (voir [metFor]). */
+    private val metByExercise: Map<String, Double> by lazy {
+        ExerciseCatalog.entries.associate { it.id to metFor(it) }
+    }
+
+    /**
+     * MET du Compendium (2011, codes entre parenthèses) pour les exercices dont
+     * l'effort ne se déduit pas de leur famille : le cardio, surtout, dont
+     * l'intensité varie du simple au double d'une machine à l'autre.
+     */
+    private val metOverrides: Map<String, Double> = mapOf(
         // Vélo stationnaire, effort léger d'échauffement (02011 : 51–89 W).
         Program.BIKE to 5.5,
-        // Musculation sur machines, 8–15 répétitions, charge modérée (02054).
-        "chest_press" to 3.5,
-        "pec_deck" to 3.5,
-        "lat_pulldown" to 3.5,
-        "seated_row" to 3.5,
-        "leg_curl" to 3.5,
-        "leg_extension" to 3.5,
-        "calf_raise" to 3.5,
-        // Mouvement polyarticulaire des jambes, plus exigeant (02052).
-        "leg_press" to 5.0,
-        // Gainage, effort modéré (02068).
-        Program.PLANK to 3.8,
+        // Vélo en cours collectif, effort soutenu (02017).
+        "spin_bike" to 8.5,
+        // Course sur tapis vers 8 km/h (12030).
+        "treadmill" to 8.0,
+        // Marche rapide en pente (17210).
+        "incline_treadmill_walk" to 6.0,
+        // Rameur et SkiErg, effort modéré (02072).
+        "rowing_machine" to 7.0,
+        "ski_erg" to 7.0,
+        // Elliptique, effort modéré (02048).
+        "elliptical" to 5.0,
+        // Simulateur d'escaliers (02065).
+        "stair_climber" to 9.0,
+        // Vélo à air, effort vigoureux (02014).
+        "air_bike" to 8.8,
+        // Corde à sauter, rythme modéré (15552).
+        "jump_rope" to 11.8,
+        // Gymnastique vigoureuse : burpees, mountain climbers (02022).
+        "burpee" to 8.0,
+        "mountain_climber" to 8.0,
+        "battle_rope" to 8.0,
+        // Pousser ou tirer une charge lourde (11610).
+        "sled_push" to 8.0,
+        "sled_pull" to 8.0,
+        // Porter une charge en marchant (11820).
+        "farmer_carry" to 6.0,
+        "farmer_walk" to 6.0,
+        "suitcase_carry" to 6.0,
         // Respiration et contraction abdominale debout : à peine plus que le repos.
         Program.STOMACH_VACUUM to 1.5,
     )
+
+    /**
+     * Le MET d'un exercice : une valeur connue s'il en a une, sinon celle de
+     * sa famille — musculation modérée (02054), exercice polyarticulaire des
+     * jambes ou du corps entier, plus exigeant (02052, 02050), gainage et
+     * poids du corps (02068, 02020), cardio modéré.
+     */
+    internal fun metFor(exercise: CatalogExercise): Double {
+        metOverrides[exercise.id]?.let { return it }
+        return when {
+            exercise.category == ExerciseCategory.CARDIO -> 7.0
+            exercise.category == ExerciseCategory.FULL_BODY -> 6.0
+            exercise.category == ExerciseCategory.CORE -> 3.8
+            exercise.isCompoundLowerBody -> 5.0
+            exercise.kind == ExerciseKind.REPS_ONLY -> 3.8
+            else -> 3.5
+        }
+    }
+
+    /** Presse, squat, fentes, hip thrust : le mouvement engage plusieurs grands muscles des jambes. */
+    private val CatalogExercise.isCompoundLowerBody: Boolean
+        get() = (category == ExerciseCategory.LEGS || category == ExerciseCategory.GLUTES) &&
+            (primaryMuscle == Muscle.QUADS || primaryMuscle == Muscle.GLUTES) &&
+            secondaryMuscles.size >= 2
 
     /** Au-delà, une pause oubliée gonflerait l'estimation plus qu'elle ne mesure l'effort. */
     private const val MAX_MINUTES_PER_EXERCISE = 30.0

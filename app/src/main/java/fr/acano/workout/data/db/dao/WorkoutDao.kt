@@ -169,6 +169,18 @@ interface WorkoutDao {
     )
     fun observePreviousWeights(sessionId: Long): Flow<List<SetResultEntity>>
 
+    /** Séries avec une distance, séances terminées autres que [sessionId] : pré-remplit la distance du jour. */
+    @Query(
+        """
+        SELECT sr.* FROM set_result sr
+        INNER JOIN exercise_session es ON es.id = sr.exerciseSessionId
+        INNER JOIN workout_session ws ON ws.id = es.sessionId
+        WHERE es.sessionId != :sessionId AND sr.distanceMeters IS NOT NULL AND ws.endedAt IS NOT NULL
+        ORDER BY sr.completedAt DESC
+        """,
+    )
+    fun observePreviousDistances(sessionId: Long): Flow<List<SetResultEntity>>
+
     @Query(
         """
         SELECT sr.exerciseId AS exerciseId, COUNT(DISTINCT es.sessionId) AS sessionCount,

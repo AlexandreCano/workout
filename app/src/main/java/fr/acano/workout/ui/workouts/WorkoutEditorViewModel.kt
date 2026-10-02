@@ -5,8 +5,12 @@ import androidx.lifecycle.viewModelScope
 import fr.acano.workout.data.db.entity.ExerciseEntity
 import fr.acano.workout.data.repository.WorkoutRepository
 import fr.acano.workout.data.seed.Program
+import fr.acano.workout.domain.ExerciseCategory
 import fr.acano.workout.domain.ExerciseKind
 import fr.acano.workout.domain.PlannedStep
+import fr.acano.workout.ui.common.CatalogFilter
+import fr.acano.workout.ui.common.catalogueOrder
+import fr.acano.workout.ui.common.categoriesOf
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
@@ -24,7 +28,8 @@ data class EditorStep(
     val exercise: ExerciseEntity,
     val step: PlannedStep,
 ) {
-    val isTimed: Boolean get() = exercise.kind == ExerciseKind.TIMED
+    val isTimed: Boolean get() = exercise.kind.isTimed
+    val targetsDistance: Boolean get() = exercise.kind.targetsDistance
 }
 
 data class WorkoutEditorUiState(
@@ -33,8 +38,10 @@ data class WorkoutEditorUiState(
     val isExisting: Boolean = false,
     val name: String = "",
     val steps: List<EditorStep> = emptyList(),
-    /** Tout le catalogue, dans l'ordre du programme, pour le sélecteur d'exercices. */
+    /** Tout le catalogue, regroupé par famille, pour le sélecteur d'exercices. */
     val catalogue: List<ExerciseEntity> = emptyList(),
+    /** Recherche et famille choisies dans le sélecteur. */
+    val filter: CatalogFilter = CatalogFilter(),
     /** L'entraînement tel qu'il était à l'ouverture, pour savoir s'il reste des modifications à enregistrer. */
     val savedName: String = "",
     val savedSteps: List<PlannedStep> = emptyList(),
@@ -44,6 +51,10 @@ data class WorkoutEditorUiState(
 
     val canSave: Boolean get() = name.isNotBlank() && steps.isNotEmpty()
     val selectedIds: Set<String> get() = steps.mapTo(mutableSetOf()) { it.exercise.id }
+
+    /** Ce que montre le sélecteur, recherche et famille appliquées. */
+    val visibleCatalogue: List<ExerciseEntity> get() = catalogue.filter(filter::matches)
+    val categories: List<ExerciseCategory> get() = categoriesOf(catalogue)
 }
 
 /**
@@ -68,12 +79,7 @@ class WorkoutEditorViewModel(
 
     init {
         viewModelScope.launch {
-            val exercises = repository.observeCatalogue().first()
-            val order = Program.exercises.map { it.id }
-            val catalogue = exercises.sortedWith(
-                compareBy<ExerciseEntity> { order.indexOf(it.id).takeIf { i -> i >= 0 } ?: Int.MAX_VALUE }
-                    .thenBy { it.name.lowercase() },
-            )
+            val catalogue = repository.observeCatalogue().first().sortedWith(catalogueOrder)
             val byId = catalogue.associateBy { it.id }
 
             val existing = workoutId?.let { repository.customWorkout(it) }
@@ -93,6 +99,7 @@ class WorkoutEditorViewModel(
                                 targetRepsMax = row.targetRepsMax,
                                 targetDurationSeconds = row.targetDurationSeconds,
                                 restSeconds = row.restSeconds,
+                                targetDistanceMeters = row.targetDistanceMeters,
                             ).completedFor(it.kind),
                         )
                     }
@@ -104,6 +111,14 @@ class WorkoutEditorViewModel(
 
     fun setName(name: String) {
         _state.update { it.copy(name = name.take(MAX_NAME_LENGTH)) }
+    }
+
+    fun setQuery(query: String) {
+        _state.update { it.copy(filter = it.filter.copy(query = query.take(MAX_NAME_LENGTH))) }
+    }
+
+    fun setCategory(category: ExerciseCategory?) {
+        _state.update { it.copy(filter = it.filter.copy(category = category)) }
     }
 
     /** Ajoute l'exercice en fin de liste, ou le retire s'il y est déjà. */
@@ -173,6 +188,10 @@ class WorkoutEditorViewModel(
         updateStep(key) { it.copy(targetDurationSeconds = seconds.coerceIn(MIN_DURATION_SECONDS, MAX_DURATION_SECONDS)) }
     }
 
+    fun setDistance(key: Long, meters: Int) {
+        updateStep(key) { it.copy(targetDistanceMeters = meters.coerceIn(MIN_DISTANCE_METERS, MAX_DISTANCE_METERS)) }
+    }
+
     fun setRest(key: Long, seconds: Int) {
         updateStep(key) { it.copy(restSeconds = seconds.coerceIn(0, MAX_REST_SECONDS)) }
     }
@@ -207,23 +226,32 @@ class WorkoutEditorViewModel(
         const val MIN_DURATION_SECONDS = 15
         const val MAX_DURATION_SECONDS = 60 * 60
         const val MAX_REST_SECONDS = 10 * 60
+        const val MIN_DISTANCE_METERS = 5
+        const val MAX_DISTANCE_METERS = 50_000
         const val MAX_NAME_LENGTH = 40
     }
 }
 
 /**
  * Garantit qu'une étape a la cible propre à son type : une fourchette de
- * répétitions, ou une durée. Utile si le type d'un exercice a changé depuis
- * que l'étape a été créée.
+ * répétitions, une durée ou une distance. Utile si le type d'un exercice a
+ * changé depuis que l'étape a été créée.
  */
 private fun PlannedStep.completedFor(kind: ExerciseKind): PlannedStep {
     val defaults = Program.defaultStepFor(exerciseId, kind)
-    return if (kind == ExerciseKind.TIMED) {
-        copy(targetRepsMin = null, targetRepsMax = null,
-            targetDurationSeconds = targetDurationSeconds ?: defaults.targetDurationSeconds)
-    } else {
-        copy(targetDurationSeconds = null,
+    return when {
+        kind.isTimed -> copy(
+            targetRepsMin = null, targetRepsMax = null, targetDistanceMeters = null,
+            targetDurationSeconds = targetDurationSeconds ?: defaults.targetDurationSeconds,
+        )
+        kind.targetsDistance -> copy(
+            targetRepsMin = null, targetRepsMax = null, targetDurationSeconds = null,
+            targetDistanceMeters = targetDistanceMeters ?: defaults.targetDistanceMeters,
+        )
+        else -> copy(
+            targetDurationSeconds = null, targetDistanceMeters = null,
             targetRepsMin = targetRepsMin ?: defaults.targetRepsMin,
-            targetRepsMax = targetRepsMax ?: defaults.targetRepsMax)
+            targetRepsMax = targetRepsMax ?: defaults.targetRepsMax,
+        )
     }
 }

@@ -7,7 +7,10 @@ import fr.acano.workout.data.db.entity.ExerciseEntity
 import fr.acano.workout.data.repository.WorkoutRepository
 import fr.acano.workout.data.seed.LocalizedNames
 import fr.acano.workout.data.seed.Program
+import fr.acano.workout.domain.Equipment
+import fr.acano.workout.domain.ExerciseCategory
 import fr.acano.workout.domain.ExerciseKind
+import fr.acano.workout.domain.Muscle
 import fr.acano.workout.domain.PlannedStep
 import fr.acano.workout.domain.StepState
 import fr.acano.workout.domain.WorkoutProgression
@@ -351,26 +354,26 @@ class WorkoutRepositoryTest {
 
     @Test
     fun `modifier un entrainement remplace son contenu`() = runTest {
-        val id = repository.saveCustomWorkout(null, "A", listOf(PlannedStep("leg_press", 4), PlannedStep("leg_curl", 3)))
-        repository.saveCustomWorkout(id, "B", listOf(PlannedStep("calf_raise", 2)))
+        val id = repository.saveCustomWorkout(null, "A", listOf(PlannedStep("leg_press", 4), PlannedStep("lying_leg_curl", 3)))
+        repository.saveCustomWorkout(id, "B", listOf(PlannedStep("standing_calf_raise", 2)))
 
         val saved = repository.customWorkout(id)!!
         assertEquals("B", saved.workout.name)
-        assertEquals(listOf("calf_raise"), saved.orderedExercises.map { it.exerciseId })
+        assertEquals(listOf("standing_calf_raise"), saved.orderedExercises.map { it.exerciseId })
         // Les deux programmes insérés au premier lancement, plus celui-ci.
         assertEquals(3, repository.observeCustomWorkouts().first().size)
     }
 
     @Test
     fun `une seance personnalisee suit le plan de l entrainement`() = runTest {
-        val id = repository.saveCustomWorkout(null, "Jambes", listOf(PlannedStep("leg_curl", 5), PlannedStep(Program.BIKE, 1)))
+        val id = repository.saveCustomWorkout(null, "Jambes", listOf(PlannedStep("lying_leg_curl", 5), PlannedStep(Program.BIKE, 1)))
 
         val sessionId = repository.startSession(id)
 
         val session = repository.session(sessionId)!!
         assertEquals(WorkoutType.CUSTOM, session.session.type)
         assertEquals("Jambes", session.session.name)
-        assertEquals(listOf("leg_curl", Program.BIKE), orderOf(sessionId))
+        assertEquals(listOf("lying_leg_curl", Program.BIKE), orderOf(sessionId))
         assertEquals(listOf(5, 1), session.orderedExercises.map { it.exerciseSession.plannedSets })
     }
 
@@ -621,6 +624,70 @@ class WorkoutRepositoryTest {
         assertEquals("Tirage horizontal", repository.exercise("custom_9")!!.name)
         // Les séances passées suivent, pour que l'historique soit dans la même langue.
         assertEquals("Upper body", repository.observeFinishedSessions().first().single().session.name)
+    }
+
+    @Test
+    fun `une installation ancienne recoit les details du catalogue`() = runTest {
+        // Un exercice semé par une version précédente : ni famille, ni muscles, ni matériel.
+        database.exerciseDao().upsert(ExerciseEntity("chest_press", "Chest Press", ExerciseKind.WEIGHTED_REPS))
+
+        repository.ensureSeeded()
+
+        val chest = repository.exercise("chest_press")!!
+        assertEquals(ExerciseCategory.CHEST, chest.category)
+        assertEquals(listOf(Muscle.TRICEPS, Muscle.FRONT_DELTS), chest.secondaryMuscles)
+        assertEquals(Equipment.MACHINE, chest.equipment)
+        // Le nom, lui, relève de la langue du téléphone : il n'est pas touché ici.
+        assertEquals("Chest Press", chest.name)
+    }
+
+    @Test
+    fun `les details d un exercice de l utilisateur ne sont jamais ecrases`() = runTest {
+        repository.saveCustomExercise(ExerciseEntity("custom_1", "Tirage maison", ExerciseKind.WEIGHTED_REPS, isCustom = true))
+        repository.ensureSeeded()
+        assertNull(repository.exercise("custom_1")!!.category)
+    }
+
+    @Test
+    fun `une cible en distance va de l entrainement a la seance, et la distance a la serie`() = runTest {
+        val workoutId = repository.saveCustomWorkout(
+            workoutId = null,
+            name = "Portés",
+            steps = listOf(PlannedStep("farmer_carry", plannedSets = 2, targetDistanceMeters = 40)),
+        )
+        val sessionId = repository.startSession(workoutId)
+        val step = repository.session(sessionId)!!.orderedExercises.single().exerciseSession
+        assertEquals(40, step.targetDistanceMeters)
+
+        repository.recordSet(step.id, "farmer_carry", setNumber = 1, weightKg = 24.0, distanceMeters = 40.0)
+        repository.finishSession(sessionId)
+
+        val set = repository.observeSetsForExercise("farmer_carry").first().single()
+        assertEquals(40.0, set.distanceMeters!!, 0.0)
+        assertEquals(24.0, set.weightKg!!, 0.0)
+        // La séance suivante connaît la distance de celle-ci.
+        assertEquals(mapOf("farmer_carry" to 40.0), repository.observePreviousDistances(-1).first())
+    }
+
+    @Test
+    fun `un exercice renomme emporte son historique sous son nouvel identifiant`() = runTest {
+        // Une installation d'avant le catalogue : « leg_curl », avec une séance faite et un entraînement.
+        database.exerciseDao().upsert(ExerciseEntity("leg_curl", "Leg Curl", ExerciseKind.WEIGHTED_REPS))
+        val workoutId = repository.saveCustomWorkout(null, "Jambes", listOf(PlannedStep("leg_curl", plannedSets = 3)))
+        val sessionId = repository.startSession(workoutId)
+        val step = repository.session(sessionId)!!.orderedExercises.single().exerciseSession
+        repository.recordSet(step.id, "leg_curl", setNumber = 1, weightKg = 30.0, repetitions = 12)
+        repository.finishSession(sessionId)
+
+        repository.ensureSeeded()
+
+        assertNull(repository.exercise("leg_curl"))
+        assertEquals(30.0, repository.observeSetsForExercise("lying_leg_curl").first().single().weightKg!!, 0.0)
+        assertEquals("lying_leg_curl", repository.session(sessionId)!!.orderedExercises.single().exerciseSession.exerciseId)
+        assertEquals("lying_leg_curl", repository.customWorkout(workoutId)!!.exercises.single().exerciseId)
+        // Rejouer le démarrage ne change plus rien.
+        repository.ensureSeeded()
+        assertEquals(Program.exercises.size, database.exerciseDao().count())
     }
 
     private suspend fun programId(type: WorkoutType): Long =

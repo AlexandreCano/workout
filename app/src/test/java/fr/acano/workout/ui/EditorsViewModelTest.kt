@@ -6,6 +6,7 @@ import androidx.test.core.app.ApplicationProvider
 import fr.acano.workout.data.db.WorkoutDatabase
 import fr.acano.workout.data.db.entity.ExerciseEntity
 import fr.acano.workout.data.repository.WorkoutRepository
+import fr.acano.workout.domain.ExerciseCategory
 import fr.acano.workout.domain.ExerciseKind
 import fr.acano.workout.ui.exercises.ExercisesUiState
 import fr.acano.workout.ui.exercises.ExercisesViewModel
@@ -70,7 +71,7 @@ class EditorsViewModelTest {
         val before = vm.state.value.steps.map { it.exercise.id }
         val chest = vm.state.value.steps.first { it.exercise.id == "chest_press" }
 
-        assertEquals("Chest Press", vm.remove(chest.key))
+        assertEquals("Chest Press machine", vm.remove(chest.key))
         assertTrue(vm.state.value.hasUnsavedChanges)
 
         vm.undoRemove()
@@ -96,9 +97,33 @@ class EditorsViewModelTest {
             return vm.state.first { it.query == q }
         }
 
-        assertEquals(listOf("leg_press"), search("PRESSE").builtIn.map { it.exercise.id })
+        assertEquals(
+            listOf("leg_press", "horizontal_leg_press"),
+            search("PRESSE A CUISSES").builtIn.map { it.exercise.id },
+        )
         assertEquals(listOf("custom_1"), search("developpe").custom.map { it.exercise.id })
         val none = search("zzz")
         assertTrue(none.builtIn.isEmpty() && none.custom.isEmpty())
+    }
+
+    @Test
+    fun `le filtre par famille se combine a la recherche`() = runTest {
+        repository.saveCustomExercise(
+            ExerciseEntity("custom_1", "Mollets presse maison", ExerciseKind.WEIGHTED_REPS, isCustom = true, category = ExerciseCategory.CALVES),
+        )
+        val vm = ExercisesViewModel(repository)
+        backgroundScope.launch { vm.state.collect {} }
+
+        vm.setCategory(ExerciseCategory.CALVES)
+        val calves = vm.state.first { it.filter.category == ExerciseCategory.CALVES }
+        assertTrue(calves.builtIn.all { it.exercise.category == ExerciseCategory.CALVES })
+        assertEquals("standing_calf_raise", calves.builtIn.first().exercise.id)
+        assertEquals(listOf("custom_1"), calves.custom.map { it.exercise.id })
+        assertTrue(ExerciseCategory.CALVES in calves.categories)
+
+        vm.setQuery("presse")
+        val both = vm.state.first { it.query == "presse" }
+        assertEquals(listOf("leg_press_calf_raise"), both.builtIn.map { it.exercise.id })
+        assertEquals(listOf("custom_1"), both.custom.map { it.exercise.id })
     }
 }

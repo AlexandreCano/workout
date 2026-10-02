@@ -27,6 +27,7 @@ import fr.acano.workout.data.db.entity.SetResultEntity
 import fr.acano.workout.domain.SessionComparison
 import fr.acano.workout.domain.WeightUnit
 import fr.acano.workout.ui.common.LocalWeightUnit
+import fr.acano.workout.ui.common.formatDistance
 import fr.acano.workout.ui.common.formatKcal
 import fr.acano.workout.ui.common.formatSet
 import fr.acano.workout.ui.common.formatWeight
@@ -127,7 +128,7 @@ private fun SetTile(set: SetResultEntity, highlighted: Boolean, unit: WeightUnit
     val spoken = stringResource(
         if (highlighted) R.string.history_set_spoken_best else R.string.history_set_spoken,
         set.setNumber,
-        formatSet(set.weightKg, set.repetitions, set.durationSeconds, unit),
+        formatSet(set.weightKg, set.repetitions, set.durationSeconds, unit, set.distanceMeters),
     )
     Surface(
         color = if (highlighted) colors.primaryContainer else colors.surfaceContainerHigh,
@@ -159,18 +160,39 @@ private fun SetTile(set: SetResultEntity, highlighted: Boolean, unit: WeightUnit
     }
 }
 
-/** Ce que la tuile met en grand, et ce qu'elle écrit dessous. */
+/**
+ * Ce que la tuile met en grand, et ce qu'elle écrit dessous. Avec une
+ * distance, c'est elle qui passe en grand : c'est ce qu'on compare d'une
+ * séance à l'autre sur un tapis ou un farmer carry.
+ */
 private fun tileContent(set: SetResultEntity, unit: WeightUnit): Pair<String, String> {
     val weight = set.weightKg
     val reps = set.repetitions
     val duration = set.durationSeconds
+    val distance = set.distanceMeters
     return when {
         weight != null && reps != null -> formatWeightValue(weight, unit) to "${unit.symbol} × $reps"
+        distance != null -> {
+            val (value, symbol) = distanceParts(distance)
+            value to when {
+                weight != null -> "$symbol · ${formatWeight(weight, unit)}"
+                duration != null -> "$symbol · ${"%d:%02d".format(duration / 60, duration % 60)}"
+                else -> symbol
+            }
+        }
+        weight != null && duration != null ->
+            "%d:%02d".format(duration / 60, duration % 60) to "min · ${formatWeight(weight, unit)}"
         reps != null -> "$reps" to if (reps > 1) "reps" else "rep"
         duration != null -> "%d:%02d".format(duration / 60, duration % 60) to "min"
         weight != null -> formatWeightValue(weight, unit) to unit.symbol
         else -> "—" to ""
     }
+}
+
+/** « 850 » et « m », ou « 2,15 » et « km » : la valeur et son unité, séparées pour la tuile. */
+private fun distanceParts(meters: Double): Pair<String, String> {
+    val text = formatDistance(meters)
+    return text.substringBeforeLast(' ') to text.substringAfterLast(' ')
 }
 
 private val TILE_WIDTH = 76.dp

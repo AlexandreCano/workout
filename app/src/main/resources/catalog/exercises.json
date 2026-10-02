@@ -1,0 +1,2714 @@
+{
+  "version": 1,
+  "description": "Catalogue initial d'exercices pour une application Android de création et suivi d'entraînements.",
+  "tracking_types": [
+    "WEIGHT_REPS",
+    "REPS_ONLY",
+    "DURATION",
+    "WEIGHT_DURATION",
+    "DISTANCE",
+    "WEIGHT_DISTANCE",
+    "DURATION_DISTANCE"
+  ],
+  "exercises": [
+    {
+      "id": "chest_press",
+      "name_fr": "Chest Press machine",
+      "name_en": "Machine Chest Press",
+      "category": "CHEST",
+      "primary_muscle": "CHEST",
+      "secondary_muscles": [
+        "TRICEPS",
+        "FRONT_DELTS"
+      ],
+      "equipment": "MACHINE",
+      "tracking_type": "WEIGHT_REPS",
+      "animation": "chest_press.webp"
+    },
+    {
+      "id": "incline_chest_press",
+      "name_fr": "Développé incliné machine",
+      "name_en": "Incline Chest Press",
+      "category": "CHEST",
+      "primary_muscle": "UPPER_CHEST",
+      "secondary_muscles": [
+        "TRICEPS",
+        "FRONT_DELTS"
+      ],
+      "equipment": "MACHINE",
+      "tracking_type": "WEIGHT_REPS",
+      "animation": "incline_chest_press.webp"
+    },
+    {
+      "id": "decline_chest_press",
+      "name_fr": "Développé décliné machine",
+      "name_en": "Decline Chest Press",
+      "category": "CHEST",
+      "primary_muscle": "LOWER_CHEST",
+      "secondary_muscles": [
+        "TRICEPS",
+        "FRONT_DELTS"
+      ],
+      "equipment": "MACHINE",
+      "tracking_type": "WEIGHT_REPS",
+      "animation": "decline_chest_press.webp"
+    },
+    {
+      "id": "barbell_bench_press",
+      "name_fr": "Développé couché barre",
+      "name_en": "Barbell Bench Press",
+      "category": "CHEST",
+      "primary_muscle": "CHEST",
+      "secondary_muscles": [
+        "TRICEPS",
+        "FRONT_DELTS"
+      ],
+      "equipment": "BARBELL",
+      "tracking_type": "WEIGHT_REPS",
+      "animation": "barbell_bench_press.webp"
+    },
+    {
+      "id": "incline_barbell_bench_press",
+      "name_fr": "Développé incliné barre",
+      "name_en": "Incline Barbell Bench Press",
+      "category": "CHEST",
+      "primary_muscle": "UPPER_CHEST",
+      "secondary_muscles": [
+        "TRICEPS",
+        "FRONT_DELTS"
+      ],
+      "equipment": "BARBELL",
+      "tracking_type": "WEIGHT_REPS",
+      "animation": "incline_barbell_bench_press.webp"
+    },
+    {
+      "id": "decline_barbell_bench_press",
+      "name_fr": "Développé décliné barre",
+      "name_en": "Decline Barbell Bench Press",
+      "category": "CHEST",
+      "primary_muscle": "LOWER_CHEST",
+      "secondary_muscles": [
+        "TRICEPS",
+        "FRONT_DELTS"
+      ],
+      "equipment": "BARBELL",
+      "tracking_type": "WEIGHT_REPS",
+      "animation": "decline_barbell_bench_press.webp"
+    },
+    {
+      "id": "dumbbell_bench_press",
+      "name_fr": "Développé couché haltères",
+      "name_en": "Dumbbell Bench Press",
+      "category": "CHEST",
+      "primary_muscle": "CHEST",
+      "secondary_muscles": [
+        "TRICEPS",
+        "FRONT_DELTS"
+      ],
+      "equipment": "DUMBBELL",
+      "tracking_type": "WEIGHT_REPS",
+      "animation": "dumbbell_bench_press.webp"
+    },
+    {
+      "id": "incline_dumbbell_bench_press",
+      "name_fr": "Développé incliné haltères",
+      "name_en": "Incline Dumbbell Bench Press",
+      "category": "CHEST",
+      "primary_muscle": "UPPER_CHEST",
+      "secondary_muscles": [
+        "TRICEPS",
+        "FRONT_DELTS"
+      ],
+      "equipment": "DUMBBELL",
+      "tracking_type": "WEIGHT_REPS",
+      "animation": "incline_dumbbell_bench_press.webp"
+    },
+    {
+      "id": "decline_dumbbell_bench_press",
+      "name_fr": "Développé décliné haltères",
+      "name_en": "Decline Dumbbell Bench Press",
+      "category": "CHEST",
+      "primary_muscle": "LOWER_CHEST",
+      "secondary_muscles": [
+        "TRICEPS",
+        "FRONT_DELTS"
+      ],
+      "equipment": "DUMBBELL",
+      "tracking_type": "WEIGHT_REPS",
+      "animation": "decline_dumbbell_bench_press.webp"
+    },
+    {
+      "id": "pec_deck",
+      "name_fr": "Pec Deck / Butterfly",
+      "name_en": "Pec Deck / Butterfly",
+      "category": "CHEST",
+      "primary_muscle": "CHEST",
+      "secondary_muscles": [
+        "FRONT_DELTS"
+      ],
+      "equipment": "MACHINE",
+      "tracking_type": "WEIGHT_REPS",
+      "animation": "pec_deck.webp"
+    },
+    {
+      "id": "dumbbell_fly",
+      "name_fr": "Écarté haltères couché",
+      "name_en": "Dumbbell Fly",
+      "category": "CHEST",
+      "primary_muscle": "CHEST",
+      "secondary_muscles": [
+        "FRONT_DELTS"
+      ],
+      "equipment": "DUMBBELL",
+      "tracking_type": "WEIGHT_REPS",
+      "animation": "dumbbell_fly.webp"
+    },
+    {
+      "id": "incline_dumbbell_fly",
+      "name_fr": "Écarté haltères incliné",
+      "name_en": "Incline Dumbbell Fly",
+      "category": "CHEST",
+      "primary_muscle": "UPPER_CHEST",
+      "secondary_muscles": [
+        "FRONT_DELTS"
+      ],
+      "equipment": "DUMBBELL",
+      "tracking_type": "WEIGHT_REPS",
+      "animation": "incline_dumbbell_fly.webp"
+    },
+    {
+      "id": "cable_fly",
+      "name_fr": "Écarté à la poulie",
+      "name_en": "Cable Fly",
+      "category": "CHEST",
+      "primary_muscle": "CHEST",
+      "secondary_muscles": [
+        "FRONT_DELTS"
+      ],
+      "equipment": "CABLE",
+      "tracking_type": "WEIGHT_REPS",
+      "animation": "cable_fly.webp"
+    },
+    {
+      "id": "low_to_high_cable_fly",
+      "name_fr": "Écarté poulie bas vers haut",
+      "name_en": "Low-to-High Cable Fly",
+      "category": "CHEST",
+      "primary_muscle": "UPPER_CHEST",
+      "secondary_muscles": [
+        "FRONT_DELTS"
+      ],
+      "equipment": "CABLE",
+      "tracking_type": "WEIGHT_REPS",
+      "animation": "low_to_high_cable_fly.webp"
+    },
+    {
+      "id": "high_to_low_cable_fly",
+      "name_fr": "Écarté poulie haut vers bas",
+      "name_en": "High-to-Low Cable Fly",
+      "category": "CHEST",
+      "primary_muscle": "LOWER_CHEST",
+      "secondary_muscles": [
+        "FRONT_DELTS"
+      ],
+      "equipment": "CABLE",
+      "tracking_type": "WEIGHT_REPS",
+      "animation": "high_to_low_cable_fly.webp"
+    },
+    {
+      "id": "push_up",
+      "name_fr": "Pompes",
+      "name_en": "Push-Up",
+      "category": "CHEST",
+      "primary_muscle": "CHEST",
+      "secondary_muscles": [
+        "TRICEPS",
+        "FRONT_DELTS",
+        "CORE"
+      ],
+      "equipment": "BODYWEIGHT",
+      "tracking_type": "REPS_ONLY",
+      "animation": "push_up.webp"
+    },
+    {
+      "id": "incline_push_up",
+      "name_fr": "Pompes inclinées",
+      "name_en": "Incline Push-Up",
+      "category": "CHEST",
+      "primary_muscle": "LOWER_CHEST",
+      "secondary_muscles": [
+        "TRICEPS",
+        "FRONT_DELTS"
+      ],
+      "equipment": "BODYWEIGHT",
+      "tracking_type": "REPS_ONLY",
+      "animation": "incline_push_up.webp"
+    },
+    {
+      "id": "decline_push_up",
+      "name_fr": "Pompes déclinées",
+      "name_en": "Decline Push-Up",
+      "category": "CHEST",
+      "primary_muscle": "UPPER_CHEST",
+      "secondary_muscles": [
+        "TRICEPS",
+        "FRONT_DELTS"
+      ],
+      "equipment": "BODYWEIGHT",
+      "tracking_type": "REPS_ONLY",
+      "animation": "decline_push_up.webp"
+    },
+    {
+      "id": "chest_dip",
+      "name_fr": "Dips poitrine",
+      "name_en": "Chest Dip",
+      "category": "CHEST",
+      "primary_muscle": "LOWER_CHEST",
+      "secondary_muscles": [
+        "TRICEPS",
+        "FRONT_DELTS"
+      ],
+      "equipment": "BODYWEIGHT",
+      "tracking_type": "REPS_ONLY",
+      "animation": "chest_dip.webp"
+    },
+    {
+      "id": "svend_press",
+      "name_fr": "Svend Press",
+      "name_en": "Svend Press",
+      "category": "CHEST",
+      "primary_muscle": "CHEST",
+      "secondary_muscles": [
+        "FRONT_DELTS",
+        "TRICEPS"
+      ],
+      "equipment": "PLATE",
+      "tracking_type": "WEIGHT_REPS",
+      "animation": "svend_press.webp"
+    },
+    {
+      "id": "lat_pulldown",
+      "name_fr": "Tirage vertical",
+      "name_en": "Lat Pulldown",
+      "category": "BACK",
+      "primary_muscle": "LATS",
+      "secondary_muscles": [
+        "BICEPS",
+        "REAR_DELTS"
+      ],
+      "equipment": "CABLE",
+      "tracking_type": "WEIGHT_REPS",
+      "animation": "lat_pulldown.webp"
+    },
+    {
+      "id": "close_grip_lat_pulldown",
+      "name_fr": "Tirage vertical prise serrée",
+      "name_en": "Close-Grip Lat Pulldown",
+      "category": "BACK",
+      "primary_muscle": "LATS",
+      "secondary_muscles": [
+        "BICEPS"
+      ],
+      "equipment": "CABLE",
+      "tracking_type": "WEIGHT_REPS",
+      "animation": "close_grip_lat_pulldown.webp"
+    },
+    {
+      "id": "neutral_grip_lat_pulldown",
+      "name_fr": "Tirage vertical prise neutre",
+      "name_en": "Neutral-Grip Lat Pulldown",
+      "category": "BACK",
+      "primary_muscle": "LATS",
+      "secondary_muscles": [
+        "BICEPS"
+      ],
+      "equipment": "CABLE",
+      "tracking_type": "WEIGHT_REPS",
+      "animation": "neutral_grip_lat_pulldown.webp"
+    },
+    {
+      "id": "single_arm_lat_pulldown",
+      "name_fr": "Tirage vertical unilatéral",
+      "name_en": "Single-Arm Lat Pulldown",
+      "category": "BACK",
+      "primary_muscle": "LATS",
+      "secondary_muscles": [
+        "BICEPS"
+      ],
+      "equipment": "CABLE",
+      "tracking_type": "WEIGHT_REPS",
+      "animation": "single_arm_lat_pulldown.webp"
+    },
+    {
+      "id": "pull_up",
+      "name_fr": "Tractions pronation",
+      "name_en": "Pull-Up",
+      "category": "BACK",
+      "primary_muscle": "LATS",
+      "secondary_muscles": [
+        "BICEPS",
+        "REAR_DELTS",
+        "CORE"
+      ],
+      "equipment": "BODYWEIGHT",
+      "tracking_type": "REPS_ONLY",
+      "animation": "pull_up.webp"
+    },
+    {
+      "id": "chin_up",
+      "name_fr": "Tractions supination",
+      "name_en": "Chin-Up",
+      "category": "BACK",
+      "primary_muscle": "LATS",
+      "secondary_muscles": [
+        "BICEPS",
+        "CORE"
+      ],
+      "equipment": "BODYWEIGHT",
+      "tracking_type": "REPS_ONLY",
+      "animation": "chin_up.webp"
+    },
+    {
+      "id": "assisted_pull_up",
+      "name_fr": "Tractions assistées",
+      "name_en": "Assisted Pull-Up",
+      "category": "BACK",
+      "primary_muscle": "LATS",
+      "secondary_muscles": [
+        "BICEPS"
+      ],
+      "equipment": "MACHINE",
+      "tracking_type": "WEIGHT_REPS",
+      "animation": "assisted_pull_up.webp"
+    },
+    {
+      "id": "seated_row",
+      "name_fr": "Tirage horizontal assis",
+      "name_en": "Seated Cable Row",
+      "category": "BACK",
+      "primary_muscle": "MID_BACK",
+      "secondary_muscles": [
+        "LATS",
+        "BICEPS",
+        "REAR_DELTS"
+      ],
+      "equipment": "CABLE",
+      "tracking_type": "WEIGHT_REPS",
+      "animation": "seated_row.webp"
+    },
+    {
+      "id": "machine_row",
+      "name_fr": "Row machine",
+      "name_en": "Machine Row",
+      "category": "BACK",
+      "primary_muscle": "MID_BACK",
+      "secondary_muscles": [
+        "LATS",
+        "BICEPS",
+        "REAR_DELTS"
+      ],
+      "equipment": "MACHINE",
+      "tracking_type": "WEIGHT_REPS",
+      "animation": "machine_row.webp"
+    },
+    {
+      "id": "single_arm_machine_row",
+      "name_fr": "Row machine unilatéral",
+      "name_en": "Single-Arm Machine Row",
+      "category": "BACK",
+      "primary_muscle": "MID_BACK",
+      "secondary_muscles": [
+        "LATS",
+        "BICEPS"
+      ],
+      "equipment": "MACHINE",
+      "tracking_type": "WEIGHT_REPS",
+      "animation": "single_arm_machine_row.webp"
+    },
+    {
+      "id": "barbell_row",
+      "name_fr": "Rowing barre",
+      "name_en": "Barbell Row",
+      "category": "BACK",
+      "primary_muscle": "MID_BACK",
+      "secondary_muscles": [
+        "LATS",
+        "BICEPS",
+        "REAR_DELTS",
+        "LOWER_BACK"
+      ],
+      "equipment": "BARBELL",
+      "tracking_type": "WEIGHT_REPS",
+      "animation": "barbell_row.webp"
+    },
+    {
+      "id": "pendlay_row",
+      "name_fr": "Pendlay Row",
+      "name_en": "Pendlay Row",
+      "category": "BACK",
+      "primary_muscle": "MID_BACK",
+      "secondary_muscles": [
+        "LATS",
+        "BICEPS",
+        "LOWER_BACK"
+      ],
+      "equipment": "BARBELL",
+      "tracking_type": "WEIGHT_REPS",
+      "animation": "pendlay_row.webp"
+    },
+    {
+      "id": "single_arm_dumbbell_row",
+      "name_fr": "Rowing haltère un bras",
+      "name_en": "Single-Arm Dumbbell Row",
+      "category": "BACK",
+      "primary_muscle": "LATS",
+      "secondary_muscles": [
+        "MID_BACK",
+        "BICEPS",
+        "REAR_DELTS"
+      ],
+      "equipment": "DUMBBELL",
+      "tracking_type": "WEIGHT_REPS",
+      "animation": "single_arm_dumbbell_row.webp"
+    },
+    {
+      "id": "chest_supported_dumbbell_row",
+      "name_fr": "Rowing haltères poitrine appuyée",
+      "name_en": "Chest-Supported Dumbbell Row",
+      "category": "BACK",
+      "primary_muscle": "MID_BACK",
+      "secondary_muscles": [
+        "LATS",
+        "BICEPS",
+        "REAR_DELTS"
+      ],
+      "equipment": "DUMBBELL",
+      "tracking_type": "WEIGHT_REPS",
+      "animation": "chest_supported_dumbbell_row.webp"
+    },
+    {
+      "id": "chest_supported_machine_row",
+      "name_fr": "Row machine poitrine appuyée",
+      "name_en": "Chest-Supported Machine Row",
+      "category": "BACK",
+      "primary_muscle": "MID_BACK",
+      "secondary_muscles": [
+        "LATS",
+        "BICEPS",
+        "REAR_DELTS"
+      ],
+      "equipment": "MACHINE",
+      "tracking_type": "WEIGHT_REPS",
+      "animation": "chest_supported_machine_row.webp"
+    },
+    {
+      "id": "t_bar_row",
+      "name_fr": "T-Bar Row",
+      "name_en": "T-Bar Row",
+      "category": "BACK",
+      "primary_muscle": "MID_BACK",
+      "secondary_muscles": [
+        "LATS",
+        "BICEPS",
+        "REAR_DELTS"
+      ],
+      "equipment": "MACHINE",
+      "tracking_type": "WEIGHT_REPS",
+      "animation": "t_bar_row.webp"
+    },
+    {
+      "id": "landmine_row",
+      "name_fr": "Landmine Row",
+      "name_en": "Landmine Row",
+      "category": "BACK",
+      "primary_muscle": "MID_BACK",
+      "secondary_muscles": [
+        "LATS",
+        "BICEPS"
+      ],
+      "equipment": "BARBELL",
+      "tracking_type": "WEIGHT_REPS",
+      "animation": "landmine_row.webp"
+    },
+    {
+      "id": "straight_arm_pulldown",
+      "name_fr": "Tirage bras tendus",
+      "name_en": "Straight-Arm Pulldown",
+      "category": "BACK",
+      "primary_muscle": "LATS",
+      "secondary_muscles": [
+        "TRICEPS_LONG_HEAD",
+        "CORE"
+      ],
+      "equipment": "CABLE",
+      "tracking_type": "WEIGHT_REPS",
+      "animation": "straight_arm_pulldown.webp"
+    },
+    {
+      "id": "machine_pullover",
+      "name_fr": "Pullover machine",
+      "name_en": "Machine Pullover",
+      "category": "BACK",
+      "primary_muscle": "LATS",
+      "secondary_muscles": [
+        "CHEST"
+      ],
+      "equipment": "MACHINE",
+      "tracking_type": "WEIGHT_REPS",
+      "animation": "machine_pullover.webp"
+    },
+    {
+      "id": "dumbbell_pullover",
+      "name_fr": "Pullover haltère",
+      "name_en": "Dumbbell Pullover",
+      "category": "BACK",
+      "primary_muscle": "LATS",
+      "secondary_muscles": [
+        "CHEST",
+        "TRICEPS"
+      ],
+      "equipment": "DUMBBELL",
+      "tracking_type": "WEIGHT_REPS",
+      "animation": "dumbbell_pullover.webp"
+    },
+    {
+      "id": "cable_pullover",
+      "name_fr": "Pullover câble",
+      "name_en": "Cable Pullover",
+      "category": "BACK",
+      "primary_muscle": "LATS",
+      "secondary_muscles": [
+        "TRICEPS_LONG_HEAD"
+      ],
+      "equipment": "CABLE",
+      "tracking_type": "WEIGHT_REPS",
+      "animation": "cable_pullover.webp"
+    },
+    {
+      "id": "face_pull",
+      "name_fr": "Face Pull",
+      "name_en": "Face Pull",
+      "category": "BACK",
+      "primary_muscle": "REAR_DELTS",
+      "secondary_muscles": [
+        "TRAPS",
+        "ROTATOR_CUFF"
+      ],
+      "equipment": "CABLE",
+      "tracking_type": "WEIGHT_REPS",
+      "animation": "face_pull.webp"
+    },
+    {
+      "id": "reverse_pec_deck",
+      "name_fr": "Pec Deck inversé",
+      "name_en": "Reverse Pec Deck",
+      "category": "BACK",
+      "primary_muscle": "REAR_DELTS",
+      "secondary_muscles": [
+        "MID_BACK",
+        "TRAPS"
+      ],
+      "equipment": "MACHINE",
+      "tracking_type": "WEIGHT_REPS",
+      "animation": "reverse_pec_deck.webp"
+    },
+    {
+      "id": "inverted_row",
+      "name_fr": "Rowing inversé",
+      "name_en": "Inverted Row",
+      "category": "BACK",
+      "primary_muscle": "MID_BACK",
+      "secondary_muscles": [
+        "LATS",
+        "BICEPS",
+        "CORE"
+      ],
+      "equipment": "BODYWEIGHT",
+      "tracking_type": "REPS_ONLY",
+      "animation": "inverted_row.webp"
+    },
+    {
+      "id": "shoulder_press",
+      "name_fr": "Développé épaules machine",
+      "name_en": "Machine Shoulder Press",
+      "category": "SHOULDERS",
+      "primary_muscle": "FRONT_DELTS",
+      "secondary_muscles": [
+        "SIDE_DELTS",
+        "TRICEPS"
+      ],
+      "equipment": "MACHINE",
+      "tracking_type": "WEIGHT_REPS",
+      "animation": "shoulder_press.webp"
+    },
+    {
+      "id": "barbell_overhead_press",
+      "name_fr": "Développé militaire barre",
+      "name_en": "Barbell Overhead Press",
+      "category": "SHOULDERS",
+      "primary_muscle": "FRONT_DELTS",
+      "secondary_muscles": [
+        "SIDE_DELTS",
+        "TRICEPS",
+        "CORE"
+      ],
+      "equipment": "BARBELL",
+      "tracking_type": "WEIGHT_REPS",
+      "animation": "barbell_overhead_press.webp"
+    },
+    {
+      "id": "dumbbell_shoulder_press",
+      "name_fr": "Développé épaules haltères",
+      "name_en": "Dumbbell Shoulder Press",
+      "category": "SHOULDERS",
+      "primary_muscle": "FRONT_DELTS",
+      "secondary_muscles": [
+        "SIDE_DELTS",
+        "TRICEPS"
+      ],
+      "equipment": "DUMBBELL",
+      "tracking_type": "WEIGHT_REPS",
+      "animation": "dumbbell_shoulder_press.webp"
+    },
+    {
+      "id": "arnold_press",
+      "name_fr": "Arnold Press",
+      "name_en": "Arnold Press",
+      "category": "SHOULDERS",
+      "primary_muscle": "FRONT_DELTS",
+      "secondary_muscles": [
+        "SIDE_DELTS",
+        "TRICEPS"
+      ],
+      "equipment": "DUMBBELL",
+      "tracking_type": "WEIGHT_REPS",
+      "animation": "arnold_press.webp"
+    },
+    {
+      "id": "smith_shoulder_press",
+      "name_fr": "Développé épaules Smith",
+      "name_en": "Smith Machine Shoulder Press",
+      "category": "SHOULDERS",
+      "primary_muscle": "FRONT_DELTS",
+      "secondary_muscles": [
+        "SIDE_DELTS",
+        "TRICEPS"
+      ],
+      "equipment": "SMITH_MACHINE",
+      "tracking_type": "WEIGHT_REPS",
+      "animation": "smith_shoulder_press.webp"
+    },
+    {
+      "id": "dumbbell_lateral_raise",
+      "name_fr": "Élévations latérales haltères",
+      "name_en": "Dumbbell Lateral Raise",
+      "category": "SHOULDERS",
+      "primary_muscle": "SIDE_DELTS",
+      "secondary_muscles": [],
+      "equipment": "DUMBBELL",
+      "tracking_type": "WEIGHT_REPS",
+      "animation": "dumbbell_lateral_raise.webp"
+    },
+    {
+      "id": "cable_lateral_raise",
+      "name_fr": "Élévations latérales câble",
+      "name_en": "Cable Lateral Raise",
+      "category": "SHOULDERS",
+      "primary_muscle": "SIDE_DELTS",
+      "secondary_muscles": [],
+      "equipment": "CABLE",
+      "tracking_type": "WEIGHT_REPS",
+      "animation": "cable_lateral_raise.webp"
+    },
+    {
+      "id": "machine_lateral_raise",
+      "name_fr": "Élévations latérales machine",
+      "name_en": "Machine Lateral Raise",
+      "category": "SHOULDERS",
+      "primary_muscle": "SIDE_DELTS",
+      "secondary_muscles": [],
+      "equipment": "MACHINE",
+      "tracking_type": "WEIGHT_REPS",
+      "animation": "machine_lateral_raise.webp"
+    },
+    {
+      "id": "single_arm_lateral_raise",
+      "name_fr": "Élévation latérale unilatérale",
+      "name_en": "Single-Arm Lateral Raise",
+      "category": "SHOULDERS",
+      "primary_muscle": "SIDE_DELTS",
+      "secondary_muscles": [],
+      "equipment": "DUMBBELL",
+      "tracking_type": "WEIGHT_REPS",
+      "animation": "single_arm_lateral_raise.webp"
+    },
+    {
+      "id": "dumbbell_front_raise",
+      "name_fr": "Élévations frontales haltères",
+      "name_en": "Dumbbell Front Raise",
+      "category": "SHOULDERS",
+      "primary_muscle": "FRONT_DELTS",
+      "secondary_muscles": [],
+      "equipment": "DUMBBELL",
+      "tracking_type": "WEIGHT_REPS",
+      "animation": "dumbbell_front_raise.webp"
+    },
+    {
+      "id": "cable_front_raise",
+      "name_fr": "Élévations frontales câble",
+      "name_en": "Cable Front Raise",
+      "category": "SHOULDERS",
+      "primary_muscle": "FRONT_DELTS",
+      "secondary_muscles": [],
+      "equipment": "CABLE",
+      "tracking_type": "WEIGHT_REPS",
+      "animation": "cable_front_raise.webp"
+    },
+    {
+      "id": "plate_front_raise",
+      "name_fr": "Élévations frontales disque",
+      "name_en": "Plate Front Raise",
+      "category": "SHOULDERS",
+      "primary_muscle": "FRONT_DELTS",
+      "secondary_muscles": [
+        "UPPER_CHEST"
+      ],
+      "equipment": "PLATE",
+      "tracking_type": "WEIGHT_REPS",
+      "animation": "plate_front_raise.webp"
+    },
+    {
+      "id": "dumbbell_reverse_fly",
+      "name_fr": "Oiseau haltères",
+      "name_en": "Dumbbell Reverse Fly",
+      "category": "SHOULDERS",
+      "primary_muscle": "REAR_DELTS",
+      "secondary_muscles": [
+        "MID_BACK"
+      ],
+      "equipment": "DUMBBELL",
+      "tracking_type": "WEIGHT_REPS",
+      "animation": "dumbbell_reverse_fly.webp"
+    },
+    {
+      "id": "cable_reverse_fly",
+      "name_fr": "Oiseau à la poulie",
+      "name_en": "Cable Reverse Fly",
+      "category": "SHOULDERS",
+      "primary_muscle": "REAR_DELTS",
+      "secondary_muscles": [
+        "MID_BACK"
+      ],
+      "equipment": "CABLE",
+      "tracking_type": "WEIGHT_REPS",
+      "animation": "cable_reverse_fly.webp"
+    },
+    {
+      "id": "cable_upright_row",
+      "name_fr": "Tirage menton câble",
+      "name_en": "Cable Upright Row",
+      "category": "SHOULDERS",
+      "primary_muscle": "SIDE_DELTS",
+      "secondary_muscles": [
+        "TRAPS"
+      ],
+      "equipment": "CABLE",
+      "tracking_type": "WEIGHT_REPS",
+      "animation": "cable_upright_row.webp"
+    },
+    {
+      "id": "barbell_upright_row",
+      "name_fr": "Tirage menton barre",
+      "name_en": "Barbell Upright Row",
+      "category": "SHOULDERS",
+      "primary_muscle": "SIDE_DELTS",
+      "secondary_muscles": [
+        "TRAPS"
+      ],
+      "equipment": "BARBELL",
+      "tracking_type": "WEIGHT_REPS",
+      "animation": "barbell_upright_row.webp"
+    },
+    {
+      "id": "landmine_press",
+      "name_fr": "Landmine Press",
+      "name_en": "Landmine Press",
+      "category": "SHOULDERS",
+      "primary_muscle": "FRONT_DELTS",
+      "secondary_muscles": [
+        "UPPER_CHEST",
+        "TRICEPS"
+      ],
+      "equipment": "BARBELL",
+      "tracking_type": "WEIGHT_REPS",
+      "animation": "landmine_press.webp"
+    },
+    {
+      "id": "single_arm_landmine_press",
+      "name_fr": "Landmine Press unilatéral",
+      "name_en": "Single-Arm Landmine Press",
+      "category": "SHOULDERS",
+      "primary_muscle": "FRONT_DELTS",
+      "secondary_muscles": [
+        "UPPER_CHEST",
+        "TRICEPS",
+        "CORE"
+      ],
+      "equipment": "BARBELL",
+      "tracking_type": "WEIGHT_REPS",
+      "animation": "single_arm_landmine_press.webp"
+    },
+    {
+      "id": "barbell_curl",
+      "name_fr": "Curl barre droite",
+      "name_en": "Barbell Curl",
+      "category": "BICEPS",
+      "primary_muscle": "BICEPS",
+      "secondary_muscles": [
+        "FOREARMS"
+      ],
+      "equipment": "BARBELL",
+      "tracking_type": "WEIGHT_REPS",
+      "animation": "barbell_curl.webp"
+    },
+    {
+      "id": "ez_bar_curl",
+      "name_fr": "Curl barre EZ",
+      "name_en": "EZ-Bar Curl",
+      "category": "BICEPS",
+      "primary_muscle": "BICEPS",
+      "secondary_muscles": [
+        "FOREARMS"
+      ],
+      "equipment": "EZ_BAR",
+      "tracking_type": "WEIGHT_REPS",
+      "animation": "ez_bar_curl.webp"
+    },
+    {
+      "id": "dumbbell_curl",
+      "name_fr": "Curl haltères",
+      "name_en": "Dumbbell Curl",
+      "category": "BICEPS",
+      "primary_muscle": "BICEPS",
+      "secondary_muscles": [
+        "FOREARMS"
+      ],
+      "equipment": "DUMBBELL",
+      "tracking_type": "WEIGHT_REPS",
+      "animation": "dumbbell_curl.webp"
+    },
+    {
+      "id": "alternating_dumbbell_curl",
+      "name_fr": "Curl alterné haltères",
+      "name_en": "Alternating Dumbbell Curl",
+      "category": "BICEPS",
+      "primary_muscle": "BICEPS",
+      "secondary_muscles": [
+        "FOREARMS"
+      ],
+      "equipment": "DUMBBELL",
+      "tracking_type": "WEIGHT_REPS",
+      "animation": "alternating_dumbbell_curl.webp"
+    },
+    {
+      "id": "hammer_curl",
+      "name_fr": "Curl marteau",
+      "name_en": "Hammer Curl",
+      "category": "BICEPS",
+      "primary_muscle": "BRACHIALIS",
+      "secondary_muscles": [
+        "BICEPS",
+        "FOREARMS"
+      ],
+      "equipment": "DUMBBELL",
+      "tracking_type": "WEIGHT_REPS",
+      "animation": "hammer_curl.webp"
+    },
+    {
+      "id": "cable_hammer_curl",
+      "name_fr": "Curl marteau câble",
+      "name_en": "Cable Hammer Curl",
+      "category": "BICEPS",
+      "primary_muscle": "BRACHIALIS",
+      "secondary_muscles": [
+        "BICEPS",
+        "FOREARMS"
+      ],
+      "equipment": "CABLE",
+      "tracking_type": "WEIGHT_REPS",
+      "animation": "cable_hammer_curl.webp"
+    },
+    {
+      "id": "cable_curl",
+      "name_fr": "Curl câble",
+      "name_en": "Cable Curl",
+      "category": "BICEPS",
+      "primary_muscle": "BICEPS",
+      "secondary_muscles": [
+        "FOREARMS"
+      ],
+      "equipment": "CABLE",
+      "tracking_type": "WEIGHT_REPS",
+      "animation": "cable_curl.webp"
+    },
+    {
+      "id": "single_arm_cable_curl",
+      "name_fr": "Curl câble unilatéral",
+      "name_en": "Single-Arm Cable Curl",
+      "category": "BICEPS",
+      "primary_muscle": "BICEPS",
+      "secondary_muscles": [
+        "FOREARMS"
+      ],
+      "equipment": "CABLE",
+      "tracking_type": "WEIGHT_REPS",
+      "animation": "single_arm_cable_curl.webp"
+    },
+    {
+      "id": "preacher_curl",
+      "name_fr": "Curl pupitre",
+      "name_en": "Preacher Curl",
+      "category": "BICEPS",
+      "primary_muscle": "BICEPS",
+      "secondary_muscles": [
+        "FOREARMS"
+      ],
+      "equipment": "EZ_BAR",
+      "tracking_type": "WEIGHT_REPS",
+      "animation": "preacher_curl.webp"
+    },
+    {
+      "id": "machine_preacher_curl",
+      "name_fr": "Curl pupitre machine",
+      "name_en": "Machine Preacher Curl",
+      "category": "BICEPS",
+      "primary_muscle": "BICEPS",
+      "secondary_muscles": [
+        "FOREARMS"
+      ],
+      "equipment": "MACHINE",
+      "tracking_type": "WEIGHT_REPS",
+      "animation": "machine_preacher_curl.webp"
+    },
+    {
+      "id": "incline_dumbbell_curl",
+      "name_fr": "Curl incliné haltères",
+      "name_en": "Incline Dumbbell Curl",
+      "category": "BICEPS",
+      "primary_muscle": "BICEPS_LONG_HEAD",
+      "secondary_muscles": [
+        "FOREARMS"
+      ],
+      "equipment": "DUMBBELL",
+      "tracking_type": "WEIGHT_REPS",
+      "animation": "incline_dumbbell_curl.webp"
+    },
+    {
+      "id": "concentration_curl",
+      "name_fr": "Curl concentration",
+      "name_en": "Concentration Curl",
+      "category": "BICEPS",
+      "primary_muscle": "BICEPS",
+      "secondary_muscles": [
+        "FOREARMS"
+      ],
+      "equipment": "DUMBBELL",
+      "tracking_type": "WEIGHT_REPS",
+      "animation": "concentration_curl.webp"
+    },
+    {
+      "id": "bayesian_cable_curl",
+      "name_fr": "Curl Bayesian à la poulie",
+      "name_en": "Bayesian Cable Curl",
+      "category": "BICEPS",
+      "primary_muscle": "BICEPS_LONG_HEAD",
+      "secondary_muscles": [
+        "FOREARMS"
+      ],
+      "equipment": "CABLE",
+      "tracking_type": "WEIGHT_REPS",
+      "animation": "bayesian_cable_curl.webp"
+    },
+    {
+      "id": "spider_curl",
+      "name_fr": "Spider Curl",
+      "name_en": "Spider Curl",
+      "category": "BICEPS",
+      "primary_muscle": "BICEPS_SHORT_HEAD",
+      "secondary_muscles": [
+        "FOREARMS"
+      ],
+      "equipment": "DUMBBELL",
+      "tracking_type": "WEIGHT_REPS",
+      "animation": "spider_curl.webp"
+    },
+    {
+      "id": "rope_triceps_pushdown",
+      "name_fr": "Extension triceps corde",
+      "name_en": "Rope Triceps Pushdown",
+      "category": "TRICEPS",
+      "primary_muscle": "TRICEPS",
+      "secondary_muscles": [],
+      "equipment": "CABLE",
+      "tracking_type": "WEIGHT_REPS",
+      "animation": "rope_triceps_pushdown.webp"
+    },
+    {
+      "id": "bar_triceps_pushdown",
+      "name_fr": "Extension triceps barre",
+      "name_en": "Bar Triceps Pushdown",
+      "category": "TRICEPS",
+      "primary_muscle": "TRICEPS",
+      "secondary_muscles": [],
+      "equipment": "CABLE",
+      "tracking_type": "WEIGHT_REPS",
+      "animation": "bar_triceps_pushdown.webp"
+    },
+    {
+      "id": "single_arm_triceps_pushdown",
+      "name_fr": "Extension triceps unilatérale",
+      "name_en": "Single-Arm Triceps Pushdown",
+      "category": "TRICEPS",
+      "primary_muscle": "TRICEPS",
+      "secondary_muscles": [],
+      "equipment": "CABLE",
+      "tracking_type": "WEIGHT_REPS",
+      "animation": "single_arm_triceps_pushdown.webp"
+    },
+    {
+      "id": "rope_overhead_triceps_extension",
+      "name_fr": "Extension triceps au-dessus de la tête corde",
+      "name_en": "Rope Overhead Triceps Extension",
+      "category": "TRICEPS",
+      "primary_muscle": "TRICEPS_LONG_HEAD",
+      "secondary_muscles": [],
+      "equipment": "CABLE",
+      "tracking_type": "WEIGHT_REPS",
+      "animation": "rope_overhead_triceps_extension.webp"
+    },
+    {
+      "id": "single_arm_overhead_triceps_extension",
+      "name_fr": "Extension triceps un bras au-dessus de la tête",
+      "name_en": "Single-Arm Overhead Triceps Extension",
+      "category": "TRICEPS",
+      "primary_muscle": "TRICEPS_LONG_HEAD",
+      "secondary_muscles": [],
+      "equipment": "CABLE",
+      "tracking_type": "WEIGHT_REPS",
+      "animation": "single_arm_overhead_triceps_extension.webp"
+    },
+    {
+      "id": "ez_bar_skull_crusher",
+      "name_fr": "Skull Crusher barre EZ",
+      "name_en": "EZ-Bar Skull Crusher",
+      "category": "TRICEPS",
+      "primary_muscle": "TRICEPS",
+      "secondary_muscles": [],
+      "equipment": "EZ_BAR",
+      "tracking_type": "WEIGHT_REPS",
+      "animation": "ez_bar_skull_crusher.webp"
+    },
+    {
+      "id": "dumbbell_skull_crusher",
+      "name_fr": "Skull Crusher haltères",
+      "name_en": "Dumbbell Skull Crusher",
+      "category": "TRICEPS",
+      "primary_muscle": "TRICEPS",
+      "secondary_muscles": [],
+      "equipment": "DUMBBELL",
+      "tracking_type": "WEIGHT_REPS",
+      "animation": "dumbbell_skull_crusher.webp"
+    },
+    {
+      "id": "french_press",
+      "name_fr": "French Press",
+      "name_en": "French Press",
+      "category": "TRICEPS",
+      "primary_muscle": "TRICEPS_LONG_HEAD",
+      "secondary_muscles": [],
+      "equipment": "EZ_BAR",
+      "tracking_type": "WEIGHT_REPS",
+      "animation": "french_press.webp"
+    },
+    {
+      "id": "close_grip_bench_press",
+      "name_fr": "Développé couché prise serrée",
+      "name_en": "Close-Grip Bench Press",
+      "category": "TRICEPS",
+      "primary_muscle": "TRICEPS",
+      "secondary_muscles": [
+        "CHEST",
+        "FRONT_DELTS"
+      ],
+      "equipment": "BARBELL",
+      "tracking_type": "WEIGHT_REPS",
+      "animation": "close_grip_bench_press.webp"
+    },
+    {
+      "id": "triceps_dip",
+      "name_fr": "Dips triceps",
+      "name_en": "Triceps Dip",
+      "category": "TRICEPS",
+      "primary_muscle": "TRICEPS",
+      "secondary_muscles": [
+        "CHEST",
+        "FRONT_DELTS"
+      ],
+      "equipment": "BODYWEIGHT",
+      "tracking_type": "REPS_ONLY",
+      "animation": "triceps_dip.webp"
+    },
+    {
+      "id": "assisted_dip",
+      "name_fr": "Dips assistés",
+      "name_en": "Assisted Dip",
+      "category": "TRICEPS",
+      "primary_muscle": "TRICEPS",
+      "secondary_muscles": [
+        "CHEST"
+      ],
+      "equipment": "MACHINE",
+      "tracking_type": "WEIGHT_REPS",
+      "animation": "assisted_dip.webp"
+    },
+    {
+      "id": "machine_triceps_extension",
+      "name_fr": "Extension triceps machine",
+      "name_en": "Machine Triceps Extension",
+      "category": "TRICEPS",
+      "primary_muscle": "TRICEPS",
+      "secondary_muscles": [],
+      "equipment": "MACHINE",
+      "tracking_type": "WEIGHT_REPS",
+      "animation": "machine_triceps_extension.webp"
+    },
+    {
+      "id": "dumbbell_triceps_kickback",
+      "name_fr": "Kickback triceps haltère",
+      "name_en": "Dumbbell Triceps Kickback",
+      "category": "TRICEPS",
+      "primary_muscle": "TRICEPS",
+      "secondary_muscles": [],
+      "equipment": "DUMBBELL",
+      "tracking_type": "WEIGHT_REPS",
+      "animation": "dumbbell_triceps_kickback.webp"
+    },
+    {
+      "id": "cable_triceps_kickback",
+      "name_fr": "Kickback triceps câble",
+      "name_en": "Cable Triceps Kickback",
+      "category": "TRICEPS",
+      "primary_muscle": "TRICEPS",
+      "secondary_muscles": [],
+      "equipment": "CABLE",
+      "tracking_type": "WEIGHT_REPS",
+      "animation": "cable_triceps_kickback.webp"
+    },
+    {
+      "id": "leg_press",
+      "name_fr": "Presse à cuisses 45°",
+      "name_en": "45-Degree Leg Press",
+      "category": "LEGS",
+      "primary_muscle": "QUADS",
+      "secondary_muscles": [
+        "GLUTES",
+        "HAMSTRINGS"
+      ],
+      "equipment": "MACHINE",
+      "tracking_type": "WEIGHT_REPS",
+      "animation": "leg_press.webp"
+    },
+    {
+      "id": "horizontal_leg_press",
+      "name_fr": "Presse à cuisses horizontale",
+      "name_en": "Horizontal Leg Press",
+      "category": "LEGS",
+      "primary_muscle": "QUADS",
+      "secondary_muscles": [
+        "GLUTES",
+        "HAMSTRINGS"
+      ],
+      "equipment": "MACHINE",
+      "tracking_type": "WEIGHT_REPS",
+      "animation": "horizontal_leg_press.webp"
+    },
+    {
+      "id": "hack_squat",
+      "name_fr": "Hack Squat",
+      "name_en": "Hack Squat",
+      "category": "LEGS",
+      "primary_muscle": "QUADS",
+      "secondary_muscles": [
+        "GLUTES",
+        "HAMSTRINGS"
+      ],
+      "equipment": "MACHINE",
+      "tracking_type": "WEIGHT_REPS",
+      "animation": "hack_squat.webp"
+    },
+    {
+      "id": "pendulum_squat",
+      "name_fr": "Pendulum Squat",
+      "name_en": "Pendulum Squat",
+      "category": "LEGS",
+      "primary_muscle": "QUADS",
+      "secondary_muscles": [
+        "GLUTES"
+      ],
+      "equipment": "MACHINE",
+      "tracking_type": "WEIGHT_REPS",
+      "animation": "pendulum_squat.webp"
+    },
+    {
+      "id": "leg_extension",
+      "name_fr": "Leg Extension",
+      "name_en": "Leg Extension",
+      "category": "LEGS",
+      "primary_muscle": "QUADS",
+      "secondary_muscles": [],
+      "equipment": "MACHINE",
+      "tracking_type": "WEIGHT_REPS",
+      "animation": "leg_extension.webp"
+    },
+    {
+      "id": "single_leg_extension",
+      "name_fr": "Leg Extension unilatéral",
+      "name_en": "Single-Leg Extension",
+      "category": "LEGS",
+      "primary_muscle": "QUADS",
+      "secondary_muscles": [],
+      "equipment": "MACHINE",
+      "tracking_type": "WEIGHT_REPS",
+      "animation": "single_leg_extension.webp"
+    },
+    {
+      "id": "barbell_back_squat",
+      "name_fr": "Squat barre arrière",
+      "name_en": "Barbell Back Squat",
+      "category": "LEGS",
+      "primary_muscle": "QUADS",
+      "secondary_muscles": [
+        "GLUTES",
+        "HAMSTRINGS",
+        "CORE",
+        "LOWER_BACK"
+      ],
+      "equipment": "BARBELL",
+      "tracking_type": "WEIGHT_REPS",
+      "animation": "barbell_back_squat.webp"
+    },
+    {
+      "id": "front_squat",
+      "name_fr": "Front Squat",
+      "name_en": "Front Squat",
+      "category": "LEGS",
+      "primary_muscle": "QUADS",
+      "secondary_muscles": [
+        "GLUTES",
+        "CORE"
+      ],
+      "equipment": "BARBELL",
+      "tracking_type": "WEIGHT_REPS",
+      "animation": "front_squat.webp"
+    },
+    {
+      "id": "goblet_squat",
+      "name_fr": "Goblet Squat",
+      "name_en": "Goblet Squat",
+      "category": "LEGS",
+      "primary_muscle": "QUADS",
+      "secondary_muscles": [
+        "GLUTES",
+        "CORE"
+      ],
+      "equipment": "DUMBBELL",
+      "tracking_type": "WEIGHT_REPS",
+      "animation": "goblet_squat.webp"
+    },
+    {
+      "id": "smith_squat",
+      "name_fr": "Squat Smith Machine",
+      "name_en": "Smith Machine Squat",
+      "category": "LEGS",
+      "primary_muscle": "QUADS",
+      "secondary_muscles": [
+        "GLUTES"
+      ],
+      "equipment": "SMITH_MACHINE",
+      "tracking_type": "WEIGHT_REPS",
+      "animation": "smith_squat.webp"
+    },
+    {
+      "id": "bulgarian_split_squat",
+      "name_fr": "Bulgarian Split Squat",
+      "name_en": "Bulgarian Split Squat",
+      "category": "LEGS",
+      "primary_muscle": "QUADS",
+      "secondary_muscles": [
+        "GLUTES",
+        "HAMSTRINGS"
+      ],
+      "equipment": "DUMBBELL",
+      "tracking_type": "WEIGHT_REPS",
+      "animation": "bulgarian_split_squat.webp"
+    },
+    {
+      "id": "split_squat",
+      "name_fr": "Split Squat",
+      "name_en": "Split Squat",
+      "category": "LEGS",
+      "primary_muscle": "QUADS",
+      "secondary_muscles": [
+        "GLUTES"
+      ],
+      "equipment": "DUMBBELL",
+      "tracking_type": "WEIGHT_REPS",
+      "animation": "split_squat.webp"
+    },
+    {
+      "id": "forward_lunge",
+      "name_fr": "Fentes avant",
+      "name_en": "Forward Lunge",
+      "category": "LEGS",
+      "primary_muscle": "QUADS",
+      "secondary_muscles": [
+        "GLUTES",
+        "HAMSTRINGS"
+      ],
+      "equipment": "DUMBBELL",
+      "tracking_type": "WEIGHT_REPS",
+      "animation": "forward_lunge.webp"
+    },
+    {
+      "id": "reverse_lunge",
+      "name_fr": "Fentes arrière",
+      "name_en": "Reverse Lunge",
+      "category": "LEGS",
+      "primary_muscle": "QUADS",
+      "secondary_muscles": [
+        "GLUTES",
+        "HAMSTRINGS"
+      ],
+      "equipment": "DUMBBELL",
+      "tracking_type": "WEIGHT_REPS",
+      "animation": "reverse_lunge.webp"
+    },
+    {
+      "id": "walking_lunge",
+      "name_fr": "Fentes marchées",
+      "name_en": "Walking Lunge",
+      "category": "LEGS",
+      "primary_muscle": "QUADS",
+      "secondary_muscles": [
+        "GLUTES",
+        "HAMSTRINGS"
+      ],
+      "equipment": "DUMBBELL",
+      "tracking_type": "WEIGHT_REPS",
+      "animation": "walking_lunge.webp"
+    },
+    {
+      "id": "step_up",
+      "name_fr": "Step Up",
+      "name_en": "Step-Up",
+      "category": "LEGS",
+      "primary_muscle": "QUADS",
+      "secondary_muscles": [
+        "GLUTES",
+        "HAMSTRINGS"
+      ],
+      "equipment": "DUMBBELL",
+      "tracking_type": "WEIGHT_REPS",
+      "animation": "step_up.webp"
+    },
+    {
+      "id": "sissy_squat",
+      "name_fr": "Sissy Squat",
+      "name_en": "Sissy Squat",
+      "category": "LEGS",
+      "primary_muscle": "QUADS",
+      "secondary_muscles": [],
+      "equipment": "BODYWEIGHT",
+      "tracking_type": "REPS_ONLY",
+      "animation": "sissy_squat.webp"
+    },
+    {
+      "id": "lying_leg_curl",
+      "name_fr": "Leg Curl allongé",
+      "name_en": "Lying Leg Curl",
+      "category": "LEGS",
+      "primary_muscle": "HAMSTRINGS",
+      "secondary_muscles": [
+        "CALVES"
+      ],
+      "equipment": "MACHINE",
+      "tracking_type": "WEIGHT_REPS",
+      "animation": "lying_leg_curl.webp"
+    },
+    {
+      "id": "seated_leg_curl",
+      "name_fr": "Leg Curl assis",
+      "name_en": "Seated Leg Curl",
+      "category": "LEGS",
+      "primary_muscle": "HAMSTRINGS",
+      "secondary_muscles": [
+        "CALVES"
+      ],
+      "equipment": "MACHINE",
+      "tracking_type": "WEIGHT_REPS",
+      "animation": "seated_leg_curl.webp"
+    },
+    {
+      "id": "standing_leg_curl",
+      "name_fr": "Leg Curl debout",
+      "name_en": "Standing Leg Curl",
+      "category": "LEGS",
+      "primary_muscle": "HAMSTRINGS",
+      "secondary_muscles": [
+        "CALVES"
+      ],
+      "equipment": "MACHINE",
+      "tracking_type": "WEIGHT_REPS",
+      "animation": "standing_leg_curl.webp"
+    },
+    {
+      "id": "single_leg_curl",
+      "name_fr": "Leg Curl unilatéral",
+      "name_en": "Single-Leg Curl",
+      "category": "LEGS",
+      "primary_muscle": "HAMSTRINGS",
+      "secondary_muscles": [
+        "CALVES"
+      ],
+      "equipment": "MACHINE",
+      "tracking_type": "WEIGHT_REPS",
+      "animation": "single_leg_curl.webp"
+    },
+    {
+      "id": "barbell_romanian_deadlift",
+      "name_fr": "Soulevé de terre roumain barre",
+      "name_en": "Barbell Romanian Deadlift",
+      "category": "LEGS",
+      "primary_muscle": "HAMSTRINGS",
+      "secondary_muscles": [
+        "GLUTES",
+        "LOWER_BACK"
+      ],
+      "equipment": "BARBELL",
+      "tracking_type": "WEIGHT_REPS",
+      "animation": "barbell_romanian_deadlift.webp"
+    },
+    {
+      "id": "dumbbell_romanian_deadlift",
+      "name_fr": "Soulevé de terre roumain haltères",
+      "name_en": "Dumbbell Romanian Deadlift",
+      "category": "LEGS",
+      "primary_muscle": "HAMSTRINGS",
+      "secondary_muscles": [
+        "GLUTES",
+        "LOWER_BACK"
+      ],
+      "equipment": "DUMBBELL",
+      "tracking_type": "WEIGHT_REPS",
+      "animation": "dumbbell_romanian_deadlift.webp"
+    },
+    {
+      "id": "smith_romanian_deadlift",
+      "name_fr": "Soulevé de terre roumain Smith",
+      "name_en": "Smith Romanian Deadlift",
+      "category": "LEGS",
+      "primary_muscle": "HAMSTRINGS",
+      "secondary_muscles": [
+        "GLUTES",
+        "LOWER_BACK"
+      ],
+      "equipment": "SMITH_MACHINE",
+      "tracking_type": "WEIGHT_REPS",
+      "animation": "smith_romanian_deadlift.webp"
+    },
+    {
+      "id": "single_leg_romanian_deadlift",
+      "name_fr": "Soulevé de terre roumain une jambe",
+      "name_en": "Single-Leg Romanian Deadlift",
+      "category": "LEGS",
+      "primary_muscle": "HAMSTRINGS",
+      "secondary_muscles": [
+        "GLUTES",
+        "CORE"
+      ],
+      "equipment": "DUMBBELL",
+      "tracking_type": "WEIGHT_REPS",
+      "animation": "single_leg_romanian_deadlift.webp"
+    },
+    {
+      "id": "good_morning",
+      "name_fr": "Good Morning",
+      "name_en": "Good Morning",
+      "category": "LEGS",
+      "primary_muscle": "HAMSTRINGS",
+      "secondary_muscles": [
+        "GLUTES",
+        "LOWER_BACK"
+      ],
+      "equipment": "BARBELL",
+      "tracking_type": "WEIGHT_REPS",
+      "animation": "good_morning.webp"
+    },
+    {
+      "id": "nordic_curl",
+      "name_fr": "Nordic Hamstring Curl",
+      "name_en": "Nordic Hamstring Curl",
+      "category": "LEGS",
+      "primary_muscle": "HAMSTRINGS",
+      "secondary_muscles": [
+        "GLUTES"
+      ],
+      "equipment": "BODYWEIGHT",
+      "tracking_type": "REPS_ONLY",
+      "animation": "nordic_curl.webp"
+    },
+    {
+      "id": "glute_ham_raise",
+      "name_fr": "Glute Ham Raise",
+      "name_en": "Glute Ham Raise",
+      "category": "LEGS",
+      "primary_muscle": "HAMSTRINGS",
+      "secondary_muscles": [
+        "GLUTES",
+        "CALVES"
+      ],
+      "equipment": "MACHINE",
+      "tracking_type": "REPS_ONLY",
+      "animation": "glute_ham_raise.webp"
+    },
+    {
+      "id": "barbell_hip_thrust",
+      "name_fr": "Hip Thrust barre",
+      "name_en": "Barbell Hip Thrust",
+      "category": "GLUTES",
+      "primary_muscle": "GLUTES",
+      "secondary_muscles": [
+        "HAMSTRINGS"
+      ],
+      "equipment": "BARBELL",
+      "tracking_type": "WEIGHT_REPS",
+      "animation": "barbell_hip_thrust.webp"
+    },
+    {
+      "id": "machine_hip_thrust",
+      "name_fr": "Hip Thrust machine",
+      "name_en": "Machine Hip Thrust",
+      "category": "GLUTES",
+      "primary_muscle": "GLUTES",
+      "secondary_muscles": [
+        "HAMSTRINGS"
+      ],
+      "equipment": "MACHINE",
+      "tracking_type": "WEIGHT_REPS",
+      "animation": "machine_hip_thrust.webp"
+    },
+    {
+      "id": "smith_hip_thrust",
+      "name_fr": "Hip Thrust Smith",
+      "name_en": "Smith Machine Hip Thrust",
+      "category": "GLUTES",
+      "primary_muscle": "GLUTES",
+      "secondary_muscles": [
+        "HAMSTRINGS"
+      ],
+      "equipment": "SMITH_MACHINE",
+      "tracking_type": "WEIGHT_REPS",
+      "animation": "smith_hip_thrust.webp"
+    },
+    {
+      "id": "glute_bridge",
+      "name_fr": "Glute Bridge",
+      "name_en": "Glute Bridge",
+      "category": "GLUTES",
+      "primary_muscle": "GLUTES",
+      "secondary_muscles": [
+        "HAMSTRINGS"
+      ],
+      "equipment": "BODYWEIGHT",
+      "tracking_type": "REPS_ONLY",
+      "animation": "glute_bridge.webp"
+    },
+    {
+      "id": "weighted_glute_bridge",
+      "name_fr": "Glute Bridge lesté",
+      "name_en": "Weighted Glute Bridge",
+      "category": "GLUTES",
+      "primary_muscle": "GLUTES",
+      "secondary_muscles": [
+        "HAMSTRINGS"
+      ],
+      "equipment": "BARBELL",
+      "tracking_type": "WEIGHT_REPS",
+      "animation": "weighted_glute_bridge.webp"
+    },
+    {
+      "id": "cable_glute_kickback",
+      "name_fr": "Kickback fessier câble",
+      "name_en": "Cable Glute Kickback",
+      "category": "GLUTES",
+      "primary_muscle": "GLUTES",
+      "secondary_muscles": [
+        "HAMSTRINGS"
+      ],
+      "equipment": "CABLE",
+      "tracking_type": "WEIGHT_REPS",
+      "animation": "cable_glute_kickback.webp"
+    },
+    {
+      "id": "machine_glute_kickback",
+      "name_fr": "Kickback fessier machine",
+      "name_en": "Machine Glute Kickback",
+      "category": "GLUTES",
+      "primary_muscle": "GLUTES",
+      "secondary_muscles": [
+        "HAMSTRINGS"
+      ],
+      "equipment": "MACHINE",
+      "tracking_type": "WEIGHT_REPS",
+      "animation": "machine_glute_kickback.webp"
+    },
+    {
+      "id": "hip_abduction_machine",
+      "name_fr": "Abducteurs machine",
+      "name_en": "Hip Abduction Machine",
+      "category": "GLUTES",
+      "primary_muscle": "GLUTE_MEDIUS",
+      "secondary_muscles": [
+        "GLUTES"
+      ],
+      "equipment": "MACHINE",
+      "tracking_type": "WEIGHT_REPS",
+      "animation": "hip_abduction_machine.webp"
+    },
+    {
+      "id": "hip_adduction_machine",
+      "name_fr": "Adducteurs machine",
+      "name_en": "Hip Adduction Machine",
+      "category": "LEGS",
+      "primary_muscle": "ADDUCTORS",
+      "secondary_muscles": [],
+      "equipment": "MACHINE",
+      "tracking_type": "WEIGHT_REPS",
+      "animation": "hip_adduction_machine.webp"
+    },
+    {
+      "id": "cable_hip_abduction",
+      "name_fr": "Abduction de hanche câble",
+      "name_en": "Cable Hip Abduction",
+      "category": "GLUTES",
+      "primary_muscle": "GLUTE_MEDIUS",
+      "secondary_muscles": [],
+      "equipment": "CABLE",
+      "tracking_type": "WEIGHT_REPS",
+      "animation": "cable_hip_abduction.webp"
+    },
+    {
+      "id": "cable_hip_adduction",
+      "name_fr": "Adduction de hanche câble",
+      "name_en": "Cable Hip Adduction",
+      "category": "LEGS",
+      "primary_muscle": "ADDUCTORS",
+      "secondary_muscles": [],
+      "equipment": "CABLE",
+      "tracking_type": "WEIGHT_REPS",
+      "animation": "cable_hip_adduction.webp"
+    },
+    {
+      "id": "frog_pump",
+      "name_fr": "Frog Pump",
+      "name_en": "Frog Pump",
+      "category": "GLUTES",
+      "primary_muscle": "GLUTES",
+      "secondary_muscles": [],
+      "equipment": "BODYWEIGHT",
+      "tracking_type": "REPS_ONLY",
+      "animation": "frog_pump.webp"
+    },
+    {
+      "id": "standing_calf_raise",
+      "name_fr": "Mollets debout machine",
+      "name_en": "Standing Calf Raise",
+      "category": "CALVES",
+      "primary_muscle": "CALVES",
+      "secondary_muscles": [],
+      "equipment": "MACHINE",
+      "tracking_type": "WEIGHT_REPS",
+      "animation": "standing_calf_raise.webp"
+    },
+    {
+      "id": "seated_calf_raise",
+      "name_fr": "Mollets assis",
+      "name_en": "Seated Calf Raise",
+      "category": "CALVES",
+      "primary_muscle": "SOLEUS",
+      "secondary_muscles": [
+        "CALVES"
+      ],
+      "equipment": "MACHINE",
+      "tracking_type": "WEIGHT_REPS",
+      "animation": "seated_calf_raise.webp"
+    },
+    {
+      "id": "leg_press_calf_raise",
+      "name_fr": "Mollets à la presse",
+      "name_en": "Leg Press Calf Raise",
+      "category": "CALVES",
+      "primary_muscle": "CALVES",
+      "secondary_muscles": [],
+      "equipment": "MACHINE",
+      "tracking_type": "WEIGHT_REPS",
+      "animation": "leg_press_calf_raise.webp"
+    },
+    {
+      "id": "smith_calf_raise",
+      "name_fr": "Mollets Smith Machine",
+      "name_en": "Smith Machine Calf Raise",
+      "category": "CALVES",
+      "primary_muscle": "CALVES",
+      "secondary_muscles": [],
+      "equipment": "SMITH_MACHINE",
+      "tracking_type": "WEIGHT_REPS",
+      "animation": "smith_calf_raise.webp"
+    },
+    {
+      "id": "dumbbell_calf_raise",
+      "name_fr": "Mollets debout avec haltères",
+      "name_en": "Dumbbell Calf Raise",
+      "category": "CALVES",
+      "primary_muscle": "CALVES",
+      "secondary_muscles": [],
+      "equipment": "DUMBBELL",
+      "tracking_type": "WEIGHT_REPS",
+      "animation": "dumbbell_calf_raise.webp"
+    },
+    {
+      "id": "single_leg_calf_raise",
+      "name_fr": "Mollet une jambe",
+      "name_en": "Single-Leg Calf Raise",
+      "category": "CALVES",
+      "primary_muscle": "CALVES",
+      "secondary_muscles": [],
+      "equipment": "DUMBBELL",
+      "tracking_type": "WEIGHT_REPS",
+      "animation": "single_leg_calf_raise.webp"
+    },
+    {
+      "id": "donkey_calf_raise",
+      "name_fr": "Donkey Calf Raise",
+      "name_en": "Donkey Calf Raise",
+      "category": "CALVES",
+      "primary_muscle": "CALVES",
+      "secondary_muscles": [],
+      "equipment": "MACHINE",
+      "tracking_type": "WEIGHT_REPS",
+      "animation": "donkey_calf_raise.webp"
+    },
+    {
+      "id": "plank",
+      "name_fr": "Planche",
+      "name_en": "Plank",
+      "category": "CORE",
+      "primary_muscle": "CORE",
+      "secondary_muscles": [
+        "ABS",
+        "OBLIQUES",
+        "LOWER_BACK"
+      ],
+      "equipment": "BODYWEIGHT",
+      "tracking_type": "DURATION",
+      "animation": "plank.webp"
+    },
+    {
+      "id": "side_plank",
+      "name_fr": "Planche latérale",
+      "name_en": "Side Plank",
+      "category": "CORE",
+      "primary_muscle": "OBLIQUES",
+      "secondary_muscles": [
+        "CORE"
+      ],
+      "equipment": "BODYWEIGHT",
+      "tracking_type": "DURATION",
+      "animation": "side_plank.webp"
+    },
+    {
+      "id": "weighted_plank",
+      "name_fr": "Planche lestée",
+      "name_en": "Weighted Plank",
+      "category": "CORE",
+      "primary_muscle": "CORE",
+      "secondary_muscles": [
+        "ABS",
+        "OBLIQUES"
+      ],
+      "equipment": "PLATE",
+      "tracking_type": "WEIGHT_DURATION",
+      "animation": "weighted_plank.webp"
+    },
+    {
+      "id": "crunch",
+      "name_fr": "Crunch au sol",
+      "name_en": "Crunch",
+      "category": "CORE",
+      "primary_muscle": "ABS",
+      "secondary_muscles": [],
+      "equipment": "BODYWEIGHT",
+      "tracking_type": "REPS_ONLY",
+      "animation": "crunch.webp"
+    },
+    {
+      "id": "machine_crunch",
+      "name_fr": "Crunch machine",
+      "name_en": "Machine Crunch",
+      "category": "CORE",
+      "primary_muscle": "ABS",
+      "secondary_muscles": [],
+      "equipment": "MACHINE",
+      "tracking_type": "WEIGHT_REPS",
+      "animation": "machine_crunch.webp"
+    },
+    {
+      "id": "cable_crunch",
+      "name_fr": "Crunch à la poulie",
+      "name_en": "Cable Crunch",
+      "category": "CORE",
+      "primary_muscle": "ABS",
+      "secondary_muscles": [],
+      "equipment": "CABLE",
+      "tracking_type": "WEIGHT_REPS",
+      "animation": "cable_crunch.webp"
+    },
+    {
+      "id": "decline_crunch",
+      "name_fr": "Crunch décliné",
+      "name_en": "Decline Crunch",
+      "category": "CORE",
+      "primary_muscle": "ABS",
+      "secondary_muscles": [],
+      "equipment": "BODYWEIGHT",
+      "tracking_type": "REPS_ONLY",
+      "animation": "decline_crunch.webp"
+    },
+    {
+      "id": "sit_up",
+      "name_fr": "Sit-Up",
+      "name_en": "Sit-Up",
+      "category": "CORE",
+      "primary_muscle": "ABS",
+      "secondary_muscles": [
+        "HIP_FLEXORS"
+      ],
+      "equipment": "BODYWEIGHT",
+      "tracking_type": "REPS_ONLY",
+      "animation": "sit_up.webp"
+    },
+    {
+      "id": "decline_sit_up",
+      "name_fr": "Sit-Up décliné",
+      "name_en": "Decline Sit-Up",
+      "category": "CORE",
+      "primary_muscle": "ABS",
+      "secondary_muscles": [
+        "HIP_FLEXORS"
+      ],
+      "equipment": "BODYWEIGHT",
+      "tracking_type": "REPS_ONLY",
+      "animation": "decline_sit_up.webp"
+    },
+    {
+      "id": "hanging_knee_raise",
+      "name_fr": "Relevé de genoux suspendu",
+      "name_en": "Hanging Knee Raise",
+      "category": "CORE",
+      "primary_muscle": "ABS",
+      "secondary_muscles": [
+        "HIP_FLEXORS"
+      ],
+      "equipment": "BODYWEIGHT",
+      "tracking_type": "REPS_ONLY",
+      "animation": "hanging_knee_raise.webp"
+    },
+    {
+      "id": "hanging_leg_raise",
+      "name_fr": "Relevé de jambes suspendu",
+      "name_en": "Hanging Leg Raise",
+      "category": "CORE",
+      "primary_muscle": "ABS",
+      "secondary_muscles": [
+        "HIP_FLEXORS"
+      ],
+      "equipment": "BODYWEIGHT",
+      "tracking_type": "REPS_ONLY",
+      "animation": "hanging_leg_raise.webp"
+    },
+    {
+      "id": "captains_chair_knee_raise",
+      "name_fr": "Relevé de genoux chaise romaine",
+      "name_en": "Captain's Chair Knee Raise",
+      "category": "CORE",
+      "primary_muscle": "ABS",
+      "secondary_muscles": [
+        "HIP_FLEXORS"
+      ],
+      "equipment": "BODYWEIGHT",
+      "tracking_type": "REPS_ONLY",
+      "animation": "captains_chair_knee_raise.webp"
+    },
+    {
+      "id": "lying_leg_raise",
+      "name_fr": "Relevé de jambes au sol",
+      "name_en": "Lying Leg Raise",
+      "category": "CORE",
+      "primary_muscle": "ABS",
+      "secondary_muscles": [
+        "HIP_FLEXORS"
+      ],
+      "equipment": "BODYWEIGHT",
+      "tracking_type": "REPS_ONLY",
+      "animation": "lying_leg_raise.webp"
+    },
+    {
+      "id": "reverse_crunch",
+      "name_fr": "Crunch inversé",
+      "name_en": "Reverse Crunch",
+      "category": "CORE",
+      "primary_muscle": "ABS",
+      "secondary_muscles": [],
+      "equipment": "BODYWEIGHT",
+      "tracking_type": "REPS_ONLY",
+      "animation": "reverse_crunch.webp"
+    },
+    {
+      "id": "bicycle_crunch",
+      "name_fr": "Crunch bicyclette",
+      "name_en": "Bicycle Crunch",
+      "category": "CORE",
+      "primary_muscle": "ABS",
+      "secondary_muscles": [
+        "OBLIQUES"
+      ],
+      "equipment": "BODYWEIGHT",
+      "tracking_type": "REPS_ONLY",
+      "animation": "bicycle_crunch.webp"
+    },
+    {
+      "id": "russian_twist",
+      "name_fr": "Russian Twist",
+      "name_en": "Russian Twist",
+      "category": "CORE",
+      "primary_muscle": "OBLIQUES",
+      "secondary_muscles": [
+        "ABS"
+      ],
+      "equipment": "PLATE",
+      "tracking_type": "WEIGHT_REPS",
+      "animation": "russian_twist.webp"
+    },
+    {
+      "id": "high_to_low_woodchop",
+      "name_fr": "Woodchop haut vers bas",
+      "name_en": "High-to-Low Cable Woodchop",
+      "category": "CORE",
+      "primary_muscle": "OBLIQUES",
+      "secondary_muscles": [
+        "ABS"
+      ],
+      "equipment": "CABLE",
+      "tracking_type": "WEIGHT_REPS",
+      "animation": "high_to_low_woodchop.webp"
+    },
+    {
+      "id": "low_to_high_woodchop",
+      "name_fr": "Woodchop bas vers haut",
+      "name_en": "Low-to-High Cable Woodchop",
+      "category": "CORE",
+      "primary_muscle": "OBLIQUES",
+      "secondary_muscles": [
+        "ABS"
+      ],
+      "equipment": "CABLE",
+      "tracking_type": "WEIGHT_REPS",
+      "animation": "low_to_high_woodchop.webp"
+    },
+    {
+      "id": "pallof_press",
+      "name_fr": "Pallof Press",
+      "name_en": "Pallof Press",
+      "category": "CORE",
+      "primary_muscle": "CORE",
+      "secondary_muscles": [
+        "OBLIQUES"
+      ],
+      "equipment": "CABLE",
+      "tracking_type": "WEIGHT_REPS",
+      "animation": "pallof_press.webp"
+    },
+    {
+      "id": "ab_wheel_rollout",
+      "name_fr": "Roue abdominale",
+      "name_en": "Ab Wheel Rollout",
+      "category": "CORE",
+      "primary_muscle": "ABS",
+      "secondary_muscles": [
+        "LATS",
+        "CORE"
+      ],
+      "equipment": "AB_WHEEL",
+      "tracking_type": "REPS_ONLY",
+      "animation": "ab_wheel_rollout.webp"
+    },
+    {
+      "id": "dead_bug",
+      "name_fr": "Dead Bug",
+      "name_en": "Dead Bug",
+      "category": "CORE",
+      "primary_muscle": "CORE",
+      "secondary_muscles": [
+        "ABS"
+      ],
+      "equipment": "BODYWEIGHT",
+      "tracking_type": "REPS_ONLY",
+      "animation": "dead_bug.webp"
+    },
+    {
+      "id": "bird_dog",
+      "name_fr": "Bird Dog",
+      "name_en": "Bird Dog",
+      "category": "CORE",
+      "primary_muscle": "CORE",
+      "secondary_muscles": [
+        "GLUTES",
+        "LOWER_BACK"
+      ],
+      "equipment": "BODYWEIGHT",
+      "tracking_type": "REPS_ONLY",
+      "animation": "bird_dog.webp"
+    },
+    {
+      "id": "mountain_climber",
+      "name_fr": "Mountain Climbers",
+      "name_en": "Mountain Climbers",
+      "category": "CORE",
+      "primary_muscle": "CORE",
+      "secondary_muscles": [
+        "HIP_FLEXORS",
+        "SHOULDERS"
+      ],
+      "equipment": "BODYWEIGHT",
+      "tracking_type": "DURATION",
+      "animation": "mountain_climber.webp"
+    },
+    {
+      "id": "hollow_body_hold",
+      "name_fr": "Hollow Body Hold",
+      "name_en": "Hollow Body Hold",
+      "category": "CORE",
+      "primary_muscle": "ABS",
+      "secondary_muscles": [
+        "CORE"
+      ],
+      "equipment": "BODYWEIGHT",
+      "tracking_type": "DURATION",
+      "animation": "hollow_body_hold.webp"
+    },
+    {
+      "id": "stomach_vacuum",
+      "name_fr": "Stomach Vacuum",
+      "name_en": "Stomach Vacuum",
+      "category": "CORE",
+      "primary_muscle": "TRANSVERSE_ABDOMINIS",
+      "secondary_muscles": [
+        "CORE"
+      ],
+      "equipment": "BODYWEIGHT",
+      "tracking_type": "REPS_ONLY",
+      "animation": "stomach_vacuum.webp"
+    },
+    {
+      "id": "farmer_carry",
+      "name_fr": "Farmer Carry",
+      "name_en": "Farmer Carry",
+      "category": "CORE",
+      "primary_muscle": "CORE",
+      "secondary_muscles": [
+        "FOREARMS",
+        "TRAPS",
+        "GLUTES"
+      ],
+      "equipment": "DUMBBELL",
+      "tracking_type": "WEIGHT_DISTANCE",
+      "animation": "farmer_carry.webp"
+    },
+    {
+      "id": "suitcase_carry",
+      "name_fr": "Suitcase Carry",
+      "name_en": "Suitcase Carry",
+      "category": "CORE",
+      "primary_muscle": "OBLIQUES",
+      "secondary_muscles": [
+        "FOREARMS",
+        "TRAPS"
+      ],
+      "equipment": "KETTLEBELL",
+      "tracking_type": "WEIGHT_DISTANCE",
+      "animation": "suitcase_carry.webp"
+    },
+    {
+      "id": "dumbbell_shrug",
+      "name_fr": "Shrug haltères",
+      "name_en": "Dumbbell Shrug",
+      "category": "TRAPS",
+      "primary_muscle": "TRAPS",
+      "secondary_muscles": [
+        "FOREARMS"
+      ],
+      "equipment": "DUMBBELL",
+      "tracking_type": "WEIGHT_REPS",
+      "animation": "dumbbell_shrug.webp"
+    },
+    {
+      "id": "barbell_shrug",
+      "name_fr": "Shrug barre",
+      "name_en": "Barbell Shrug",
+      "category": "TRAPS",
+      "primary_muscle": "TRAPS",
+      "secondary_muscles": [
+        "FOREARMS"
+      ],
+      "equipment": "BARBELL",
+      "tracking_type": "WEIGHT_REPS",
+      "animation": "barbell_shrug.webp"
+    },
+    {
+      "id": "smith_shrug",
+      "name_fr": "Shrug Smith Machine",
+      "name_en": "Smith Machine Shrug",
+      "category": "TRAPS",
+      "primary_muscle": "TRAPS",
+      "secondary_muscles": [
+        "FOREARMS"
+      ],
+      "equipment": "SMITH_MACHINE",
+      "tracking_type": "WEIGHT_REPS",
+      "animation": "smith_shrug.webp"
+    },
+    {
+      "id": "machine_shrug",
+      "name_fr": "Shrug machine",
+      "name_en": "Machine Shrug",
+      "category": "TRAPS",
+      "primary_muscle": "TRAPS",
+      "secondary_muscles": [
+        "FOREARMS"
+      ],
+      "equipment": "MACHINE",
+      "tracking_type": "WEIGHT_REPS",
+      "animation": "machine_shrug.webp"
+    },
+    {
+      "id": "farmer_walk",
+      "name_fr": "Farmer Walk",
+      "name_en": "Farmer Walk",
+      "category": "TRAPS",
+      "primary_muscle": "TRAPS",
+      "secondary_muscles": [
+        "FOREARMS",
+        "CORE",
+        "GLUTES"
+      ],
+      "equipment": "OTHER",
+      "tracking_type": "WEIGHT_DISTANCE",
+      "animation": "farmer_walk.webp"
+    },
+    {
+      "id": "barbell_wrist_curl",
+      "name_fr": "Wrist Curl barre",
+      "name_en": "Barbell Wrist Curl",
+      "category": "FOREARMS",
+      "primary_muscle": "FOREARMS",
+      "secondary_muscles": [],
+      "equipment": "BARBELL",
+      "tracking_type": "WEIGHT_REPS",
+      "animation": "barbell_wrist_curl.webp"
+    },
+    {
+      "id": "dumbbell_wrist_curl",
+      "name_fr": "Wrist Curl haltères",
+      "name_en": "Dumbbell Wrist Curl",
+      "category": "FOREARMS",
+      "primary_muscle": "FOREARMS",
+      "secondary_muscles": [],
+      "equipment": "DUMBBELL",
+      "tracking_type": "WEIGHT_REPS",
+      "animation": "dumbbell_wrist_curl.webp"
+    },
+    {
+      "id": "reverse_wrist_curl",
+      "name_fr": "Reverse Wrist Curl",
+      "name_en": "Reverse Wrist Curl",
+      "category": "FOREARMS",
+      "primary_muscle": "FOREARMS",
+      "secondary_muscles": [],
+      "equipment": "BARBELL",
+      "tracking_type": "WEIGHT_REPS",
+      "animation": "reverse_wrist_curl.webp"
+    },
+    {
+      "id": "ez_bar_reverse_curl",
+      "name_fr": "Reverse Curl barre EZ",
+      "name_en": "EZ-Bar Reverse Curl",
+      "category": "FOREARMS",
+      "primary_muscle": "BRACHIORADIALIS",
+      "secondary_muscles": [
+        "BICEPS"
+      ],
+      "equipment": "EZ_BAR",
+      "tracking_type": "WEIGHT_REPS",
+      "animation": "ez_bar_reverse_curl.webp"
+    },
+    {
+      "id": "wrist_roller",
+      "name_fr": "Wrist Roller",
+      "name_en": "Wrist Roller",
+      "category": "FOREARMS",
+      "primary_muscle": "FOREARMS",
+      "secondary_muscles": [],
+      "equipment": "OTHER",
+      "tracking_type": "WEIGHT_REPS",
+      "animation": "wrist_roller.webp"
+    },
+    {
+      "id": "dead_hang",
+      "name_fr": "Suspension à la barre",
+      "name_en": "Dead Hang",
+      "category": "FOREARMS",
+      "primary_muscle": "FOREARMS",
+      "secondary_muscles": [
+        "LATS",
+        "SHOULDERS"
+      ],
+      "equipment": "BODYWEIGHT",
+      "tracking_type": "DURATION",
+      "animation": "dead_hang.webp"
+    },
+    {
+      "id": "deadlift",
+      "name_fr": "Soulevé de terre conventionnel",
+      "name_en": "Conventional Deadlift",
+      "category": "FULL_BODY",
+      "primary_muscle": "POSTERIOR_CHAIN",
+      "secondary_muscles": [
+        "GLUTES",
+        "HAMSTRINGS",
+        "LOWER_BACK",
+        "TRAPS",
+        "FOREARMS"
+      ],
+      "equipment": "BARBELL",
+      "tracking_type": "WEIGHT_REPS",
+      "animation": "deadlift.webp"
+    },
+    {
+      "id": "sumo_deadlift",
+      "name_fr": "Soulevé de terre sumo",
+      "name_en": "Sumo Deadlift",
+      "category": "FULL_BODY",
+      "primary_muscle": "GLUTES",
+      "secondary_muscles": [
+        "HAMSTRINGS",
+        "QUADS",
+        "LOWER_BACK",
+        "FOREARMS"
+      ],
+      "equipment": "BARBELL",
+      "tracking_type": "WEIGHT_REPS",
+      "animation": "sumo_deadlift.webp"
+    },
+    {
+      "id": "trap_bar_deadlift",
+      "name_fr": "Soulevé de terre Trap Bar",
+      "name_en": "Trap Bar Deadlift",
+      "category": "FULL_BODY",
+      "primary_muscle": "QUADS",
+      "secondary_muscles": [
+        "GLUTES",
+        "HAMSTRINGS",
+        "TRAPS",
+        "FOREARMS"
+      ],
+      "equipment": "TRAP_BAR",
+      "tracking_type": "WEIGHT_REPS",
+      "animation": "trap_bar_deadlift.webp"
+    },
+    {
+      "id": "clean",
+      "name_fr": "Épaulé",
+      "name_en": "Clean",
+      "category": "FULL_BODY",
+      "primary_muscle": "FULL_BODY",
+      "secondary_muscles": [
+        "QUADS",
+        "GLUTES",
+        "HAMSTRINGS",
+        "TRAPS",
+        "SHOULDERS"
+      ],
+      "equipment": "BARBELL",
+      "tracking_type": "WEIGHT_REPS",
+      "animation": "clean.webp"
+    },
+    {
+      "id": "power_clean",
+      "name_fr": "Power Clean",
+      "name_en": "Power Clean",
+      "category": "FULL_BODY",
+      "primary_muscle": "FULL_BODY",
+      "secondary_muscles": [
+        "QUADS",
+        "GLUTES",
+        "HAMSTRINGS",
+        "TRAPS",
+        "SHOULDERS"
+      ],
+      "equipment": "BARBELL",
+      "tracking_type": "WEIGHT_REPS",
+      "animation": "power_clean.webp"
+    },
+    {
+      "id": "clean_and_press",
+      "name_fr": "Clean and Press",
+      "name_en": "Clean and Press",
+      "category": "FULL_BODY",
+      "primary_muscle": "FULL_BODY",
+      "secondary_muscles": [
+        "LEGS",
+        "SHOULDERS",
+        "TRICEPS",
+        "CORE"
+      ],
+      "equipment": "BARBELL",
+      "tracking_type": "WEIGHT_REPS",
+      "animation": "clean_and_press.webp"
+    },
+    {
+      "id": "dumbbell_thruster",
+      "name_fr": "Thruster haltères",
+      "name_en": "Dumbbell Thruster",
+      "category": "FULL_BODY",
+      "primary_muscle": "FULL_BODY",
+      "secondary_muscles": [
+        "QUADS",
+        "GLUTES",
+        "SHOULDERS",
+        "TRICEPS"
+      ],
+      "equipment": "DUMBBELL",
+      "tracking_type": "WEIGHT_REPS",
+      "animation": "dumbbell_thruster.webp"
+    },
+    {
+      "id": "barbell_thruster",
+      "name_fr": "Thruster barre",
+      "name_en": "Barbell Thruster",
+      "category": "FULL_BODY",
+      "primary_muscle": "FULL_BODY",
+      "secondary_muscles": [
+        "QUADS",
+        "GLUTES",
+        "SHOULDERS",
+        "TRICEPS"
+      ],
+      "equipment": "BARBELL",
+      "tracking_type": "WEIGHT_REPS",
+      "animation": "barbell_thruster.webp"
+    },
+    {
+      "id": "kettlebell_swing",
+      "name_fr": "Kettlebell Swing",
+      "name_en": "Kettlebell Swing",
+      "category": "FULL_BODY",
+      "primary_muscle": "GLUTES",
+      "secondary_muscles": [
+        "HAMSTRINGS",
+        "CORE",
+        "SHOULDERS"
+      ],
+      "equipment": "KETTLEBELL",
+      "tracking_type": "WEIGHT_REPS",
+      "animation": "kettlebell_swing.webp"
+    },
+    {
+      "id": "kettlebell_goblet_squat",
+      "name_fr": "Goblet Squat kettlebell",
+      "name_en": "Kettlebell Goblet Squat",
+      "category": "FULL_BODY",
+      "primary_muscle": "QUADS",
+      "secondary_muscles": [
+        "GLUTES",
+        "CORE"
+      ],
+      "equipment": "KETTLEBELL",
+      "tracking_type": "WEIGHT_REPS",
+      "animation": "kettlebell_goblet_squat.webp"
+    },
+    {
+      "id": "turkish_get_up",
+      "name_fr": "Turkish Get-Up",
+      "name_en": "Turkish Get-Up",
+      "category": "FULL_BODY",
+      "primary_muscle": "FULL_BODY",
+      "secondary_muscles": [
+        "CORE",
+        "SHOULDERS",
+        "GLUTES"
+      ],
+      "equipment": "KETTLEBELL",
+      "tracking_type": "WEIGHT_REPS",
+      "animation": "turkish_get_up.webp"
+    },
+    {
+      "id": "dumbbell_snatch",
+      "name_fr": "Snatch haltère",
+      "name_en": "Dumbbell Snatch",
+      "category": "FULL_BODY",
+      "primary_muscle": "FULL_BODY",
+      "secondary_muscles": [
+        "SHOULDERS",
+        "GLUTES",
+        "HAMSTRINGS",
+        "CORE"
+      ],
+      "equipment": "DUMBBELL",
+      "tracking_type": "WEIGHT_REPS",
+      "animation": "dumbbell_snatch.webp"
+    },
+    {
+      "id": "kettlebell_snatch",
+      "name_fr": "Snatch kettlebell",
+      "name_en": "Kettlebell Snatch",
+      "category": "FULL_BODY",
+      "primary_muscle": "FULL_BODY",
+      "secondary_muscles": [
+        "SHOULDERS",
+        "GLUTES",
+        "HAMSTRINGS",
+        "CORE"
+      ],
+      "equipment": "KETTLEBELL",
+      "tracking_type": "WEIGHT_REPS",
+      "animation": "kettlebell_snatch.webp"
+    },
+    {
+      "id": "burpee",
+      "name_fr": "Burpee",
+      "name_en": "Burpee",
+      "category": "FULL_BODY",
+      "primary_muscle": "FULL_BODY",
+      "secondary_muscles": [
+        "CHEST",
+        "QUADS",
+        "CORE"
+      ],
+      "equipment": "BODYWEIGHT",
+      "tracking_type": "REPS_ONLY",
+      "animation": "burpee.webp"
+    },
+    {
+      "id": "sled_push",
+      "name_fr": "Poussée de traîneau",
+      "name_en": "Sled Push",
+      "category": "FULL_BODY",
+      "primary_muscle": "QUADS",
+      "secondary_muscles": [
+        "GLUTES",
+        "CALVES",
+        "CORE",
+        "SHOULDERS"
+      ],
+      "equipment": "SLED",
+      "tracking_type": "WEIGHT_DISTANCE",
+      "animation": "sled_push.webp"
+    },
+    {
+      "id": "sled_pull",
+      "name_fr": "Tirage de traîneau",
+      "name_en": "Sled Pull",
+      "category": "FULL_BODY",
+      "primary_muscle": "BACK",
+      "secondary_muscles": [
+        "LEGS",
+        "FOREARMS",
+        "CORE"
+      ],
+      "equipment": "SLED",
+      "tracking_type": "WEIGHT_DISTANCE",
+      "animation": "sled_pull.webp"
+    },
+    {
+      "id": "battle_rope",
+      "name_fr": "Battle Rope",
+      "name_en": "Battle Rope",
+      "category": "FULL_BODY",
+      "primary_muscle": "SHOULDERS",
+      "secondary_muscles": [
+        "ARMS",
+        "CORE"
+      ],
+      "equipment": "BATTLE_ROPE",
+      "tracking_type": "DURATION",
+      "animation": "battle_rope.webp"
+    },
+    {
+      "id": "bike_warmup",
+      "name_fr": "Vélo stationnaire",
+      "name_en": "Stationary Bike",
+      "category": "CARDIO",
+      "primary_muscle": "CARDIO",
+      "secondary_muscles": [
+        "QUADS",
+        "HAMSTRINGS",
+        "CALVES"
+      ],
+      "equipment": "CARDIO_MACHINE",
+      "tracking_type": "DURATION",
+      "animation": "bike_warmup.webp"
+    },
+    {
+      "id": "spin_bike",
+      "name_fr": "Vélo spinning",
+      "name_en": "Spin Bike",
+      "category": "CARDIO",
+      "primary_muscle": "CARDIO",
+      "secondary_muscles": [
+        "QUADS",
+        "HAMSTRINGS",
+        "CALVES"
+      ],
+      "equipment": "CARDIO_MACHINE",
+      "tracking_type": "DURATION",
+      "animation": "spin_bike.webp"
+    },
+    {
+      "id": "treadmill",
+      "name_fr": "Tapis de course",
+      "name_en": "Treadmill",
+      "category": "CARDIO",
+      "primary_muscle": "CARDIO",
+      "secondary_muscles": [
+        "LEGS"
+      ],
+      "equipment": "CARDIO_MACHINE",
+      "tracking_type": "DURATION_DISTANCE",
+      "animation": "treadmill.webp"
+    },
+    {
+      "id": "incline_treadmill_walk",
+      "name_fr": "Marche inclinée",
+      "name_en": "Incline Treadmill Walk",
+      "category": "CARDIO",
+      "primary_muscle": "CARDIO",
+      "secondary_muscles": [
+        "GLUTES",
+        "CALVES",
+        "HAMSTRINGS"
+      ],
+      "equipment": "CARDIO_MACHINE",
+      "tracking_type": "DURATION_DISTANCE",
+      "animation": "incline_treadmill_walk.webp"
+    },
+    {
+      "id": "rowing_machine",
+      "name_fr": "Rameur",
+      "name_en": "Rowing Machine",
+      "category": "CARDIO",
+      "primary_muscle": "CARDIO",
+      "secondary_muscles": [
+        "BACK",
+        "LEGS",
+        "ARMS",
+        "CORE"
+      ],
+      "equipment": "CARDIO_MACHINE",
+      "tracking_type": "DURATION_DISTANCE",
+      "animation": "rowing_machine.webp"
+    },
+    {
+      "id": "elliptical",
+      "name_fr": "Vélo elliptique",
+      "name_en": "Elliptical",
+      "category": "CARDIO",
+      "primary_muscle": "CARDIO",
+      "secondary_muscles": [
+        "LEGS",
+        "GLUTES"
+      ],
+      "equipment": "CARDIO_MACHINE",
+      "tracking_type": "DURATION",
+      "animation": "elliptical.webp"
+    },
+    {
+      "id": "stair_climber",
+      "name_fr": "StairMaster / Escaliers",
+      "name_en": "Stair Climber",
+      "category": "CARDIO",
+      "primary_muscle": "CARDIO",
+      "secondary_muscles": [
+        "QUADS",
+        "GLUTES",
+        "CALVES"
+      ],
+      "equipment": "CARDIO_MACHINE",
+      "tracking_type": "DURATION",
+      "animation": "stair_climber.webp"
+    },
+    {
+      "id": "air_bike",
+      "name_fr": "Air Bike / Assault Bike",
+      "name_en": "Air Bike",
+      "category": "CARDIO",
+      "primary_muscle": "CARDIO",
+      "secondary_muscles": [
+        "LEGS",
+        "ARMS",
+        "SHOULDERS"
+      ],
+      "equipment": "CARDIO_MACHINE",
+      "tracking_type": "DURATION_DISTANCE",
+      "animation": "air_bike.webp"
+    },
+    {
+      "id": "ski_erg",
+      "name_fr": "SkiErg",
+      "name_en": "SkiErg",
+      "category": "CARDIO",
+      "primary_muscle": "CARDIO",
+      "secondary_muscles": [
+        "LATS",
+        "TRICEPS",
+        "CORE"
+      ],
+      "equipment": "CARDIO_MACHINE",
+      "tracking_type": "DURATION_DISTANCE",
+      "animation": "ski_erg.webp"
+    },
+    {
+      "id": "jump_rope",
+      "name_fr": "Corde à sauter",
+      "name_en": "Jump Rope",
+      "category": "CARDIO",
+      "primary_muscle": "CARDIO",
+      "secondary_muscles": [
+        "CALVES",
+        "SHOULDERS"
+      ],
+      "equipment": "JUMP_ROPE",
+      "tracking_type": "DURATION",
+      "animation": "jump_rope.webp"
+    }
+  ]
+}

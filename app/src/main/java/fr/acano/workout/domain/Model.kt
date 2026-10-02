@@ -25,19 +25,41 @@ data class PlannedStep(
     val targetDurationSeconds: Int? = null,
     /** Repos après une série, en secondes. 0 = pas de chrono. */
     val restSeconds: Int = 60,
+    /** Distance visée, en mètres, pour un exercice qui se mesure en distance sans chrono. */
+    val targetDistanceMeters: Int? = null,
 )
 
 /**
- * Détermine l'interface de saisie d'un exercice.
+ * Détermine l'interface de saisie d'un exercice : ce qu'on note à chaque série.
  *
  * - [WEIGHTED_REPS] : poids + répétitions (machines).
  * - [TIMED] : durée fixe, déclenchée par un timer (vélo, planche).
- * - [REPS_ONLY] : quelques répétitions, sans charge (stomach vacuum).
+ * - [REPS_ONLY] : des répétitions, sans charge (pompes, stomach vacuum).
+ * - [WEIGHTED_TIMED] : une durée sous charge (planche lestée).
+ * - [DISTANCE] : une distance, sans charge ni chrono.
+ * - [WEIGHTED_DISTANCE] : une charge portée sur une distance (farmer carry, traîneau).
+ * - [TIMED_DISTANCE] : une durée chronométrée, puis la distance parcourue (tapis, rameur).
+ *
+ * Les noms sont stockés en base : on en ajoute, on n'en renomme pas.
  */
-enum class ExerciseKind {
-    WEIGHTED_REPS,
-    TIMED,
-    REPS_ONLY,
+enum class ExerciseKind(
+    val hasWeight: Boolean = false,
+    val hasReps: Boolean = false,
+    /** La série se fait au chrono, sa cible est une durée. */
+    val isTimed: Boolean = false,
+    val hasDistance: Boolean = false,
+) {
+    WEIGHTED_REPS(hasWeight = true, hasReps = true),
+    TIMED(isTimed = true),
+    REPS_ONLY(hasReps = true),
+    WEIGHTED_TIMED(hasWeight = true, isTimed = true),
+    DISTANCE(hasDistance = true),
+    WEIGHTED_DISTANCE(hasWeight = true, hasDistance = true),
+    TIMED_DISTANCE(isTimed = true, hasDistance = true),
+    ;
+
+    /** La cible est une distance : ni reps, ni chrono. */
+    val targetsDistance: Boolean get() = hasDistance && !isTimed
 }
 
 /**
@@ -91,3 +113,33 @@ fun stepWeight(currentKg: Double?, delta: Double, unit: WeightUnit): Double {
 }
 
 private const val GRID_TOLERANCE = 1e-6
+
+/**
+ * Le pas d'une distance, en mètres, selon son ordre de grandeur : 5 m pour
+ * un farmer carry, 50 m pour quelques centaines de mètres, 100 m au-delà du
+ * kilomètre, 500 m au-delà de 10 km.
+ */
+fun distanceStep(meters: Double): Double = when {
+    meters < 100 -> 5.0
+    meters < 1000 -> 50.0
+    meters < 10_000 -> 100.0
+    else -> 500.0
+}
+
+/**
+ * Applique un pas de distance vers le haut ([up]) ou vers le bas, calé sur la
+ * grille du pas ; [fraction] vaut 0,5 pour un demi-pas. Jamais sous zéro.
+ */
+fun stepDistance(currentMeters: Double?, up: Boolean, fraction: Double = 1.0): Double {
+    val current = currentMeters ?: 0.0
+    // En descendant, le pas est celui de la zone qu'on quitte par le bas :
+    // 1000 m − un pas donne 950 m, pas 900 m.
+    val step = distanceStep(if (up) current else (current - 1e-6).coerceAtLeast(0.0)) * fraction
+    val slot = current / step
+    val next = if (up) {
+        (kotlin.math.floor(slot + GRID_TOLERANCE) + 1) * step
+    } else {
+        (kotlin.math.ceil(slot - GRID_TOLERANCE) - 1) * step
+    }
+    return next.coerceAtLeast(0.0)
+}

@@ -34,9 +34,6 @@
     <string name="exercises_name_label">Name</string>
     <string name="exercises_name_placeholder">E.g. Incline press</string>
     <string name="exercises_type">Type</string>
-    <string name="exercises_kind_weighted">Weight</string>
-    <string name="exercises_kind_reps_only">Reps only</string>
-    <string name="exercises_kind_timed">Duration</string>
     <string name="exercises_kind_weighted_hint">Weight and reps, like on a machine.</string>
     <string name="exercises_kind_reps_only_hint">Bodyweight reps, no weight to log.</string>
     <string name="exercises_kind_timed_hint">A timed effort, like a plank or the bike.</string>
@@ -51,4 +48,16 @@
     <string name="exercises_delete_history_kept">Sessions already done stay in your history.</string>
     <string name="exercises_delete_confirm">Delete</string>
     <string name="exercises_cancel">Cancel</string>
+    <string name="exercises_filter_all">All</string>
+    <string name="exercises_no_filter_match">No exercise in this category.</string>
+    <string name="exercises_details">Details</string>
+    <string name="exercises_category">Category</string>
+    <string name="exercises_primary_muscle">Primary muscle</string>
+    <string name="exercises_secondary_muscles">Secondary muscles</string>
+    <string name="exercises_equipment">Equipment</string>
+    <string name="exercises_not_set">Not set</string>
+    <string name="exercises_kind_weighted_timed_hint">A timed effort under load, like a weighted plank.</string>
+    <string name="exercises_kind_distance_hint">A distance to cover, with no weight or timer.</string>
+    <string name="exercises_kind_weighted_distance_hint">A load carried over a distance, like a farmer carry.</string>
+    <string name="exercises_kind_timed_distance_hint">A timed effort, then the distance covered, like the treadmill.</string>
 </resources>
