@@ -7,12 +7,17 @@ import fr.acano.workout.data.db.entity.CustomWorkoutExerciseEntity
 import fr.acano.workout.data.db.entity.ExerciseSessionEntity
 import fr.acano.workout.data.db.entity.SetResultEntity
 import fr.acano.workout.data.db.entity.WorkoutSessionEntity
+import fr.acano.workout.domain.StepState
 
 data class ExerciseSessionWithSets(
     @Embedded val exerciseSession: ExerciseSessionEntity,
     @Relation(parentColumn = "id", entityColumn = "exerciseSessionId")
     val sets: List<SetResultEntity>,
-)
+) {
+    /** Ce que la progression de séance a besoin de savoir de cette étape. */
+    val stepState: StepState
+        get() = StepState(exerciseSession.plannedSets, sets.size, exerciseSession.skipped)
+}
 
 data class SessionWithContent(
     @Embedded val session: WorkoutSessionEntity,

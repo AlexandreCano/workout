@@ -12,6 +12,7 @@ import fr.acano.workout.domain.ExerciseCategory
 import fr.acano.workout.domain.ExerciseKind
 import fr.acano.workout.domain.Muscle
 import fr.acano.workout.domain.PlannedStep
+import fr.acano.workout.domain.SetEffort
 import fr.acano.workout.domain.StepState
 import fr.acano.workout.domain.WorkoutProgression
 import fr.acano.workout.domain.WorkoutType
@@ -150,6 +151,51 @@ class WorkoutRepositoryTest {
             .sets
         assertEquals(1, sets.size)
         assertEquals(1, sets.single().setNumber)
+    }
+
+    @Test
+    fun `ajouter une serie allonge l etape de la seance sans toucher a l entrainement`() = runTest {
+        val sessionId = startProgram(WorkoutType.UPPER_BODY)
+        val chestPress = stepFor(sessionId, "chest_press")
+        val planned = plannedSetsOf(sessionId, chestPress)
+
+        repository.addPlannedSet(chestPress)
+
+        assertEquals(planned + 1, plannedSetsOf(sessionId, chestPress))
+        val workoutStep = repository.observeCustomWorkouts().first()
+            .first { it.workout.name == WorkoutType.UPPER_BODY.label }
+            .exercises.first { it.exerciseId == "chest_press" }
+        assertEquals(planned, workoutStep.plannedSets)
+    }
+
+    @Test
+    fun `passer une etape enchaine sur la suivante et garde les series faites`() = runTest {
+        val sessionId = startProgram(WorkoutType.UPPER_BODY)
+        repository.recordSet(stepFor(sessionId, Program.BIKE), Program.BIKE, setNumber = 1, durationSeconds = 300)
+        val chestPress = stepFor(sessionId, "chest_press")
+        repository.recordSet(chestPress, "chest_press", setNumber = 1, weightKg = 40.0, repetitions = 10)
+
+        repository.skipStep(chestPress)
+
+        val session = repository.session(sessionId)!!
+        val progress = WorkoutProgression.compute(session.orderedExercises.map { it.stepState })
+        assertEquals(2, progress.currentStepIndex)
+        assertEquals(1, session.orderedExercises.first { it.exerciseSession.id == chestPress }.sets.size)
+    }
+
+    @Test
+    fun `le ressenti de la derniere serie de la seance precedente est retrouve`() = runTest {
+        val first = startProgram(WorkoutType.UPPER_BODY)
+        val chestPress = stepFor(first, "chest_press")
+        repository.recordSet(chestPress, "chest_press", setNumber = 1, weightKg = 40.0, repetitions = 12, effort = SetEffort.HARD)
+        clock += 1_000L
+        repository.recordSet(chestPress, "chest_press", setNumber = 2, weightKg = 40.0, repetitions = 12, effort = SetEffort.EASY)
+        finishEntirely(first)
+
+        clock += 86_400_000L
+        val second = startProgram(WorkoutType.UPPER_BODY)
+
+        assertEquals(SetEffort.EASY, repository.observePreviousEfforts(second).first()["chest_press"])
     }
 
     @Test
@@ -710,6 +756,13 @@ class WorkoutRepositoryTest {
             .first { it.exerciseSession.exerciseId == exerciseId }
             .exerciseSession
             .id
+
+    private suspend fun plannedSetsOf(sessionId: Long, exerciseSessionId: Long): Int =
+        repository.session(sessionId)!!
+            .orderedExercises
+            .first { it.exerciseSession.id == exerciseSessionId }
+            .exerciseSession
+            .plannedSets
 
     private suspend fun finishEntirely(sessionId: Long) {
         repository.finishSession(sessionId)

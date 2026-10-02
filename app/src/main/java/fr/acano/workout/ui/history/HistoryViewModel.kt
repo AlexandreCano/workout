@@ -165,6 +165,8 @@ data class SessionDetailUiState(
     val lines: List<SessionDetailLine> = emptyList(),
     /** Vrai s'il manque le poids pour estimer les calories d'exercices qui le permettraient. */
     val needsProfileForCalories: Boolean = false,
+    /** Exercices passés sans qu'aucune série n'ait été faite, dans l'ordre de la séance. */
+    val skippedExercises: List<String> = emptyList(),
 ) {
     val totalSets: Int get() = lines.sumOf { it.sets.size }
 
@@ -213,6 +215,9 @@ class SessionDetailViewModel(
             isInProgress = session.session.endedAt == null,
             needsProfileForCalories = !profile.canEstimate &&
                 session.orderedExercises.any { it.sets.isNotEmpty() && Calories.hasEstimate(it.exerciseSession.exerciseId) },
+            skippedExercises = session.orderedExercises
+                .filter { it.exerciseSession.skipped && it.sets.isEmpty() }
+                .map { catalogue[it.exerciseSession.exerciseId]?.name ?: it.exerciseSession.exerciseId },
             lines = session.orderedExercises
                 .filter { it.sets.isNotEmpty() }
                 .let { done ->

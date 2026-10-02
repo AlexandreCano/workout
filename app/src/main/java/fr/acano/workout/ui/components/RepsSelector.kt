@@ -34,9 +34,9 @@ import fr.acano.workout.ui.theme.WorkoutTheme
  *
  * Des pastilles plutôt qu'un champ de saisie : en fin de série, un appui vaut
  * mieux qu'un clavier qui masque la moitié de l'écran. La plage déborde
- * l'objectif de trois répétitions de chaque côté pour couvrir aussi bien la
- * série ratée que la bonne surprise, et les valeurs hors objectif sont
- * visuellement plus discrètes sans être inaccessibles.
+ * l'objectif de trois répétitions vers le bas, pour la série ratée, et de
+ * dix vers le haut, pour la série où l'on se sent pousser des ailes. Les
+ * valeurs hors objectif sont plus discrètes sans être inaccessibles.
  */
 @Composable
 fun RepsSelector(
@@ -46,7 +46,7 @@ fun RepsSelector(
     onSelect: (Int) -> Unit,
     modifier: Modifier = Modifier,
 ) {
-    val range = ((minReps - 3).coerceAtLeast(1))..(maxReps + 3)
+    val range = ((minReps - 3).coerceAtLeast(1))..(maxReps + 10)
     val scrollState = rememberScrollState()
     val density = LocalDensity.current
     var viewportPx by remember { mutableIntStateOf(0) }

@@ -46,6 +46,12 @@ interface WorkoutDao {
     @Query("UPDATE exercise_session SET plannedWeightKg = :weightKg WHERE id = :exerciseSessionId")
     suspend fun updatePlannedWeight(exerciseSessionId: Long, weightKg: Double?)
 
+    @Query("UPDATE exercise_session SET plannedSets = plannedSets + 1 WHERE id = :exerciseSessionId")
+    suspend fun addPlannedSet(exerciseSessionId: Long)
+
+    @Query("UPDATE exercise_session SET skipped = 1 WHERE id = :exerciseSessionId")
+    suspend fun markSkipped(exerciseSessionId: Long)
+
     @Query("UPDATE exercise_session SET position = :position WHERE id = :exerciseSessionId")
     suspend fun updatePosition(exerciseSessionId: Long, position: Int)
 

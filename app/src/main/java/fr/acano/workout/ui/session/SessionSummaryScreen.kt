@@ -46,6 +46,7 @@ import fr.acano.workout.ui.components.WorkoutPrimaryButton
 import fr.acano.workout.ui.history.CaloriesLine
 import fr.acano.workout.ui.history.ExerciseSetsBreakdown
 import fr.acano.workout.ui.history.SessionDetailViewModel
+import fr.acano.workout.ui.history.SkippedExercisesLine
 import fr.acano.workout.ui.theme.WorkoutMotion
 import fr.acano.workout.ui.theme.WorkoutTheme
 
@@ -131,6 +132,7 @@ fun SessionSummaryScreen(
             if (index > 0) RowDivider()
             ExerciseSetsBreakdown(line)
         }
+        SkippedExercisesLine(state.skippedExercises)
 
         Spacer(Modifier.height(WorkoutTheme.spacing.xxl))
 

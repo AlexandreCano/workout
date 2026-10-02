@@ -9,6 +9,7 @@ import fr.acano.workout.domain.Equipment
 import fr.acano.workout.domain.ExerciseCategory
 import fr.acano.workout.domain.ExerciseKind
 import fr.acano.workout.domain.Muscle
+import fr.acano.workout.domain.SetEffort
 import fr.acano.workout.domain.WorkoutType
 
 /**
@@ -95,6 +96,11 @@ data class ExerciseSessionEntity(
     /** Repos automatique après une série, en secondes. 0 = pas de chrono. */
     @ColumnInfo(defaultValue = "60") val restSeconds: Int = 60,
     val targetDistanceMeters: Int? = null,
+    /**
+     * Exercice passé (machine prise, par exemple) : ses séries restantes sont
+     * abandonnées et la séance continue. Les séries déjà faites sont gardées.
+     */
+    @ColumnInfo(defaultValue = "0") val skipped: Boolean = false,
 )
 
 /** Le résultat réel d'une série. */
@@ -121,6 +127,8 @@ data class SetResultEntity(
     val durationSeconds: Int? = null,
     val completedAt: Long,
     val distanceMeters: Double? = null,
+    /** Ressenti noté à la validation ; null s'il n'a pas été donné. */
+    val effort: SetEffort? = null,
 )
 
 /** Un entraînement composé par l'utilisateur à partir du catalogue. */

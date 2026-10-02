@@ -166,8 +166,8 @@ fun ActiveSessionScreen(
                         step = step,
                         canUndo = step.setsDoneToday.isNotEmpty(),
                         onWeightChange = { viewModel.setWeight(context, it) },
-                        onValidateReps = { viewModel.validateRepsSet(context, it) },
-                        onValidateDistance = { viewModel.validateDistanceSet(context, it) },
+                        onValidateReps = { reps, effort -> viewModel.validateRepsSet(context, reps, effort) },
+                        onValidateDistance = { meters, effort -> viewModel.validateDistanceSet(context, meters, effort) },
                         onStartEffort = { viewModel.startEffortTimer(context) },
                         onMarkTimedDone = {
                             viewModel.validateTimedSetManually(
@@ -176,6 +176,8 @@ fun ActiveSessionScreen(
                             )
                         },
                         onUndo = { viewModel.undoLastSet(context) },
+                        onAddSet = viewModel::addSet,
+                        onSkipExercise = { viewModel.skipExercise(context) },
                     )
                 }
             }

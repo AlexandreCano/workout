@@ -7,7 +7,6 @@ import fr.acano.workout.data.db.entity.SetResultEntity
 import fr.acano.workout.data.db.entity.title
 import fr.acano.workout.data.repository.WorkoutRepository
 import fr.acano.workout.domain.ExerciseKind
-import fr.acano.workout.domain.StepState
 import fr.acano.workout.domain.WorkoutProgression
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
@@ -92,7 +91,7 @@ class HomeViewModel(private val repository: WorkoutRepository) : ViewModel() {
             resumable = active?.let { session ->
                 val steps = session.orderedExercises
                 val progress = WorkoutProgression.compute(
-                    steps.map { StepState(it.exerciseSession.plannedSets, it.sets.size) },
+                    steps.map { it.stepState },
                 )
                 val index = progress.currentStepIndex ?: 0
                 val current = steps.getOrNull(index)

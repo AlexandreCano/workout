@@ -65,6 +65,24 @@ class WorkoutProgressionTest {
     }
 
     @Test
+    fun `une etape passee est consideree comme terminee meme sans serie`() {
+        val progress = WorkoutProgression.compute(
+            listOf(StepState(1, 1), StepState(4, 0, isSkipped = true), StepState(3, 0)),
+        )
+
+        assertEquals(2, progress.currentStepIndex)
+        assertEquals(1, progress.currentSetNumber)
+        assertEquals(2, progress.completedSteps)
+    }
+
+    @Test
+    fun `passer la derniere etape termine la seance`() {
+        val progress = WorkoutProgression.compute(listOf(StepState(1, 1), StepState(3, 1, isSkipped = true)))
+
+        assertTrue(progress.isFinished)
+    }
+
+    @Test
     fun `une seance sans etape n est pas consideree comme terminee`() {
         val progress = WorkoutProgression.compute(emptyList())
 

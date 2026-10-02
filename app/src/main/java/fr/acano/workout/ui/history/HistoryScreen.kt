@@ -251,6 +251,7 @@ fun SessionDetailScreen(
             if (index > 0) RowDivider()
             ExerciseSetsBreakdown(line)
         }
+        SkippedExercisesLine(state.skippedExercises)
 
         Spacer(Modifier.height(WorkoutTheme.spacing.xxxl))
     }

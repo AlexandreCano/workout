@@ -13,6 +13,12 @@ enum class WorkoutType(val label: String) {
 }
 
 /**
+ * Ressenti noté, en option, à la validation d'une série : il dit à la séance
+ * suivante si la charge mérite d'être montée. Les noms sont stockés en base.
+ */
+enum class SetEffort { EASY, OK, HARD }
+
+/**
  * Une étape d'entraînement : l'exercice, ses séries, sa cible et son repos.
  * La cible est une fourchette de répétitions ou une durée selon le type
  * d'exercice ; l'autre reste nulle.

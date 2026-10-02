@@ -3,6 +3,7 @@ package fr.acano.workout.ui.session
 import fr.acano.workout.data.db.entity.ExerciseEntity
 import fr.acano.workout.data.db.entity.SetResultEntity
 import fr.acano.workout.domain.SessionProgress
+import fr.acano.workout.domain.SetEffort
 import fr.acano.workout.domain.WorkoutType
 import fr.acano.workout.timer.TimerState
 
@@ -14,6 +15,8 @@ data class CurrentStep(
     val plannedSets: Int,
     val plannedWeightKg: Double?,
     val lastSessionWeightKg: Double?,
+    /** Ressenti noté sur la dernière série de la séance précédente, s'il y en a un. */
+    val lastSessionEffort: SetEffort? = null,
     /** Séries déjà réalisées aujourd'hui sur cet exercice. */
     val setsDoneToday: List<SetResultEntity>,
     /** Cibles de l'étape, fixées par l'entraînement ; celle qui ne s'applique pas reste nulle. */

@@ -64,4 +64,19 @@
     <string name="session_finish">DONE</string>
     <string name="session_distance_title">Distance covered?</string>
     <string name="session_distance_hint">Read it on the machine\'s display.</string>
+    <string name="session_add_set">Add a set</string>
+    <string name="session_skip_exercise">Skip exercise</string>
+    <string name="session_skip_title">Skip %1$s?</string>
+    <string name="session_skip_text">The remaining sets won\'t be done. Sets already logged are kept.</string>
+    <string name="session_skip_confirm">Skip</string>
+    <string name="session_skip_cancel">Cancel</string>
+    <string name="session_effort_title">How did it feel?</string>
+    <string name="session_effort_easy">Easy</string>
+    <string name="session_effort_ok">Fine</string>
+    <string name="session_effort_hard">Hard</string>
+    <string name="session_last_session_weight_effort">Last session: %1$s, %2$s</string>
+    <string name="session_effort_easy_hint">felt easy, go heavier?</string>
+    <string name="session_effort_ok_hint">felt fine</string>
+    <string name="session_effort_hard_hint">felt hard</string>
+    <string name="session_skipped_exercises">Skipped: %1$s</string>
 </resources>

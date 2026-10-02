@@ -79,6 +79,18 @@ fun ExerciseSetsBreakdown(line: SessionDetailLine, modifier: Modifier = Modifier
     }
 }
 
+/** « Passés : Leg Press, Pec Deck » sous les exercices faits ; rien si aucun n'a été passé. */
+@Composable
+fun SkippedExercisesLine(names: List<String>, modifier: Modifier = Modifier) {
+    if (names.isEmpty()) return
+    Text(
+        text = stringResource(R.string.session_skipped_exercises, names.joinToString(", ")),
+        style = MaterialTheme.typography.bodyMedium,
+        color = MaterialTheme.colorScheme.onSurfaceVariant,
+        modifier = modifier.fillMaxWidth().padding(vertical = WorkoutTheme.spacing.md),
+    )
+}
+
 /** Les séries d'un exercice en tuiles, dans l'ordre, la meilleure teintée. */
 @Composable
 fun SetTiles(sets: List<SetResultEntity>, bestSetIndex: Int?, modifier: Modifier = Modifier) {

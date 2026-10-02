@@ -140,6 +140,26 @@ class MigrationTest {
     }
 
     @Test
+    fun `la v8 ajoute l etape passee et le ressenti sans toucher aux donnees`() {
+        createAt(7) {
+            execSQL("INSERT INTO workout_session (id, type, startedAt, starAwarded) VALUES (1, 'CUSTOM', 0, 0)")
+            execSQL(
+                "INSERT INTO exercise_session (id, sessionId, exerciseId, position, plannedSets, restSeconds) " +
+                    "VALUES (1, 1, 'chest_press', 0, 3, 60)",
+            )
+            execSQL(
+                "INSERT INTO set_result (exerciseSessionId, exerciseId, setNumber, weightKg, repetitions, completedAt) " +
+                    "VALUES (1, 'chest_press', 1, 40.0, 10, 10)",
+            )
+        }
+
+        val db = openMigrated()
+
+        assertEquals(listOf(listOf("3", "0")), db.rows("SELECT plannedSets, skipped FROM exercise_session"))
+        assertEquals(listOf(listOf("10", null)), db.rows("SELECT repetitions, effort FROM set_result"))
+    }
+
+    @Test
     fun `toute la chaine de migrations mene au schema courant`() {
         createAt(1)
         val db = openMigrated()

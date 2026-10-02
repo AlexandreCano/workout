@@ -8,8 +8,10 @@ package fr.acano.workout.domain
 data class StepState(
     val plannedSets: Int,
     val completedSets: Int,
+    /** Étape passée : terminée, quel que soit le nombre de séries faites. */
+    val isSkipped: Boolean = false,
 ) {
-    val isComplete: Boolean get() = completedSets >= plannedSets
+    val isComplete: Boolean get() = isSkipped || completedSets >= plannedSets
 }
 
 data class SessionProgress(

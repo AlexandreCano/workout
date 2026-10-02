@@ -5,6 +5,7 @@ import fr.acano.workout.domain.Equipment
 import fr.acano.workout.domain.ExerciseCategory
 import fr.acano.workout.domain.ExerciseKind
 import fr.acano.workout.domain.Muscle
+import fr.acano.workout.domain.SetEffort
 import fr.acano.workout.domain.WorkoutType
 
 /**
@@ -27,6 +28,9 @@ class Converters {
 
     @TypeConverter fun fromEquipment(value: Equipment?): String? = value?.name
     @TypeConverter fun toEquipment(value: String?): Equipment? = value?.let { enumValueOrNull<Equipment>(it) }
+
+    @TypeConverter fun fromEffort(value: SetEffort?): String? = value?.name
+    @TypeConverter fun toEffort(value: String?): SetEffort? = value?.let { enumValueOrNull<SetEffort>(it) }
 
     /** Une liste de muscles tient dans une colonne : « TRICEPS,FRONT_DELTS ». */
     @TypeConverter fun fromMuscles(value: List<Muscle>): String = value.joinToString(",") { it.name }

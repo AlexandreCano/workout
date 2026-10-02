@@ -68,4 +68,19 @@
     <string name="session_finish">TERMINER</string>
     <string name="session_distance_title">Distance parcourue ?</string>
     <string name="session_distance_hint">Reporte celle qu\'affiche la machine.</string>
+    <string name="session_add_set">Ajouter une série</string>
+    <string name="session_skip_exercise">Passer l\'exercice</string>
+    <string name="session_skip_title">Passer %1$s ?</string>
+    <string name="session_skip_text">Les séries restantes ne seront pas faites. Celles déjà validées sont gardées.</string>
+    <string name="session_skip_confirm">Passer</string>
+    <string name="session_skip_cancel">Annuler</string>
+    <string name="session_effort_title">Ressenti de la série</string>
+    <string name="session_effort_easy">Facile</string>
+    <string name="session_effort_ok">Correct</string>
+    <string name="session_effort_hard">Difficile</string>
+    <string name="session_last_session_weight_effort">Dernière séance : %1$s, %2$s</string>
+    <string name="session_effort_easy_hint">c\'était facile, monter ?</string>
+    <string name="session_effort_ok_hint">c\'était correct</string>
+    <string name="session_effort_hard_hint">c\'était difficile</string>
+    <string name="session_skipped_exercises">Passés : %1$s</string>
 </resources>

@@ -6,7 +6,7 @@ import androidx.lifecycle.viewModelScope
 import fr.acano.workout.data.db.SessionWithContent
 import fr.acano.workout.data.db.entity.ExerciseEntity
 import fr.acano.workout.data.repository.WorkoutRepository
-import fr.acano.workout.domain.StepState
+import fr.acano.workout.domain.SetEffort
 import fr.acano.workout.domain.WorkoutProgression
 import fr.acano.workout.timer.ActiveTimer
 import fr.acano.workout.timer.RestTimerService
@@ -36,7 +36,8 @@ class ActiveSessionViewModel(
     private val previous = combine(
         repository.observePreviousWeights(sessionId),
         repository.observePreviousDistances(sessionId),
-    ) { weights, distances -> Previous(weights, distances) }
+        repository.observePreviousEfforts(sessionId),
+    ) { weights, distances, efforts -> Previous(weights, distances, efforts) }
 
     val state: StateFlow<ActiveSessionUiState> = combine(
         repository.observeSession(sessionId),
@@ -61,7 +62,11 @@ class ActiveSessionViewModel(
     )
 
     /** Dernières valeurs connues par exercice, hors séance en cours. */
-    private data class Previous(val weights: Map<String, Double>, val distances: Map<String, Double>)
+    private data class Previous(
+        val weights: Map<String, Double>,
+        val distances: Map<String, Double>,
+        val efforts: Map<String, SetEffort>,
+    )
 
     private fun buildState(
         session: SessionWithContent?,
@@ -75,7 +80,7 @@ class ActiveSessionViewModel(
         }
         val steps = session.orderedExercises
         val progress = WorkoutProgression.compute(
-            steps.map { StepState(it.exerciseSession.plannedSets, it.sets.size) },
+            steps.map { it.stepState },
         )
         val currentIndex = progress.currentStepIndex
         val step = currentIndex?.let { index ->
@@ -90,6 +95,7 @@ class ActiveSessionViewModel(
                 plannedWeightKg = item.exerciseSession.plannedWeightKg
                     ?: previousWeights[exercise.id],
                 lastSessionWeightKg = previousWeights[exercise.id],
+                lastSessionEffort = previous.efforts[exercise.id],
                 setsDoneToday = item.sets.sortedBy { it.setNumber },
                 targetRepsMin = planned.targetRepsMin,
                 targetRepsMax = planned.targetRepsMax,
@@ -100,7 +106,7 @@ class ActiveSessionViewModel(
             )
         }
         val pendingSteps = steps
-            .filter { it.sets.size < it.exerciseSession.plannedSets }
+            .filterNot { it.stepState.isComplete }
             .map { item ->
                 PendingStep(
                     exerciseSessionId = item.exerciseSession.id,
@@ -141,8 +147,8 @@ class ActiveSessionViewModel(
 
     // --- Validation des séries ---
 
-    /** Série classique : poids + répétitions réellement effectuées. */
-    fun validateRepsSet(context: Context, repetitions: Int) {
+    /** Série classique : poids + répétitions réellement effectuées, et le ressenti s'il a été donné. */
+    fun validateRepsSet(context: Context, repetitions: Int, effort: SetEffort? = null) {
         val step = state.value.step ?: return
         viewModelScope.launch {
             repository.recordSet(
@@ -151,13 +157,14 @@ class ActiveSessionViewModel(
                 setNumber = step.setNumber,
                 weightKg = step.plannedWeightKg.takeIf { step.exercise.kind.hasWeight },
                 repetitions = repetitions,
+                effort = effort,
             )
             startRestIfNeeded(context, step)
         }
     }
 
     /** Série mesurée en distance : charge éventuelle + distance parcourue. */
-    fun validateDistanceSet(context: Context, distanceMeters: Double) {
+    fun validateDistanceSet(context: Context, distanceMeters: Double, effort: SetEffort? = null) {
         val step = state.value.step ?: return
         viewModelScope.launch {
             repository.recordSet(
@@ -166,6 +173,7 @@ class ActiveSessionViewModel(
                 setNumber = step.setNumber,
                 weightKg = step.plannedWeightKg.takeIf { step.exercise.kind.hasWeight },
                 distanceMeters = distanceMeters,
+                effort = effort,
             )
             startRestIfNeeded(context, step)
         }
@@ -294,6 +302,24 @@ class ActiveSessionViewModel(
         viewModelScope.launch {
             repository.applyPendingOrder(sessionId, orderedExerciseSessionIds)
         }
+    }
+
+    // --- Séries en plus, exercice passé ---
+
+    /** Une série de plus sur l'exercice affiché, pour cette séance seulement. */
+    fun addSet() {
+        val step = state.value.step ?: return
+        viewModelScope.launch { repository.addPlannedSet(step.exerciseSessionId) }
+    }
+
+    /**
+     * Passe l'exercice affiché (machine prise, par exemple) : ses séries
+     * restantes sont abandonnées et la séance enchaîne sur le suivant.
+     */
+    fun skipExercise(context: Context) {
+        val step = state.value.step ?: return
+        skipTimer(context)
+        viewModelScope.launch { repository.skipStep(step.exerciseSessionId) }
     }
 
     fun undoLastSet(context: Context) {

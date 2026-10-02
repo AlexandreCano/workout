@@ -18,6 +18,7 @@ import fr.acano.workout.data.seed.ExerciseCatalog
 import fr.acano.workout.data.seed.LocalizedNames
 import fr.acano.workout.data.seed.Program
 import fr.acano.workout.domain.PlannedStep
+import fr.acano.workout.domain.SetEffort
 import fr.acano.workout.domain.WorkoutType
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.map
@@ -131,6 +132,17 @@ class WorkoutRepository(
         workoutDao.observePreviousWeights(sessionId).map { sets ->
             sets.groupBy { it.exerciseId }
                 .mapNotNull { (id, rows) -> rows.firstOrNull()?.weightKg?.let { id to it } }
+                .toMap()
+        }
+
+    /**
+     * Ressenti de la dernière série chargée par exercice, en excluant la séance
+     * en cours : il accompagne la dernière charge connue (voir [observePreviousWeights]).
+     */
+    fun observePreviousEfforts(sessionId: Long): Flow<Map<String, SetEffort>> =
+        workoutDao.observePreviousWeights(sessionId).map { sets ->
+            sets.groupBy { it.exerciseId }
+                .mapNotNull { (id, rows) -> rows.firstOrNull()?.effort?.let { id to it } }
                 .toMap()
         }
 
@@ -304,7 +316,7 @@ class WorkoutRepository(
         transform: (List<ExerciseSessionWithSets>) -> List<ExerciseSessionWithSets>,
     ) {
         val steps = workoutDao.getSession(sessionId)?.orderedExercises ?: return
-        val (completed, pending) = steps.partition { it.sets.size >= it.exerciseSession.plannedSets }
+        val (completed, pending) = steps.partition { it.stepState.isComplete }
         workoutDao.applyOrder((completed + transform(pending)).map { it.exerciseSession.id })
     }
 
@@ -316,6 +328,7 @@ class WorkoutRepository(
         repetitions: Int? = null,
         durationSeconds: Int? = null,
         distanceMeters: Double? = null,
+        effort: SetEffort? = null,
     ) {
         workoutDao.insertSetResult(
             SetResultEntity(
@@ -327,8 +340,19 @@ class WorkoutRepository(
                 durationSeconds = durationSeconds,
                 completedAt = now(),
                 distanceMeters = distanceMeters,
+                effort = effort,
             ),
         )
+    }
+
+    /** Une série de plus pour cette étape, dans cette séance seulement : l'entraînement n'est pas modifié. */
+    suspend fun addPlannedSet(exerciseSessionId: Long) {
+        workoutDao.addPlannedSet(exerciseSessionId)
+    }
+
+    /** Passe l'étape : ses séries restantes sont abandonnées, la séance continue avec la suivante. */
+    suspend fun skipStep(exerciseSessionId: Long) {
+        workoutDao.markSkipped(exerciseSessionId)
     }
 
     suspend fun undoLastSet(exerciseSessionId: Long) {
